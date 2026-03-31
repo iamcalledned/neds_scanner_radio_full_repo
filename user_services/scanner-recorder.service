@@ -1,0 +1,18 @@
+[Unit]
+Description=Scanner Recorder (Pulse -> ffmpeg/sox -> wav)
+After=graphical-session.target pipewire.service pipewire-pulse.service pulseaudio.service
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/scanner/env
+WorkingDirectory=/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/record/
+ExecStartPre=/usr/bin/bash -lc 'for i in {1..30}; do pactl info >/dev/null 2>&1 && exit 0; sleep 1; done; echo "Pulse/PipeWire not ready" >&2; exit 1'
+ExecStart=/usr/bin/env bash /home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/record/multi_scanner_recorder_with_redis.sh
+Restart=on-failure
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

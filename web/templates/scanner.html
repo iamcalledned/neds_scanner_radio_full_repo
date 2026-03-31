@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0b0f19] text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ned’s Scanner Network</title>
+
+  <meta name="description" content="Live and archived scanner feeds — Hopedale, Milford, Franklin, and more.">
+  <meta name="theme-color" content="#0b0f19">
+  <link rel="manifest" href="/scanner/manifest.json?v=v20260330b">
+  <link rel="icon" type="image/x-icon" href="/scanner/static/icons/favicon.ico">
+  <link rel="apple-touch-icon" href="/scanner/static/icons/icon-192x192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Scanner">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pd: '#1e3a8a',
+            fd: '#7f1d1d',
+            bg: '#0b0f19',
+            scannerBlue: '#38bdf8'
+          },
+          fontFamily: { sans: ['Inter','sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/scanner/static/js/scanner_app_new.js?v=v20260330b" defer></script>
+  <script src="/scanner/static/js/pwa.js?v=v20260330b" defer></script>
+
+  <style>
+    /* === Base visual theme === */
+    body {
+      background: radial-gradient(circle at 20% 15%, rgba(30,41,59,0.55) 0%, rgba(11,15,25,0.92) 55%),
+                  linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(2,6,23,0.98) 100%);
+    }
+    .glass { background: rgba(15,23,42,0.78); border: 1px solid rgba(148,163,184,0.12); box-shadow: 0 20px 40px rgba(2,6,23,0.55); }
+    .glass:hover { border-color: rgba(148,163,184,0.25); transform: translateY(-1px); }
+
+    .panel { background: rgba(15,23,42,0.7); border: 1px solid rgba(148,163,184,0.14); box-shadow: 0 12px 32px rgba(2,6,23,0.45); border-radius: 24px; }
+    .panel-soft { background: rgba(2,6,23,0.55); border: 1px solid rgba(71,85,105,0.35); }
+
+    .section-kicker { font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase; color: #94a3b8; }
+    .section-title { font-size: 1.5rem; font-weight: 600; color: #f8fafc; }
+    .section-subtitle { font-size: 0.85rem; color: #94a3b8; }
+
+    .stat-value { font-size: 2.5rem; font-weight: 700; }
+    .stat-label { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: #94a3b8; }
+
+    /* === Live indicator === */
+    .live-indicator {
+      width: 10px; height: 10px; border-radius: 50%;
+      background-color: #64748b; display: inline-block;
+      margin-right: 6px; transition: background-color 0.3s ease;
+      vertical-align: middle;
+    }
+    .live-indicator.live {
+      background-color: #f87171;
+      animation: pulse-bg 1.5s cubic-bezier(0.4,0,0.6,1) infinite;
+      box-shadow: 0 0 6px #ef4444, 0 0 10px #f87171;
+    }
+    
+    /* === UPDATED: Selector is more generic now === */
+    [data-feed] .live-indicator {
+      position:absolute; top:8px; left:12px; width:8px; height:8px;
+    }
+
+    /* === REMOVED: Ticker animation === */
+
+    /* === Push notification bell button === */
+    #push-btn { font-size:1.1rem; line-height:1; }
+    #push-btn.push-active { border-color:#38bdf8; color:#38bdf8; }
+
+    /* === Notification overlay channel toggles === */
+    .notif-town-header {
+      font-size:0.6rem; letter-spacing:0.28em; text-transform:uppercase;
+      color:#64748b; padding:0.5rem 0.25rem 0.25rem;
+    }
+    .notif-channel-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0.55rem 0.5rem; border-radius:0.5rem;
+      transition:background .15s;
+    }
+    .notif-channel-row:hover { background:rgba(255,255,255,0.04); }
+    .notif-channel-label { display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:#e2e8f0; }
+    .notif-type-dot {
+      width:8px; height:8px; border-radius:999px; flex-shrink:0;
+    }
+    .dot-police { background:#38bdf8; }
+    .dot-fire   { background:#fb7185; }
+    /* Toggle switch */
+    .notif-toggle { position:relative; width:36px; height:20px; flex-shrink:0; }
+    .notif-toggle input { opacity:0; width:0; height:0; position:absolute; }
+    .notif-toggle-track {
+      position:absolute; inset:0; border-radius:999px;
+      background:#334155; transition:background .2s; cursor:pointer;
+    }
+    .notif-toggle input:checked + .notif-toggle-track { background:#0284c7; }
+    .notif-toggle-track::after {
+      content:''; position:absolute; top:3px; left:3px;
+      width:14px; height:14px; border-radius:999px;
+      background:white; transition:transform .2s;
+    }
+    .notif-toggle input:checked + .notif-toggle-track::after { transform:translateX(16px); }
+
+    /* === Menu dropdown === */
+    .menu-item {
+      display:block; padding:0.5rem 1rem;
+      color:#cbd5e1; font-size:0.875rem;
+      transition:background .15s,color .15s;
+    }
+    .menu-item:hover { background:#1e293b; color:#38bdf8; }
+
+    /* === Bottom player dock === */
+    #player-dock {
+      backdrop-filter: blur(10px);
+      background: rgba(17,24,39,0.95);
+      border-top: 1px solid rgba(71,85,105,0.4);
+      animation: slideUp 0.4s ease forwards;
+    }
+    @keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+
+    :root {
+      --electric-blue: #38bdf8;
+      --emergency-red: #fb7185;
+      --panel-ink: rgba(3,6,14,0.78);
+      --card-border: rgba(255,255,255,0.1);
+    }
+
+    .call-card-entry {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.55s ease forwards;
+      border: 1px solid rgba(148,163,184,0.12);
+      box-shadow: 0 12px 24px rgba(2,6,23,0.45);
+      position: relative;
+    }
+
+    .call-card-link {
+      display: block;
+      position: relative;
+      z-index: 2;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .call-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+    .call-card-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.25);
+      background: rgba(148,163,184,0.08);
+      font-weight: 600;
+    }
+    .pill-police { border-color: rgba(56,189,248,0.35); color: #7dd3fc; background: rgba(14,116,144,0.2); }
+    .pill-fire { border-color: rgba(248,113,113,0.35); color: #fda4af; background: rgba(190,18,60,0.2); }
+    .call-card-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #38bdf8;
+      box-shadow: 0 0 8px rgba(56,189,248,0.6);
+    }
+    .dot-fire { background: #fb7185; box-shadow: 0 0 8px rgba(248,113,113,0.6); }
+
+    .call-card-title {
+      margin-top: 0.9rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .call-card-transcript {
+      margin-top: 0.45rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 3.8rem;
+    }
+    .call-card-footer {
+      margin-top: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+    .call-card-wave { margin-top: 0.75rem; height: 6px; opacity: 0.75; }
+
+    .call-action {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 0.45rem 1rem;
+      background: rgba(255,255,255,0.08);
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: white;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    }
+    .call-action:hover,
+    .call-action:focus-visible {
+      transform: translateY(-1px) scale(1.01);
+      background: rgba(14,165,233,0.2);
+      box-shadow: 0 15px 45px rgba(14,165,233,0.25);
+    }
+    .call-action:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .town-tab-active {
+      position: relative;
+      overflow: hidden;
+    }
+    .town-tab-active::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255,255,255,0), rgba(255,255,255,0.25), rgba(255,255,255,0));
+      animation: shimmer 2.4s ease-in-out infinite;
+      opacity: 0.45;
+    }
+
+    .live-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: radial-gradient(circle, #34d399 0%, #10b981 60%, transparent 75%);
+      box-shadow: 0 0 6px rgba(52,211,153,0.75);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    .waveform {
+      border-radius: 999px;
+      background-size: 200% 100%;
+      animation: pulseWave 4s linear infinite;
+      filter: drop-shadow(0 0 6px rgba(14,165,233,0.35));
+    }
+    .waveform-fire {
+      background-image: linear-gradient(90deg, rgba(248,113,113,0.75), rgba(220,38,38,0.45));
+    }
+    .waveform-police {
+      background-image: linear-gradient(90deg, rgba(56,189,248,0.85), rgba(45,212,255,0.45));
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translate3d(0, 24px, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(180%); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+
+    @keyframes pulseWave {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+  </style>
+</head>
+
+<body class="flex flex-col h-full font-sans selection:bg-slate-600/40 selection:text-white">
+
+<header class="sticky top-0 z-50 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800 shadow" style="padding-top: env(safe-area-inset-top);">
+  <div class="max-w-6xl mx-auto flex items-center justify-between h-16 px-4">
+    <h1 class="text-lg font-semibold text-white tracking-tight shrink-0">
+      <a href="/scanner/" class="flex items-center gap-2 hover:text-slate-300 transition-colors">
+        <img src="/scanner/static/icons/logo-header.png" alt="Ned's Scanner Network" class="h-9 w-auto">
+        <span class="hidden sm:inline">Ned's Scanner Network</span>
+      </a>
+    </h1>
+
+    <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+      <a href="/scanner/" class="px-3 py-1.5 rounded-md text-white bg-slate-800 transition">Home</a>
+      <a href="/scanner/today" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition">Today</a>
+      <a href="/scanner/archive" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition">Archive</a>
+      <a href="/scanner/stats" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition">Stats</a>
+    </nav>
+
+    <div class="relative flex items-center gap-2">
+      <button id="push-btn"
+        style="display:none"
+        class="flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition text-base"
+        title="Enable push notifications">
+        🔕
+      </button>
+      <button id="install-btn"
+        class="hidden flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">
+        Install App
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
+        </svg>
+      </button>
+      <button id="menu-btn"
+        class="md:hidden flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">
+        Menu
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <button id="notif-settings-btn"
+        class="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition text-sm"
+        title="Notification settings">
+        🔔
+      </button>
+      <div id="menu-dropdown"
+        class="hidden absolute right-0 top-full mt-2 w-48 bg-[#111827] border border-slate-700 rounded-lg shadow-xl py-2">
+        <a href="/scanner/" class="menu-item">Home</a>
+        <a href="/scanner/today" class="menu-item">Today</a>
+        <a href="/scanner/archive" class="menu-item">Archive</a>
+        <a href="/scanner/stats" class="menu-item">Stats</a>
+        <div class="border-t border-slate-700 my-1"></div>
+        <button id="notif-settings-btn-mobile" class="menu-item w-full text-left flex items-center gap-2">
+          <span>🔔</span> Notifications
+        </button>
+        <div class="border-t border-slate-700 my-1"></div>
+        <div id="auth-status-button"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Live Now bar -->
+<div id="live-now-bar" class="sticky top-16 z-40 bg-[#0b0f19]/90 backdrop-blur-sm border-b border-slate-800/60 px-4 py-2 overflow-x-auto">
+  <div class="max-w-6xl mx-auto flex gap-3 items-center min-h-[28px]">
+    <span class="text-slate-600 text-[10px] uppercase tracking-widest shrink-0">Live</span>
+    <div id="live-now-chips" class="flex gap-2 items-center flex-wrap">
+      <span id="live-bar-quiet" class="text-slate-600 text-xs italic">All quiet</span>
+    </div>
+  </div>
+</div>
+
+<main class="flex-1 overflow-y-auto bg-transparent pb-24">
+  <div class="max-w-6xl mx-auto p-4 space-y-6">
+
+    <!-- Summary stats -->
+    <article id="stats" class="panel p-5">
+      <div class="grid grid-cols-4 gap-4 text-center">
+        <div class="flex flex-col-reverse">
+          <span id="total-calls" class="stat-value text-scannerBlue">--</span>
+          <span class="stat-label mb-1">Calls Today</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="hooks-today" class="stat-value text-amber-400">--</span>
+          <span class="stat-label mb-1">Hooks Today</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="active-feeds" class="stat-value text-purple-400">--</span>
+          <span class="stat-label mb-1">Minutes Recorded</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="listeners" class="stat-value text-emerald-400">--</span>
+          <span class="stat-label mb-1">Listeners</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Call board -->
+    <section id="call-board" class="panel p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-semibold text-slate-200 tracking-wide">Live Calls</h2>
+        <span class="text-[10px] text-slate-500 uppercase tracking-widest">Latest across all feeds</span>
+      </div>
+
+      <!-- Town filter tabs -->
+      <div id="town-filter-tabs" class="flex flex-wrap gap-2">
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-scannerBlue/20 text-scannerBlue border border-scannerBlue/40 transition" data-town="all">All</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="hopedale">Hopedale</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="milford">Milford</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="bellingham">Bellingham</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="mendon">Mendon</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="franklin">Franklin</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="blackstone">Blackstone</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="millville">Millville</button>
+      </div>
+
+      <div id="call-card-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-live="polite">
+        <div id="call-board-empty" data-default-text="Loading live transcripts..." class="col-span-full rounded-2xl border border-slate-800/60 bg-white/5 px-4 py-6 text-center text-sm text-slate-400">
+          Loading live transcripts...
+        </div>
+      </div>
+    </section>
+
+    <!-- Town grid (kept for live indicators, hidden visually via the filter tabs above) -->
+    <section id="towns" class="space-y-3">
+      <h2 class="text-base font-semibold text-slate-200 tracking-wide">Towns</h2>
+      <div id="town-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer id="player-dock" class="hidden fixed bottom-0 left-0 w-full z-40">
+  <div class="max-w-5xl mx-auto flex items-center justify-between p-3">
+    <div id="player-info" class="text-sm text-slate-300">
+      🔊 Listening to <span class="text-blue-400" id="dock-feed"></span>
+    </div>
+    <div class="flex gap-3 text-lg text-slate-400">
+      <button id="dock-play" class="hover:text-scannerBlue">▶️</button>
+      <button id="dock-pause" class="hover:text-scannerBlue">⏸️</button>
+      <button id="dock-stop" class="hover:text-scannerBlue">⏹️</button>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== Notifications Settings Overlay ===== -->
+<div id="notif-overlay" class="hidden fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+  <!-- Backdrop -->
+  <div id="notif-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+  <!-- Panel -->
+  <div class="relative w-full sm:max-w-md mx-auto bg-[#111827] border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700 shrink-0">
+      <div>
+        <h2 class="text-base font-semibold text-white">🔔 Notification Channels</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Choose which feeds send you alerts.</p>
+      </div>
+      <button id="notif-close" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+    </div>
+
+    <!-- Permission banner (shown when permission isn't granted yet) -->
+    <div id="notif-permission-banner" class="hidden mx-4 mt-3 px-4 py-3 rounded-lg bg-amber-900/40 border border-amber-700/50 text-amber-300 text-sm shrink-0">
+      <strong>Permission required.</strong> Enable browser notifications to receive alerts.
+      <button id="notif-grant-btn" class="ml-2 underline hover:text-white">Grant permission</button>
+    </div>
+
+    <!-- Channel list -->
+    <div id="notif-channel-list" class="overflow-y-auto px-4 py-3 space-y-1 flex-1">
+      <p class="text-slate-400 text-sm">Loading channels…</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-5 py-4 border-t border-slate-700 flex items-center justify-between gap-3 shrink-0">
+      <div class="flex gap-2">
+        <button id="notif-select-all" class="text-xs text-sky-400 hover:text-sky-300 underline">All</button>
+        <span class="text-slate-600">|</span>
+        <button id="notif-select-none" class="text-xs text-sky-400 hover:text-sky-300 underline">None</button>
+      </div>
+      <div class="flex gap-2">
+        <button id="notif-save" class="px-4 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium transition">Save</button>
+        <button id="notif-cancel" class="px-4 py-1.5 rounded-md border border-slate-600 text-slate-300 hover:text-white text-sm transition">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPlayerDock(feedName){
+  document.getElementById('dock-feed').textContent=feedName;
+  document.getElementById('player-dock').classList.remove('hidden');
+}
+
+// Wire mobile notif button to the same overlay as the desktop button
+document.addEventListener('DOMContentLoaded', () => {
+  const mobileNotifBtn = document.getElementById('notif-settings-btn-mobile');
+  const overlay = document.getElementById('notif-overlay');
+  if (mobileNotifBtn && overlay) {
+    mobileNotifBtn.addEventListener('click', () => {
+      document.getElementById('menu-dropdown')?.classList.add('hidden');
+      overlay.classList.remove('hidden');
+    });
+  }
+});
+</script>
+<script>
+let deferredPrompt;
+const installBtn = document.getElementById('install-btn');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); 
+  deferredPrompt = e; 
+  installBtn.classList.remove('hidden');
+});
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log(`User response to the install prompt: ${outcome}`);
+  deferredPrompt = null; 
+  installBtn.classList.add('hidden');
+});
+window.addEventListener('appinstalled', () => {
+  console.log('✅ App installed');
+  installBtn.classList.add('hidden');
+});
+</script>
+
+</body>
+</html>

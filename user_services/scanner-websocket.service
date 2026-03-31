@@ -1,0 +1,17 @@
+[Unit]
+Description=Scanner WebSocket App (app_socket2.py)
+After=network.target redis.service
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/web/
+Environment=PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+ExecStart=/home/ned/venv/bin/python3 /home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/web/app_socket2.py
+Restart=always
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

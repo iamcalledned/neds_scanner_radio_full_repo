@@ -1,0 +1,17 @@
+[Unit]
+Description=Scanner Transcriber Listener (Redis Stream -> MCP)
+After=network.target scanner-mcp.service
+Requires=scanner-mcp.service
+
+[Service]
+Type=simple
+EnvironmentFile=/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/transcriber/.env
+WorkingDirectory=/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/transcriber
+ExecStart=/home/ned/venv/bin/python3 -u /home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/transcriber/transcribe_stream_listener_mcp.py
+Restart=on-failure
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

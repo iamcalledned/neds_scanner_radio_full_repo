@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logging in...</title>
+    <script>
+        (function() {
+            // Use quotes to safely handle the string from Jinja
+            const sessionId = '{{ session_id }}'; 
+            const returnTo = '{{ return_to }}';
+
+            // Check if it's not an empty string or the literal word "None"
+            if (sessionId && sessionId !== 'None' && sessionId.length > 0) {
+                localStorage.setItem('session_id', sessionId);
+            } else {
+                // If we got here, the login failed to provide an ID.
+                console.error('Callback received an empty or invalid session_id.');
+            }
+
+            window.location.href = returnTo || '/scanner';
+        })();
+    </script>
+</head>
+<body>
+    <p>Please wait while we log you in...</p>
+</body>
+</html>

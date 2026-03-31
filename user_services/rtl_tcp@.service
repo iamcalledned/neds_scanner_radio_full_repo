@@ -1,0 +1,12 @@
+[Unit]
+Description=RTL-TCP Server on Port %i
+
+[Service]
+# Use the wrapper script to handle the math and device selection
+ExecStart=/home/ned/scripts/rtl_wrapper.sh %i
+Restart=always
+# Crucial: Wait 3 seconds before restarting to prevent "start too quickly"
+RestartSec=3
+
+[Install]
+WantedBy=default.target

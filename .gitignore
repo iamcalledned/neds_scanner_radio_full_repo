@@ -1,0 +1,53 @@
+# ==========================================
+# Ned's Scanner Radio — Root .gitignore
+# ==========================================
+
+# --- Environment & secrets ---
+.env
+.env.local
+.env.production
+.env.*.local
+
+# --- VAPID / crypto keys ---
+vapid_private.key
+vapid_public.key
+*.pem
+
+# --- Databases ---
+*.sqlite3
+*.db
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+venv/
+venv*/
+.venv/
+.Python
+
+# --- Models (large binaries, never commit) ---
+*.bin
+*.pt
+*.safetensors
+*.onnx
+
+# --- Logs ---
+*.log
+logs/
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- Temp / runtime ---
+/tmp/
+*.tmp

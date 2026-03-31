@@ -1,0 +1,29 @@
+# VAPID keys and generated secrets
+vapid_private.key
+vapid_public.key
+
+# Local sqlite DB for subscriptions
+push_subs.sqlite3
+
+# Env files and virtualenv
+.env
+.env.local
+venv/
+venv*/
+.venv
+.Python
+
+# Editor / OS cruft
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# logs
+*.log
+
+# generated icons
+static/icons/*.png
