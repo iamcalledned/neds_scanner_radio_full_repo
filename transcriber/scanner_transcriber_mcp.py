@@ -817,6 +817,14 @@ def transcribe_file(
                     "transcription_engine": "faster-whisper",
                     "transcription_model": meta.get("transcription_model"),
                     "hook_request": hook_requested,
+                    # Derived address fields from dictionary-backed extraction
+                    "derived_address": meta.get("derived_address"),
+                    "derived_street": meta.get("derived_street"),
+                    "derived_addr_num": meta.get("derived_addr_num"),
+                    "derived_town": meta.get("derived_town"),
+                    "derived_lat": meta.get("derived_lat"),
+                    "derived_lng": meta.get("derived_lng"),
+                    "address_confidence": meta.get("address_confidence", "none"),
                 }
                 scanner_db.insert_call(db_meta)
                 db_result = {"ok": True}

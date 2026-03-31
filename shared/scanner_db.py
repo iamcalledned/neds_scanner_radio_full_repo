@@ -167,11 +167,20 @@ def create_tables():
             retry_profiles_tried TEXT,
             transcription_engine TEXT,
             transcription_model TEXT,
-            hook_request BOOLEAN DEFAULT FALSE
+            hook_request BOOLEAN DEFAULT FALSE,
+            derived_address TEXT,
+            derived_street TEXT,
+            derived_addr_num TEXT,
+            derived_town TEXT,
+            derived_lat REAL,
+            derived_lng REAL,
+            address_confidence TEXT DEFAULT 'none'
         );
         """)
         conn.execute("CREATE INDEX IF NOT EXISTS idx_calls_town_dept ON calls(town, dept);")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_calls_timestamp ON calls(timestamp);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_calls_derived_addr ON calls(derived_street, derived_town);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_calls_latlon ON calls(derived_lat, derived_lng);")
 
         # Web analytics table
         conn.execute("""
@@ -325,7 +334,9 @@ def insert_call(meta: dict):
          needs_retry, needs_review, quality_reasons,
          profile_used, retry_profiles_tried,
          transcription_engine, transcription_model,
-         hook_request)
+         hook_request,
+         derived_address, derived_street, derived_addr_num,
+         derived_town, derived_lat, derived_lng, address_confidence)
         VALUES
         (:town, :state, :dept, :category, :filename,
          :json_path, :wav_path, :duration, :rms,
@@ -336,7 +347,9 @@ def insert_call(meta: dict):
          :needs_retry, :needs_review, :quality_reasons,
          :profile_used, :retry_profiles_tried,
          :transcription_engine, :transcription_model,
-         :hook_request)
+         :hook_request,
+         :derived_address, :derived_street, :derived_addr_num,
+         :derived_town, :derived_lat, :derived_lng, :address_confidence)
         """, {
             **meta,
             "classification": json.dumps(meta.get("classification", {})),
@@ -352,9 +365,17 @@ def insert_call(meta: dict):
             "transcription_engine": meta.get("transcription_engine"),
             "transcription_model": meta.get("transcription_model"),
             "hook_request": bool(meta.get("hook_request", False)),
+            "derived_address": meta.get("derived_address"),
+            "derived_street": meta.get("derived_street"),
+            "derived_addr_num": meta.get("derived_addr_num"),
+            "derived_town": meta.get("derived_town"),
+            "derived_lat": meta.get("derived_lat"),
+            "derived_lng": meta.get("derived_lng"),
+            "address_confidence": meta.get("address_confidence", "none"),
         })
         log.info(f"[DB] Inserted/updated record: {meta.get('filename')} "
-                 f"(town={meta.get('town')}, dept={meta.get('dept')})")
+                 f"(town={meta.get('town')}, dept={meta.get('dept')}, "
+                 f"addr={meta.get('derived_address', 'none')})")
 
 
 def update_call_classification(meta: dict):
