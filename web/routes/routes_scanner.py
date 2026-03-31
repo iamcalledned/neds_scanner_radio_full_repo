@@ -701,13 +701,16 @@ def scanner_archive():
     day = request.args.get("day")
     page = int(request.args.get("page", 1))
     json_mode = request.args.get("json") == "1"
+    days_back = int(request.args.get("days_back", 30))  # default 30, no hard cap
 
     base_dir = Path(ARCHIVE_DIR)
     if feed:
         base_dir = base_dir / feed
 
-    seven_days_ago = datetime.now() - timedelta(days=7)
+    cutoff = datetime.now() - timedelta(days=days_back)
     calls_per_page = 10
+
+    r = redis.from_url(REDIS_URL, decode_responses=True)
 
     # ============================================
     # 1️⃣ QUICK SUMMARY MODE: list days + counts
@@ -723,13 +726,12 @@ def scanner_archive():
             except Exception:
                 continue
 
-            if date_obj < seven_days_ago:
-                break  # ✅ stop scanning once too old
+            if date_obj < cutoff:
+                break  # stop scanning once past requested range
 
             day_key = date_obj.strftime("%Y-%m-%d")
             day_counts[day_key] += 1
 
-        # ✅ Return summary only (no heavy transcript load)
         return jsonify({
             "days": sorted(day_counts.keys(), reverse=True),
             "call_totals": dict(day_counts)
@@ -745,32 +747,43 @@ def scanner_archive():
 
         for wav in sorted(base_dir.glob(f"rec_{day}_*.wav"), reverse=True)[start:end]:
             base = wav.stem
-            json_path = wav.with_suffix(".json")
+            wav_path = str(wav.absolute())
 
             try:
                 parts = base.split("_")
                 timestamp_str = f"{parts[1]}_{parts[2]}"
-
                 dt = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
-                timestamp_human = dt.strftime("%b %d, %I:%M %p")
+                timestamp_human = dt.strftime("%Y-%m-%d %H-%M-%S")
             except Exception:
                 timestamp_human = base
 
-            # 🟢 Only include metadata, not full transcript or audio
-            transcript = ""
-            if json_path.exists():
-                try:
-                    with open(json_path) as f:
-                        meta = json.load(f)
-                    transcript = meta.get("edited_transcript") or meta.get("transcript", "")
-                except Exception:
-                    pass
+            # Use SQLite metadata (consistent with view page)
+            try:
+                metadata = read_metadata_from_sqlite(wav_path, r)
+            except Exception:
+                metadata = {}
+
+            transcript = metadata.get("edited_transcript") or metadata.get("transcript", "(no transcript)")
+            enhanced_transcript = metadata.get("enhanced_transcript", "")
+            derived_address = metadata.get("derived_address", "")
+            addr_confidence = metadata.get("address_confidence", "none")
+            hook_request = metadata.get("hook_request", "0")
+            play_count = metadata.get("play_count", 0)
 
             calls.append({
                 "file": wav.name,
                 "path": f"/scanner/audio/{wav.name}",
                 "timestamp_human": timestamp_human,
-                "transcript": transcript or "(no transcript)"
+                "transcript": transcript,
+                "enhanced_transcript": enhanced_transcript,
+                "feed": feed or "",
+                "metadata": {
+                    "derived_address": derived_address,
+                    "address_confidence": addr_confidence,
+                    "hook_request": hook_request,
+                    "play_count": play_count,
+                    "enhanced_transcript": enhanced_transcript,
+                }
             })
 
         return jsonify({"calls": calls, "total": len(calls)})

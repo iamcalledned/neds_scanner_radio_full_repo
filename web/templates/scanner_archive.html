@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Scanner Archive</title>
 
-  <meta name="description" content="Archived scanner radio calls — Hopedale, Milford, Bellingham, Mendon, Upton, Blackstone, Franklin.">
+  <meta name="description" content="Archived scanner radio calls — browse any date for Hopedale, Milford, Bellingham, Mendon, Upton, Blackstone, Franklin.">
   <meta name="theme-color" content="#0b0f19">
 
   <link rel="manifest" href="/scanner/manifest.json?v=v20260331b">
@@ -16,79 +16,276 @@
   <meta name="apple-mobile-web-app-title" content="Scanner">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
+          fontFamily: { sans: ['Inter','sans-serif'], mono: ['Roboto Mono','monospace'] },
           colors: {
-            pd: '#1e3a8a', // Police Blue
-            fd: '#7f1d1d', // Fire Red
-            bg: '#0b0f19', // Background Dark Blue
-            scannerBlue: '#38bdf8' // Accent Sky Blue
-          },
-          fontFamily: { sans: ['Inter','sans-serif'] }
+            pd: '#1e3a8a', fd: '#7f1d1d', bg: '#0b0f19', scannerBlue: '#38bdf8'
+          }
         }
       }
     };
   </script>
 
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  
   <script src="/scanner/static/js/scanner_app_new.js?v=v20260331b" defer></script>
-  
   <script src="/scanner/static/js/scanner_archive.js?v=v20260331b" defer></script>
-
+  <script src="/scanner/static/js/pwa.js?v=v20260331b" defer></script>
 
   <style>
+    /* === Scrollbar === */
     .main-content-area::-webkit-scrollbar { width: 6px; }
     .main-content-area::-webkit-scrollbar-track { background: #1e293b; }
     .main-content-area::-webkit-scrollbar-thumb { background: #475569; }
+    .main-content-area::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
-    /* === Menu dropdown === */
+    /* === Menu === */
     .menu-item {
       display:block; padding:0.5rem 1rem;
       color:#cbd5e1; font-size:0.875rem;
       transition:background .15s,color .15s;
     }
     .menu-item:hover { background:#1e293b; color:#38bdf8; }
+
+    /* === Glass & Panel === */
+    .panel {
+      background: rgba(15,23,42,0.65);
+      border: 1px solid rgba(148,163,184,0.08);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .panel-soft {
+      background: rgba(15,23,42,0.45);
+      border: 1px solid rgba(148,163,184,0.06);
+      border-radius: 1.25rem;
+    }
+
+    /* === Stat Typography === */
+    .stat-value {
+      font-size: 2.5rem; font-weight: 800;
+      line-height: 1; letter-spacing: -0.02em;
+    }
+    .stat-label {
+      font-size: 0.6rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.18em; color: #64748b;
+    }
+
+    /* === Town Cards === */
+    .town-card {
+      background: rgba(15,23,42,0.65);
+      border: 1px solid rgba(148,163,184,0.08);
+      border-radius: 1.25rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      backdrop-filter: blur(16px);
+      padding: 1.5rem;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s;
+      animation: fadeUp 0.5s ease both;
+    }
+    .town-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+      border-color: rgba(56,189,248,0.2);
+    }
+    .dept-link {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1rem; border-radius: 0.75rem;
+      font-size: 0.85rem; font-weight: 500;
+      color: #94a3b8; transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .dept-link:hover {
+      background: rgba(56,189,248,0.06);
+      border-color: rgba(56,189,248,0.15);
+      color: #38bdf8;
+    }
+    .dept-link-fire:hover {
+      background: rgba(248,113,113,0.06);
+      border-color: rgba(248,113,113,0.15);
+      color: #f87171;
+    }
+
+    /* === Day Accordion === */
+    .day-panel {
+      background: rgba(15,23,42,0.65);
+      border: 1px solid rgba(148,163,184,0.08);
+      border-radius: 1.25rem;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      backdrop-filter: blur(16px);
+      animation: fadeUp 0.4s ease both;
+    }
+    .day-summary {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .day-summary:hover { background: rgba(148,163,184,0.04); }
+    .day-summary::marker, .day-summary::-webkit-details-marker { display: none; }
+    .day-chevron {
+      width: 18px; height: 18px; color: #64748b;
+      transition: transform 0.3s ease;
+    }
+    details[open] .day-chevron { transform: rotate(180deg); }
+
+    /* === Call Card (archive) === */
+    .archive-call-card {
+      background: rgba(30,41,59,0.45);
+      border: 1px solid rgba(148,163,184,0.1);
+      border-radius: 1rem; padding: 1.15rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: fadeUp 0.35s ease both;
+    }
+    .archive-call-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    /* === Pills === */
+    .call-card-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.2rem 0.7rem; border-radius: 999px;
+      font-size: 0.6rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.15em;
+    }
+    .pill-police { background: rgba(30,58,138,0.35); color: #93c5fd; border: 1px solid rgba(59,130,246,0.25); }
+    .pill-fire   { background: rgba(127,29,29,0.35); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+    .pill-hook   { background: rgba(180,83,9,0.3); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .call-card-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #38bdf8; box-shadow: 0 0 6px rgba(56,189,248,0.6);
+    }
+    .dot-fire { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.6); }
+    .dot-hook { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,0.6); }
+
+    /* === Address badge === */
+    .call-card-address {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      margin-top: 0.4rem; padding: 0.25rem 0.6rem;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.15);
+      border-radius: 0.75rem; font-size: 0.7rem; color: #6ee7b7;
+    }
+    .call-card-address svg { width: 11px; height: 11px; flex-shrink: 0; }
+
+    /* === Transcript === */
+    .transcript-block {
+      background: rgba(30,41,59,0.55);
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 0.75rem;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.82rem; line-height: 1.55;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .transcript-label {
+      font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    /* === Waveform player === */
+    .wave-player-row {
+      display: flex; align-items: center; gap: 0.65rem;
+      background: rgba(15,23,42,0.5);
+      border: 1px solid rgba(148,163,184,0.06);
+      border-radius: 0.85rem;
+      padding: 0.5rem 0.75rem;
+    }
+
+    /* === Time range tabs === */
+    .range-btn {
+      padding: 0.4rem 0.85rem; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      border: 1px solid rgba(148,163,184,0.12);
+      background: rgba(148,163,184,0.04);
+      color: #64748b; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .range-btn:hover {
+      background: rgba(56,189,248,0.08);
+      border-color: rgba(56,189,248,0.2);
+      color: #7dd3fc;
+    }
+    .range-btn.active {
+      background: rgba(56,189,248,0.15);
+      border-color: rgba(56,189,248,0.35);
+      color: #38bdf8;
+    }
+
+    /* === Load more button === */
+    .load-older-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; padding: 0.85rem; border-radius: 1rem;
+      font-size: 0.8rem; font-weight: 600;
+      color: #94a3b8; cursor: pointer;
+      background: rgba(148,163,184,0.04);
+      border: 1px solid rgba(148,163,184,0.1);
+      transition: all 0.2s;
+    }
+    .load-older-btn:hover {
+      background: rgba(56,189,248,0.08);
+      border-color: rgba(56,189,248,0.2);
+      color: #7dd3fc;
+    }
+
+    /* === Animations === */
+    @keyframes fadeUp {
+      0%   { opacity: 0; transform: translate3d(0, 20px, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    .loading-spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* === Play count === */
+    .play-count-badge {
+      font-size: 0.6rem; color: #64748b;
+      display: flex; align-items: center; gap: 0.2rem;
+    }
   </style>
 </head>
 
-<body class="flex flex-col h-full text-slate-100 font-sans selection:bg-blue-600 selection:text-white">
-  <header class="sticky top-0 z-50 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800 shadow" style="padding-top: env(safe-area-inset-top);">
+<body class="flex flex-col h-full overflow-hidden text-slate-100 font-sans selection:bg-blue-600 selection:text-white">
+
+<!-- ===== Header ===== -->
+<header class="sticky top-0 z-50 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800 shadow" style="padding-top: env(safe-area-inset-top);">
   <div class="max-w-6xl mx-auto flex items-center justify-between h-16 px-4">
+    <h1 class="text-lg font-semibold text-white tracking-tight shrink-0">
+      <a href="/scanner/" class="flex items-center gap-2 hover:text-slate-300 transition-colors">
+        <img src="/scanner/static/icons/logo-header.png" alt="Ned's Scanner Network" class="h-9 w-auto">
+        <span class="hidden sm:inline">Ned's Scanner Network</span>
+      </a>
+    </h1>
 
-    <div class="flex items-center gap-2">
-      <h1 class="text-lg font-semibold text-white tracking-tight gap-2">
-        <a href="/scanner/" class="flex items-center gap-2 hover:text-slate-300 transition-colors">
-          <img src="/scanner/static/icons/logo-header.png" alt="Ned's Scanner Network" class="h-9 w-auto">
-          <span class="hidden sm:inline">Ned's Scanner Network</span>
-        </a>
-      </h1>
-    </div>
+    <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+      <a href="/scanner/" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition">Home</a>
+      <a href="/scanner/today" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition">Today</a>
+      <a href="/scanner/archive" class="px-3 py-1.5 rounded-md text-white bg-slate-800 transition">Archive</a>
+      <a href="/scanner/stats" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition">Stats</a>
+    </nav>
 
-    <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-      <div class="flex items-center gap-1.5" title="Live listeners">
-        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]"></span>
-        <span id="ws-user-count">-- listeners</span>
+    <div class="relative flex items-center gap-2">
+      <div class="hidden md:flex items-center gap-1.5 text-sm text-slate-400" title="Live listeners">
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]"></span>
+        <span id="ws-user-count">--</span>
       </div>
-    </div>
-
-    <div class="relative">
       <button id="menu-btn"
-        class="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">
+        class="md:hidden flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">
         Menu
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       <div id="menu-dropdown"
-        class="hidden absolute right-0 mt-2 w-48 bg-[#111827] border border-slate-700 rounded-lg shadow-xl py-2">
+        class="hidden absolute right-0 top-full mt-2 w-48 bg-[#111827] border border-slate-700 rounded-lg shadow-xl py-2">
         <a href="/scanner/" class="menu-item">Home</a>
         <a href="/scanner/today" class="menu-item">Today</a>
         <a href="/scanner/archive" class="menu-item">Archive</a>
@@ -100,18 +297,69 @@
   </div>
 </header>
 
-  <main class="flex-1 overflow-y-auto main-content-area pb-16">
-    <div class="max-w-3xl mx-auto p-4 space-y-8">
-      <div id="page-header" class="text-center">
-        <h1 id="archive-title" class="text-3xl font-bold mb-1">📁 Scanner Archive</h1>
-        <p id="archive-subtitle" class="text-gray-400 text-sm"></p>
-      </div>
+<main class="flex-1 overflow-y-auto main-content-area pb-16"
+      style="background: radial-gradient(circle at 20% 15%, rgba(30,58,138,0.10) 0%, transparent 50%),
+             radial-gradient(circle at 80% 80%, rgba(127,29,29,0.07) 0%, transparent 50%),
+             #0b0f19;">
 
-      <div id="archive-container" class="space-y-6">
-        <p class="text-gray-500 text-center">Loading archive...</p>
+  <div class="max-w-3xl mx-auto p-4 space-y-6">
+
+    <!-- === Page Header === -->
+    <div id="page-header" class="pt-2">
+      <!-- JS fills: title + subtitle -->
+    </div>
+
+    <!-- === Time Range Selector (shown in feed mode) === -->
+    <div id="range-selector" class="hidden">
+      <div class="flex flex-wrap gap-2 justify-center">
+        <button class="range-btn active" data-days="7">7 Days</button>
+        <button class="range-btn" data-days="14">14 Days</button>
+        <button class="range-btn" data-days="30">30 Days</button>
+        <button class="range-btn" data-days="60">60 Days</button>
+        <button class="range-btn" data-days="90">90 Days</button>
+        <button class="range-btn" data-days="0">All Time</button>
       </div>
     </div>
-  </main>
 
-  </body>
+    <!-- === Stats Panel (shown in feed mode) === -->
+    <article id="archive-stats-panel" class="panel p-5 hidden">
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div class="flex flex-col-reverse">
+          <span id="stat-total-days" class="stat-value text-scannerBlue">--</span>
+          <span class="stat-label mb-1">Days</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="stat-total-calls" class="stat-value text-purple-400">--</span>
+          <span class="stat-label mb-1">Total Calls</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="stat-avg-day" class="stat-value text-emerald-400">--</span>
+          <span class="stat-label mb-1">Avg / Day</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- === Main Container === -->
+    <div id="archive-container" class="space-y-4">
+      <div class="panel p-8 text-center">
+        <svg class="loading-spinner w-6 h-6 inline-block text-scannerBlue mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+        </svg>
+        <p class="text-slate-500 text-sm">Loading archive...</p>
+      </div>
+    </div>
+
+    <!-- === Load Older (for extending range) === -->
+    <div id="load-older-container" class="hidden">
+      <button id="load-older-btn" class="load-older-btn">
+        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l2.828 2.818L15 15.182"/>
+        </svg>
+        Load older days
+      </button>
+    </div>
+  </div>
+</main>
+
+</body>
 </html>
