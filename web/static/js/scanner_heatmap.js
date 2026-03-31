@@ -67,11 +67,6 @@
   }
 
   // ── Town centroid markers ────────────────────────────────────────
-  function dotRadius(callCount) {
-    if (!callCount) return 6;
-    return Math.min(6 + Math.sqrt(callCount) * 1.2, 28);
-  }
-
   function infoHTML(town) {
     const slug = town.name.toLowerCase();
     return `<div style="font-family:Inter,sans-serif;padding:4px 2px;min-width:160px">
@@ -88,20 +83,27 @@
     townMarkers = [];
 
     towns.forEach(town => {
-      const hasActivity = town.call_count > 0;
+      // Small crosshair pin — just enough to mark the town center, won't obscure heat layer
       const marker = new google.maps.Marker({
         position: { lat: town.lat, lng: town.lng },
         map: elTogglePins.checked ? map : null,
         title: town.name,
-        icon: {
-          path:        google.maps.SymbolPath.CIRCLE,
-          scale:       dotRadius(town.call_count),
-          fillColor:   hasActivity ? COLOR_ACTIVE : COLOR_INACTIVE,
-          fillOpacity: hasActivity ? 0.85 : 0.5,
-          strokeColor: STROKE_COLOR,
-          strokeWeight: 2,
+        label: {
+          text: town.name.charAt(0).toUpperCase() + town.name.slice(1).toLowerCase(),
+          color: "#94a3b8",
+          fontSize: "10px",
+          fontWeight: "600",
+          fontFamily: "Inter, sans-serif",
         },
-        zIndex: hasActivity ? 10 : 5,
+        icon: {
+          path:         google.maps.SymbolPath.CIRCLE,
+          scale:        4,
+          fillColor:    "#1e293b",
+          fillOpacity:  0.9,
+          strokeColor:  "#38bdf8",
+          strokeWeight: 1.5,
+        },
+        zIndex: 20,
       });
       marker.addListener("click", () => {
         infoWindow.setContent(infoHTML(town));
@@ -123,15 +125,17 @@
     heatLayer = new google.maps.visualization.HeatmapLayer({
       data: latLngs,
       map: elToggleHeat.checked ? map : null,
-      radius: 20,
-      opacity: 0.75,
+      radius: 30,
+      opacity: 0.9,
       gradient: [
         "rgba(0,0,0,0)",
-        "rgba(14,165,233,0.4)",
-        "rgba(56,189,248,0.6)",
-        "rgba(125,211,252,0.75)",
-        "rgba(186,230,253,0.85)",
-        "rgba(255,255,255,1)",
+        "rgba(30,58,138,0.6)",   // deep blue
+        "rgba(37,99,235,0.75)",  // blue
+        "rgba(56,189,248,0.85)", // sky blue
+        "rgba(250,204,21,0.9)",  // yellow
+        "rgba(249,115,22,0.95)", // orange
+        "rgba(239,68,68,1)",     // red
+        "rgba(255,255,255,1)",   // white-hot
       ],
     });
   }
