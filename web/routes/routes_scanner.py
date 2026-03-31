@@ -21,6 +21,7 @@ from user_logger import log_activity
 
 scanner_bp = Blueprint("scanner", __name__)
 logger = logging.getLogger("scanner_web.routes_scanner")
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 LOGIN_PROCESS_URL = os.environ.get('LOGIN_PROCESS_URL', 'http://127.0.0.1:8010/api/login')
 LOGIN_API_URL = os.environ.get('LOGIN_API_URL', 'http://127.0.0.1:8010')
 ARCHIVE_DIR = os.environ.get("ARCHIVE_DIR", os.path.join(os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls/scanner_archive"), "clean"))
@@ -1311,5 +1312,59 @@ def submit_intent():
     except Exception as e:
         logger.exception("submit_intent error: %s", e)
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@scanner_bp.route("/scanner/heatmap")
+def scanner_heatmap():
+    return render_template("scanner_heatmap.html", google_maps_api_key=GOOGLE_MAPS_API_KEY)
+
+
+@scanner_bp.route("/scanner/api/geo_towns")
+def geo_towns():
+    """
+    Returns per-town geographic data derived from the addresses table.
+    Each town gets a centroid lat/lng, street count, and recent call count.
+    """
+    from shared.scanner_db import get_conn
+    try:
+        with get_conn(readonly=True) as conn:
+            rows = conn.execute("""
+                SELECT
+                    town,
+                    COUNT(DISTINCT street_name) AS street_count,
+                    AVG(latitude)               AS lat,
+                    AVG(longitude)              AS lng
+                FROM addresses
+                WHERE latitude  IS NOT NULL
+                  AND longitude IS NOT NULL
+                  AND town IS NOT NULL
+                  AND town != ''
+                GROUP BY town
+                ORDER BY town
+            """).fetchall()
+
+            call_rows = conn.execute("""
+                SELECT derived_town, COUNT(*) AS call_count
+                FROM calls
+                WHERE derived_town IS NOT NULL AND derived_town != ''
+                GROUP BY derived_town
+            """).fetchall()
+
+        call_counts = {r["derived_town"].upper(): r["call_count"] for r in call_rows}
+
+        towns = []
+        for r in rows:
+            towns.append({
+                "name": r["town"],
+                "lat": round(r["lat"], 6),
+                "lng": round(r["lng"], 6),
+                "street_count": r["street_count"],
+                "call_count": call_counts.get(r["town"].upper(), 0),
+            })
+
+        return jsonify({"towns": towns})
+    except Exception as e:
+        logger.exception("geo_towns error: %s", e)
+        return jsonify({"towns": [], "error": str(e)}), 500
 
 
