@@ -232,7 +232,7 @@ pytz python-dateutil requests beautifulsoup4 pythonjsonlogger apscheduler
 ### 1. Clone & configure
 
 ```bash
-git clone https://github.com/YOUR_USER/neds-scanner-network.git
+git clone https://github.com/iamcalledned/neds_scanner_radio_full_repo.git
 cd neds-scanner-network
 
 # Copy and edit the root .env with your paths
@@ -423,6 +423,25 @@ Ideas for contribution:
 
 ---
 
+## Support This Project
+
+If you find this useful, learned something from it, or just think it's cool that someone pointed antennas at the sky and built an AI pipeline around it — consider buying me a coffee ☕
+
+**Bitcoin (BTC):**
+```
+YOUR_BTC_ADDRESS_HERE
+```
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/YOUR_BMAC_USERNAME">
+    <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee" />
+  </a>
+</p>
+
+> Every sat and every sip helps keep the dongles powered and the GPU warm. 🙏
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.
@@ -430,5 +449,5 @@ MIT — see [LICENSE](LICENSE) for details.
 ---
 
 <p align="center">
-  Built with 🎙️ + 🧠 + ☕ by <a href="https://github.com/YOUR_USER">Ned</a>
+  Built with 🎙️ + 🧠 + ☕ by <a href="https://github.com/iamcalledned">Ned</a>
 </p>
