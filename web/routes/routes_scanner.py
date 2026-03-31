@@ -1314,6 +1314,60 @@ def submit_intent():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@scanner_bp.route("/scanner/api/call_coords")
+def call_coords():
+    """
+    Returns lat/lng points for calls that have derived coordinates.
+    Query params:
+      range = day | week | month | all  (default: week)
+      town  = town name, or omit / 'all' for every town
+    """
+    from shared.scanner_db import get_conn
+
+    range_param = request.args.get("range", "week").lower()
+    town_param  = request.args.get("town", "").strip().lower()
+
+    cutoffs = {
+        "day":   timedelta(days=1),
+        "week":  timedelta(days=7),
+        "month": timedelta(days=30),
+    }
+
+    try:
+        with get_conn(readonly=True) as conn:
+            params = []
+            clauses = [
+                "derived_lat  IS NOT NULL",
+                "derived_lng  IS NOT NULL",
+                "derived_lat  != 0",
+                "derived_lng  != 0",
+            ]
+
+            if range_param in cutoffs:
+                cutoff_str = (datetime.now() - cutoffs[range_param]).isoformat(timespec="seconds")
+                clauses.append("timestamp >= ?")
+                params.append(cutoff_str)
+
+            if town_param and town_param != "all":
+                clauses.append("UPPER(derived_town) = UPPER(?)")
+                params.append(town_param)
+
+            sql = f"""
+                SELECT derived_lat AS lat, derived_lng AS lng, derived_town AS town
+                FROM calls
+                WHERE {' AND '.join(clauses)}
+                ORDER BY timestamp DESC
+                LIMIT 50000
+            """
+            rows = conn.execute(sql, params).fetchall()
+
+        points = [{"lat": r["lat"], "lng": r["lng"]} for r in rows]
+        return jsonify({"points": points, "count": len(points)})
+    except Exception as e:
+        logger.exception("call_coords error: %s", e)
+        return jsonify({"points": [], "count": 0, "error": str(e)}), 500
+
+
 @scanner_bp.route("/scanner/heatmap")
 def scanner_heatmap():
     return render_template("scanner_heatmap.html", google_maps_api_key=GOOGLE_MAPS_API_KEY)

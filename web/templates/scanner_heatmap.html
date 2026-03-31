@@ -57,6 +57,24 @@
       overflow: hidden;
     }
 
+    /* Filter selects */
+    .hm-select {
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(71,85,105,0.6);
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.875rem;
+      padding: 0.45rem 2rem 0.45rem 0.75rem;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.4rem center;
+      background-repeat: no-repeat;
+      background-size: 1.4em 1.4em;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .hm-select:focus { outline: none; border-color: #38bdf8; }
+
     /* Google Maps info window overrides */
     .gm-style .gm-style-iw-c {
       background: #0f172a !important;
@@ -84,6 +102,23 @@
       color: #fde68a;
       font-size: 0.875rem;
     }
+
+    #loading-overlay {
+      position: absolute; inset: 0; z-index: 10;
+      display: none;
+      align-items: center; justify-content: center;
+      background: rgba(11,15,25,0.6);
+      border-radius: 16px;
+    }
+    #loading-overlay.visible { display: flex; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(56,189,248,0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 
@@ -130,13 +165,13 @@
 </header>
 
 <main class="flex-1 overflow-y-auto bg-transparent pb-16">
-  <div class="max-w-6xl mx-auto p-4 space-y-5">
+  <div class="max-w-6xl mx-auto p-4 space-y-4">
 
     <!-- Page header -->
     <div>
       <p class="text-[0.62rem] tracking-[0.28em] uppercase text-slate-500">Coverage</p>
       <h2 class="text-2xl font-semibold text-slate-100 mt-0.5">Activity Heat Map</h2>
-      <p class="text-sm text-slate-400 mt-1">Towns with street-level address data in the database. Dot size reflects call volume.</p>
+      <p class="text-sm text-slate-400 mt-1">Call locations geocoded from transcripts. Use the filters to explore by time range or town.</p>
     </div>
 
     <!-- No API key warning -->
@@ -146,25 +181,47 @@
       See <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" class="underline">Google Maps documentation</a> for setup instructions.
     </div>
 
-    <!-- Stats row -->
-    <div class="grid grid-cols-3 gap-3">
-      <div class="glass rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-scannerBlue" id="stat-towns">--</p>
-        <p class="text-[0.65rem] uppercase tracking-widest text-slate-500 mt-1">Towns</p>
+    <!-- Filters + stats row -->
+    <div class="glass rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3">
+      <!-- Time range -->
+      <div class="flex items-center gap-2">
+        <label class="text-[0.7rem] uppercase tracking-widest text-slate-500">Range</label>
+        <select id="filter-range" class="hm-select">
+          <option value="day">Today</option>
+          <option value="week" selected>Last 7 Days</option>
+          <option value="month">Last 30 Days</option>
+          <option value="all">All Time</option>
+        </select>
       </div>
-      <div class="glass rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-purple-400" id="stat-streets">--</p>
-        <p class="text-[0.65rem] uppercase tracking-widest text-slate-500 mt-1">Streets</p>
+
+      <!-- Town filter -->
+      <div class="flex items-center gap-2">
+        <label class="text-[0.7rem] uppercase tracking-widest text-slate-500">Town</label>
+        <select id="filter-town" class="hm-select">
+          <option value="all">All Towns</option>
+          <!-- populated by JS -->
+        </select>
       </div>
-      <div class="glass rounded-xl p-4 text-center">
-        <p class="text-2xl font-bold text-amber-400" id="stat-calls">--</p>
-        <p class="text-[0.65rem] uppercase tracking-widest text-slate-500 mt-1">Calls Logged</p>
+
+      <!-- Spacer + call count badge -->
+      <div class="ml-auto flex items-center gap-3">
+        <span id="point-count" class="text-xs text-slate-400 tabular-nums"></span>
+        <!-- Town centroid toggles -->
+        <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
+          <input type="checkbox" id="toggle-town-pins" checked class="accent-sky-400">
+          Town pins
+        </label>
+        <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
+          <input type="checkbox" id="toggle-heatmap" checked class="accent-sky-400">
+          Heat layer
+        </label>
       </div>
     </div>
 
     <!-- Map container -->
-    <div class="glass rounded-2xl p-1" style="height: 560px;">
+    <div class="glass rounded-2xl p-1 relative" style="height: 580px;">
       <div id="map"></div>
+      <div id="loading-overlay"><div class="spinner"></div></div>
     </div>
 
     <!-- Town list -->
@@ -183,8 +240,6 @@
   window.GOOGLE_MAPS_API_KEY = {{ google_maps_api_key | tojson }};
 </script>
 <script src="/scanner/static/js/scanner_heatmap.js?v=v20260331d" defer></script>
-
-<!-- Google Maps loaded dynamically by scanner_heatmap.js after key check -->
 
 </body>
 </html>
