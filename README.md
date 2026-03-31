@@ -429,18 +429,10 @@ If you find this useful, learned something from it, or just think it's cool that
 
 **Bitcoin (BTC):**
 ```
-YOUR_BTC_ADDRESS_HERE
+bc1qgay9y53823afdwtcmvztvj664ecmjp3pc3gr0f
+
 ```
 
-<p align="center">
-  <a href="https://www.buymeacoffee.com/YOUR_BMAC_USERNAME">
-    <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee" />
-  </a>
-</p>
-
-> Every sat and every sip helps keep the dongles powered and the GPU warm. 🙏
-
----
 
 ## License
 
