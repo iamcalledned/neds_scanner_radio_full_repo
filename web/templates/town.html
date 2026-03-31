@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Ned’s Scanner Network</title>
+  <title>Ned's Scanner Network</title>
 
   <meta name="description" content="Live and archived scanner radio feeds for each local town.">
   <meta name="theme-color" content="#0b0f19">
@@ -52,13 +52,13 @@
   </script>
 
   <style>
-    .pulse-live { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:.5;} }
+    /* === Scrollbar === */
     .main-content-area::-webkit-scrollbar { width:6px; }
     .main-content-area::-webkit-scrollbar-track { background:#1e293b; }
     .main-content-area::-webkit-scrollbar-thumb { background:#475569; }
     .main-content-area::-webkit-scrollbar-thumb:hover { background:#64748b; }
-    /* === Menu dropdown styles (from scanner.html) === */
+
+    /* === Menu === */
     .menu-item {
       display:block; padding:0.5rem 1rem;
       color:#cbd5e1; font-size:0.875rem;
@@ -66,15 +66,155 @@
     }
     .menu-item:hover { background:#1e293b; color:#38bdf8; }
 
-    .glass { background: rgba(17,24,39,0.85); backdrop-filter: blur(12px); }
+    /* === Glass & Panel (from scanner.html) === */
+    .glass {
+      background: rgba(17,24,39,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .panel {
+      background: rgba(15,23,42,0.65);
+      border: 1px solid rgba(148,163,184,0.08);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .panel-soft {
+      background: rgba(15,23,42,0.45);
+      border: 1px solid rgba(148,163,184,0.06);
+      border-radius: 1.25rem;
+    }
+
+    /* === Stat Typography === */
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .stat-label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #64748b;
+    }
+
+    /* === Call Card System === */
+    .call-card-entry {
+      animation: fadeUp 0.5s ease both;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .call-card-entry:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    .call-card-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.65rem;
+    }
+    .call-card-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.2rem 0.7rem; border-radius: 999px;
+      font-size: 0.6rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.15em;
+    }
+    .pill-police { background: rgba(30,58,138,0.35); color: #93c5fd; border: 1px solid rgba(59,130,246,0.25); }
+    .pill-fire   { background: rgba(127,29,29,0.35); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+    .call-card-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 6px rgba(56,189,248,0.6);
+    }
+    .dot-fire { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.6); }
+    .call-card-time {
+      font-size: 0.65rem; color: #64748b;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .call-card-title {
+      font-size: 1.05rem; font-weight: 700; color: #e2e8f0;
+      margin-bottom: 0.45rem;
+    }
+    .call-card-transcript {
+      font-size: 0.82rem; color: #94a3b8; line-height: 1.55;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden; min-height: 3.8rem;
+    }
+    .call-card-footer {
+      margin-top: 0.85rem; display: flex; align-items: center;
+      justify-content: space-between; font-size: 0.7rem;
+      letter-spacing: 0.2em; text-transform: uppercase; color: #94a3b8;
+    }
+    .call-card-address {
+      display: flex; align-items: center; gap: 0.35rem;
+      margin-top: 0.5rem; padding: 0.35rem 0.7rem;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.15);
+      border-radius: 0.75rem; font-size: 0.72rem; color: #6ee7b7;
+    }
+    .call-card-address svg { width: 12px; height: 12px; flex-shrink: 0; }
+    .call-card-wave { margin-top: 0.75rem; height: 6px; opacity: 0.75; }
+
+    /* === Waveform bars === */
+    .waveform {
+      border-radius: 999px;
+      background-size: 200% 100%;
+      animation: pulseWave 4s linear infinite;
+      filter: drop-shadow(0 0 6px rgba(14,165,233,0.35));
+    }
+    .waveform-fire { background-image: linear-gradient(90deg, rgba(248,113,113,0.75), rgba(220,38,38,0.45)); }
+    .waveform-police { background-image: linear-gradient(90deg, rgba(56,189,248,0.85), rgba(45,212,255,0.45)); }
+
+    /* === Live Indicator === */
+    .live-dot {
+      display: inline-block; width: 10px; height: 10px; border-radius: 999px;
+      background: radial-gradient(circle, #34d399 0%, #10b981 60%, transparent 75%);
+      box-shadow: 0 0 6px rgba(52,211,153,0.75);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    /* === Player Dock === */
+    #player-dock {
+      background: rgba(11,15,25,0.92);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(148,163,184,0.08);
+      animation: slideUp 0.35s ease;
+    }
+
+    /* === Animations === */
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translate3d(0, 24px, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+    @keyframes pulseWave {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(180%); }
+    }
+
+    /* === Feed card transitions === */
+    .feed-card { transition: all 0.5s ease; }
   </style>
 </head>
 
-<body class="flex flex-col h-full overflow-hidden font-sans selection:bg-slate-600/40 selection:text-white">
+<body class="flex flex-col h-full font-sans selection:bg-slate-600/40 selection:text-white">
 
+<!-- ===== Header (matches scanner.html) ===== -->
 <header class="sticky top-0 z-50 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800 shadow" style="padding-top: env(safe-area-inset-top);">
   <div class="max-w-6xl mx-auto flex items-center justify-between h-16 px-4">
-
     <h1 class="text-lg font-semibold text-white tracking-tight shrink-0">
       <a href="/scanner/" class="flex items-center gap-2 hover:text-slate-300 transition-colors">
         <img src="/scanner/static/icons/logo-header.png" alt="Ned's Scanner Network" class="h-9 w-auto">
@@ -114,44 +254,96 @@
   </div>
 </header>
 
-<main class="flex-1 overflow-y-auto main-content-area pb-20 bg-[#0b0f19]">
-  <div class="max-w-4xl mx-auto p-4 space-y-6">
+<!-- ===== Live Now Bar ===== -->
+<div id="live-now-bar" class="sticky top-16 z-40 bg-[#0b0f19]/90 backdrop-blur-sm border-b border-slate-800/60 px-4 py-2 overflow-x-auto">
+  <div class="max-w-6xl mx-auto flex gap-3 items-center min-h-[28px]">
+    <span class="text-slate-600 text-[10px] uppercase tracking-widest shrink-0">Live</span>
+    <div id="live-now-chips" class="flex gap-2 items-center flex-wrap">
+      <span id="live-bar-quiet" class="text-slate-600 text-xs italic">All quiet</span>
+    </div>
+  </div>
+</div>
+
+<main class="flex-1 overflow-y-auto main-content-area pb-24"
+      style="background: radial-gradient(circle at 20% 15%, rgba(30,58,138,0.10) 0%, transparent 50%),
+             radial-gradient(circle at 80% 80%, rgba(127,29,29,0.07) 0%, transparent 50%),
+             #0b0f19;">
+  <div class="max-w-6xl mx-auto p-4 space-y-6">
 
     <!-- Town header -->
-    <div>
-      <h2 id="town-title" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-scannerBlue to-purple-400">
+    <div class="pt-2">
+      <h2 id="town-title" class="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-scannerBlue to-purple-400">
         Loading…
       </h2>
-      <p class="text-slate-500 text-sm mt-1">Your front-row seat to local emergencies.</p>
+      <p class="text-slate-500 text-sm mt-1.5">Your front-row seat to local emergencies.</p>
     </div>
 
-    <!-- Town-specific stats bar -->
-    <div class="grid grid-cols-3 gap-3">
-      <div class="bg-slate-900/60 rounded-xl p-4 text-center ring-1 ring-white/8">
-        <p class="text-2xl font-bold text-scannerBlue" id="town-stat-today">--</p>
-        <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Calls Today</p>
+    <!-- Town-specific stats panel -->
+    <article id="stats" class="panel p-5">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+        <div class="flex flex-col-reverse">
+          <span id="town-stat-today" class="stat-value text-scannerBlue">--</span>
+          <span class="stat-label mb-1">Calls Today</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="town-stat-hooks" class="stat-value text-amber-400">--</span>
+          <span class="stat-label mb-1">Hooks Today</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="town-stat-last-active" class="stat-value text-emerald-400 text-xl">--</span>
+          <span class="stat-label mb-1">Last Active</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="town-stat-most-active" class="stat-value text-purple-400 text-xl">--</span>
+          <span class="stat-label mb-1">Most Active</span>
+        </div>
       </div>
-      <div class="bg-slate-900/60 rounded-xl p-4 text-center ring-1 ring-white/8">
-        <p class="text-lg font-bold text-emerald-400 leading-tight" id="town-stat-last-active">--</p>
-        <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Last Active</p>
-      </div>
-      <div class="bg-slate-900/60 rounded-xl p-4 text-center ring-1 ring-white/8">
-        <p class="text-lg font-bold text-amber-400 leading-tight" id="town-stat-most-active">--</p>
-        <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Most Active</p>
-      </div>
-    </div>
+    </article>
 
     <!-- Feed grid -->
-    <section id="feed-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <noscript>
-        <p class="text-center text-red-400 col-span-full">
-          This page requires JavaScript to function. Please enable it in your browser.
-        </p>
-      </noscript>
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-slate-200 tracking-wide">Feeds</h2>
+        <span class="text-[10px] text-slate-500 uppercase tracking-widest">Police &amp; Fire</span>
+      </div>
+      <div id="feed-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <noscript>
+          <p class="text-center text-red-400 col-span-full">
+            This page requires JavaScript to function. Please enable it in your browser.
+          </p>
+        </noscript>
+      </div>
+    </section>
+
+    <!-- Recent Calls section (populated by JS) -->
+    <section id="recent-calls-section" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-semibold text-slate-200 tracking-wide">Recent Calls</h2>
+        <span class="text-[10px] text-slate-500 uppercase tracking-widest">Latest across all feeds</span>
+      </div>
+      <div id="recent-call-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" aria-live="polite">
+        <div id="recent-calls-empty" class="col-span-full panel-soft px-4 py-6 text-center text-sm text-slate-400">
+          Loading recent calls…
+        </div>
+      </div>
     </section>
 
   </div>
 </main>
+
+<!-- ===== Player Dock ===== -->
+<footer id="player-dock" class="hidden fixed bottom-0 left-0 w-full z-40">
+  <div class="max-w-5xl mx-auto flex items-center justify-between p-3">
+    <div id="player-info" class="text-sm text-slate-300">
+      🔊 Listening to <span class="text-blue-400" id="dock-feed"></span>
+    </div>
+    <div class="flex gap-3 text-lg text-slate-400">
+      <button id="dock-play" class="hover:text-scannerBlue">▶️</button>
+      <button id="dock-pause" class="hover:text-scannerBlue">⏸️</button>
+      <button id="dock-stop" class="hover:text-scannerBlue">⏹️</button>
+    </div>
+  </div>
+</footer>
 
 <!-- === Existing app scripts === -->
 <script src="/scanner/static/js/scanner_app_new.js?v=v20260330" defer></script>

@@ -116,17 +116,32 @@ def infer_dept_from_filename(filename: str) -> str:
 #  CONNECTION HELPERS
 # ======================================================
 def get_conn(readonly: bool = False):
-    """Return a SQLite connection with WAL + shared cache + timeout."""
+    """Return a SQLite connection with WAL + timeout.
+
+    NOTE: We deliberately avoid ``cache=shared``.  When a shared cache
+    contains pages opened via a ``mode=ro`` connection the *entire*
+    cache is marked read-only, which causes subsequent write attempts
+    on **any** connection sharing that cache to fail with
+    ``attempt to write a readonly database``.
+
+    Each caller gets its own private page cache instead.  This is
+    perfectly fine for our workload (a handful of concurrent readers
+    with one writer at a time in WAL mode).
+    """
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    uri = f"file:{DB_PATH}?{'mode=ro&' if readonly else ''}cache=shared"
+    if readonly:
+        uri = f"file:{DB_PATH}?mode=ro"
+    else:
+        uri = f"file:{DB_PATH}"
+
     conn = sqlite3.connect(uri, uri=True, timeout=30, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout=10000;")
 
     if not readonly:
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA synchronous=NORMAL;")
-        conn.execute("PRAGMA busy_timeout=5000;")
     return conn
 
 
@@ -313,8 +328,27 @@ def _to_json_str(value) -> str | None:
     return value
 
 
-def insert_call(meta: dict):
-    """Insert or replace a single enriched call record (full superset schema)."""
+def wal_checkpoint():
+    """Run a passive WAL checkpoint to keep the WAL file from growing unbounded.
+
+    This is safe to call at any time — PASSIVE never blocks readers or
+    writers; it just copies as many WAL pages as possible into the main
+    database file.
+    """
+    try:
+        with get_conn() as conn:
+            result = conn.execute("PRAGMA wal_checkpoint(PASSIVE);").fetchone()
+            log.info(f"[DB] WAL checkpoint: busy={result[0]}, log={result[1]}, checkpointed={result[2]}")
+    except Exception as e:
+        log.warning(f"[DB] WAL checkpoint failed: {e}")
+
+
+def insert_call(meta: dict, _retries: int = 3):
+    """Insert or replace a single enriched call record (full superset schema).
+
+    Retries up to ``_retries`` times on transient SQLite errors (locked,
+    busy, readonly from stale cache state) with a short back-off.
+    """
     if not meta.get("town"):
         meta["town"] = infer_town_from_filename(meta.get("filename", ""))
     if not meta.get("dept"):
@@ -322,6 +356,23 @@ def insert_call(meta: dict):
     if not meta.get("state"):
         meta["state"] = "Massachusetts"
 
+    import time as _time
+    last_err = None
+    for attempt in range(1, _retries + 1):
+        try:
+            _insert_call_inner(meta)
+            return                       # success
+        except sqlite3.OperationalError as e:
+            last_err = e
+            log.warning(f"[DB] Insert attempt {attempt}/{_retries} failed for "
+                        f"{meta.get('filename')}: {e}")
+            _time.sleep(0.3 * attempt)   # 0.3 s, 0.6 s, 0.9 s
+    # All retries exhausted — raise so the caller sees the error
+    raise last_err  # type: ignore[misc]
+
+
+def _insert_call_inner(meta: dict):
+    """Core INSERT OR REPLACE — called by insert_call with retry wrapper."""
     with get_conn() as conn:
         conn.execute("""
         INSERT OR REPLACE INTO calls

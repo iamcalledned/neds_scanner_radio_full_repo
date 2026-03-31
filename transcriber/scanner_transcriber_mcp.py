@@ -589,19 +589,38 @@ def try_import_db() -> None:
 # ==========================
 # MCP server with lifespan
 # ==========================
+async def _wal_checkpoint_loop():
+    """Periodically checkpoint the WAL file to prevent unbounded growth."""
+    import asyncio
+    while True:
+        await asyncio.sleep(300)          # every 5 minutes
+        try:
+            from shared.scanner_db import wal_checkpoint
+            wal_checkpoint()
+        except Exception as e:
+            log.warning(f"[DB] Periodic WAL checkpoint failed: {e}")
+
+
 @asynccontextmanager
 async def lifespan(_: FastMCP):
     """
     Startup/shutdown hook:
     - load Whisper model once (GPU-only)
     - import DB module if available
+    - start periodic WAL checkpoint task
     """
+    import asyncio
     state = load_whisper_model()
     try_import_db()
+
+    # Start background WAL checkpointer
+    wal_task = asyncio.create_task(_wal_checkpoint_loop())
+
     try:
         yield {"state": state}
     finally:
         # shutdown cleanup
+        wal_task.cancel()
         try:
             del state
         except Exception:
