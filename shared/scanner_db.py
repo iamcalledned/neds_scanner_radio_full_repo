@@ -189,6 +189,82 @@ def create_tables():
         conn.execute("CREATE INDEX IF NOT EXISTS idx_ual_action    ON user_activity_log(action);")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_ual_session   ON user_activity_log(session_hash);")
 
+        # ── MassGIS address table (street dictionary + geocoding cache) ──
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS addresses (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            master_addr_id  INTEGER,
+            street_name     TEXT NOT NULL,
+            street_name_id  INTEGER,
+            str_name_base   TEXT,
+            pre_dir         TEXT,
+            pre_type        TEXT,
+            pre_mod         TEXT,
+            post_type       TEXT,
+            post_dir        TEXT,
+            post_mod        TEXT,
+            addr_num        TEXT,
+            addr_num_int    INTEGER,
+            unit            TEXT,
+            floor           TEXT,
+            building        TEXT,
+            town            TEXT NOT NULL,
+            community       TEXT,
+            zipcode         TEXT,
+            county          TEXT,
+            state           TEXT DEFAULT 'MA',
+            latitude        REAL,
+            longitude       REAL,
+            point_type      TEXT,
+            source          TEXT DEFAULT 'massgis',
+            imported_at     TEXT,
+            UNIQUE(master_addr_id)
+        );
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_addr_town        ON addresses(town);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_addr_street       ON addresses(street_name);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_addr_base         ON addresses(str_name_base);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_addr_town_street  ON addresses(town, street_name);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_addr_num_street   ON addresses(addr_num_int, street_name);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_addr_latlon       ON addresses(latitude, longitude);")
+
+        # ── Distinct streets view for fast transcript matching ──
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS streets (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            street_name_id  INTEGER UNIQUE,
+            street_name     TEXT NOT NULL,
+            str_name_base   TEXT,
+            pre_dir         TEXT,
+            pre_type        TEXT,
+            post_type       TEXT,
+            post_dir        TEXT,
+            post_mod        TEXT,
+            town            TEXT NOT NULL,
+            min_addr_num    INTEGER,
+            max_addr_num    INTEGER,
+            addr_count      INTEGER DEFAULT 0,
+            UNIQUE(street_name, town)
+        );
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_streets_town  ON streets(town);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_streets_base  ON streets(str_name_base);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_streets_name  ON streets(street_name);")
+
+        # ── Geocoding cache (for addresses resolved via Nominatim/OSM) ──
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS geocode_cache (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            query       TEXT NOT NULL UNIQUE,
+            latitude    REAL,
+            longitude   REAL,
+            display     TEXT,
+            source      TEXT DEFAULT 'nominatim',
+            cached_at   TEXT
+        );
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_geocache_query ON geocode_cache(query);")
+
         log.info(f"[DB] Created or verified tables at {DB_PATH}")
 
 
@@ -637,13 +713,118 @@ def import_existing_jsons(base_dir: str = None):
 
 
 # ======================================================
+#  ADDRESS / STREET LOOKUPS
+# ======================================================
+def get_streets_for_town(town: str) -> list[dict]:
+    """Return all distinct streets for a town (from the streets table)."""
+    with get_conn(readonly=True) as conn:
+        rows = conn.execute(
+            "SELECT * FROM streets WHERE UPPER(town) = UPPER(?) ORDER BY street_name",
+            (town,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def lookup_street(street_fragment: str, town: str = None) -> list[dict]:
+    """Fuzzy-ish street lookup: matches if the base name appears in the query.
+    Returns matching streets sorted by address count (most popular first)."""
+    fragment = street_fragment.strip().upper()
+    with get_conn(readonly=True) as conn:
+        if town:
+            rows = conn.execute("""
+                SELECT * FROM streets
+                WHERE UPPER(town) = UPPER(?)
+                  AND (UPPER(street_name) LIKE ? OR UPPER(str_name_base) LIKE ?)
+                ORDER BY addr_count DESC
+            """, (town, f"%{fragment}%", f"%{fragment}%")).fetchall()
+        else:
+            rows = conn.execute("""
+                SELECT * FROM streets
+                WHERE UPPER(street_name) LIKE ? OR UPPER(str_name_base) LIKE ?
+                ORDER BY addr_count DESC
+            """, (f"%{fragment}%", f"%{fragment}%")).fetchall()
+        return [dict(r) for r in rows]
+
+
+def validate_address(number: int, street_name: str, town: str = None) -> list[dict]:
+    """Check if a specific address (number + street) exists in the addresses table."""
+    with get_conn(readonly=True) as conn:
+        if town:
+            rows = conn.execute("""
+                SELECT * FROM addresses
+                WHERE addr_num_int = ?
+                  AND UPPER(street_name) = UPPER(?)
+                  AND UPPER(town) = UPPER(?)
+                LIMIT 5
+            """, (number, street_name, town)).fetchall()
+        else:
+            rows = conn.execute("""
+                SELECT * FROM addresses
+                WHERE addr_num_int = ?
+                  AND UPPER(street_name) = UPPER(?)
+                LIMIT 10
+            """, (number, street_name)).fetchall()
+        return [dict(r) for r in rows]
+
+
+def get_address_coords(number: int, street_name: str, town: str = None) -> dict | None:
+    """Return lat/lng for a specific address, or None."""
+    results = validate_address(number, street_name, town)
+    for r in results:
+        if r.get("latitude") and r.get("longitude"):
+            return {"latitude": r["latitude"], "longitude": r["longitude"],
+                    "town": r["town"], "street_name": r["street_name"],
+                    "addr_num": r["addr_num"]}
+    return None
+
+
+def get_geocode_cache(query: str) -> dict | None:
+    """Look up a cached geocode result."""
+    with get_conn(readonly=True) as conn:
+        row = conn.execute(
+            "SELECT * FROM geocode_cache WHERE query = ?", (query,)
+        ).fetchone()
+        return dict(row) if row else None
+
+
+def set_geocode_cache(query: str, lat: float, lon: float, display: str = "",
+                      source: str = "nominatim"):
+    """Cache a geocode result."""
+    with get_conn() as conn:
+        conn.execute("""
+            INSERT OR REPLACE INTO geocode_cache (query, latitude, longitude, display, source, cached_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (query, lat, lon, display, source, datetime.now().isoformat()))
+
+
+def address_stats() -> dict:
+    """Return summary stats about the address tables."""
+    with get_conn(readonly=True) as conn:
+        addr_count = conn.execute("SELECT COUNT(*) FROM addresses").fetchone()[0]
+        street_count = conn.execute("SELECT COUNT(*) FROM streets").fetchone()[0]
+        geo_count = conn.execute("SELECT COUNT(*) FROM addresses WHERE latitude IS NOT NULL").fetchone()[0]
+        town_counts = conn.execute("""
+            SELECT town, COUNT(*) as cnt FROM addresses
+            GROUP BY town ORDER BY cnt DESC
+        """).fetchall()
+        return {
+            "total_addresses": addr_count,
+            "total_streets": street_count,
+            "geocoded_addresses": geo_count,
+            "by_town": {r["town"]: r["cnt"] for r in town_counts},
+        }
+
+
+# ======================================================
 #  CLI
 # ======================================================
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Scanner DB Manager (WAL + Read-only support)")
-    parser.add_argument("action", choices=["create", "drop", "import", "latest", "search", "rmsavg", "edited"])
+    parser.add_argument("action", choices=[
+        "create", "drop", "import", "latest", "search", "rmsavg", "edited", "addrstats"
+    ])
     parser.add_argument("--keyword")
     parser.add_argument("--limit", type=int, default=10)
     args = parser.parse_args()
@@ -673,3 +854,10 @@ if __name__ == "__main__":
         for r in fetch_edited_calls(limit=args.limit, include_empty=False):
             log.info(f"{r['timestamp']}  {r.get('town','?'):10} {r.get('dept','?'):7} "
                      f"{r.get('category','?'):8}  {r['filename']}")
+    elif args.action == "addrstats":
+        stats = address_stats()
+        log.info(f"[ADDR] Total addresses: {stats['total_addresses']:,}")
+        log.info(f"[ADDR] Total streets:   {stats['total_streets']:,}")
+        log.info(f"[ADDR] Geocoded:        {stats['geocoded_addresses']:,}")
+        for town, cnt in stats.get("by_town", {}).items():
+            log.info(f"  {town:15} {cnt:,} addresses")
