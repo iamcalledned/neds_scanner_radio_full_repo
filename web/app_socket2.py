@@ -529,57 +529,6 @@ def api_ws_users():
         logger.error(f"Error getting websocket user count: {e}")
         return jsonify({"connected_users": 0, "error": str(e)}), 500
 
-@app.route('/scanner/api/today_all')
-def api_today_all_calls():
-    today_str = date.today().strftime('%Y-%m-%d')
-    logger.info(f"Searching for recordings from: {today_str}")
-    
-    all_calls = []
-    for dept_id in ALL_DEPARTMENT_IDS:
-        # Use the CLEAN_ARCHIVE_DIR constant
-        dept_dir = os.path.join(CLEAN_ARCHIVE_DIR, dept_id)
-        if not os.path.isdir(dept_dir):
-            # This is expected, so use warning or info
-            # logger.warning(f"Department directory not found: {dept_dir}")
-            continue
-            
-        pattern = os.path.join(dept_dir, f"rec_{today_str}_*.wav")
-        todays_files = glob.glob(pattern)
-        
-        if not todays_files:
-            # logger.info(f"No recordings found today for {dept_id}")
-            continue
-            
-        logger.info(f"Found {len(todays_files)} recordings for {dept_id}")
-        
-        for wav_path in todays_files:
-            try:
-                filename = os.path.basename(wav_path)
-                dt_obj = parse_filename_timestamp(filename)
-                if dt_obj:
-                    metadata = read_metadata(wav_path) # Uses helper
-                    relative_path = os.path.join('/scanner/audio', dept_id, filename)
-                    
-                    all_calls.append({
-                        "file": filename,
-                        "path": relative_path,
-                        "feed": dept_id,
-                        "timestamp_obj": dt_obj,
-                        "timestamp_human": format_timestamp_human(dt_obj),
-                        "transcript": metadata.get('transcript', 'N/A'),
-                        "metadata": metadata,
-                        "edit_pending": metadata.get('edit_pending', False)
-                    })
-            except Exception as e:
-                logger.error(f"Error processing file {wav_path}: {e}")
-
-    all_calls.sort(key=lambda x: x["timestamp_obj"], reverse=True)
-    for call in all_calls:
-        del call["timestamp_obj"]  # Remove non-JSON serializable field
-    
-    logger.info(f"Returning {len(all_calls)} total recordings")
-    return jsonify({"calls": all_calls})
-
 @app.route('/scanner/audio/<department>/<filename>')
 def serve_audio_file(department, filename):
     """Serve audio files from the clean archive directory"""
