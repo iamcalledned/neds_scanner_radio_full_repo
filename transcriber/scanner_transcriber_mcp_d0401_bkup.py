@@ -46,13 +46,13 @@ from typing import Any, Dict, Optional, Tuple
 from contextlib import asynccontextmanager
 
 import torch
-import numpy as np
-import soundfile as sf
+import torchaudio
 
 from transformers import (
     WhisperForConditionalGeneration,
     WhisperFeatureExtractor,
     WhisperTokenizerFast,
+    GenerationConfig,
 )
 from transformers.utils import logging as hf_logging
 
@@ -259,25 +259,13 @@ def load_whisper_model() -> WhisperState:
     tokenizer = WhisperTokenizerFast.from_pretrained(str(MODEL_DIR))
     model = WhisperForConditionalGeneration.from_pretrained(str(MODEL_DIR))
 
-    # ── Transformers 5.x: configure generation_config on the model ──────────
-    # Use task/language instead of the deprecated forced_decoder_ids.
+    # Ensure generation params live in generation_config, not config
     try:
-        gc = model.generation_config
-        gc.forced_decoder_ids = None          # deprecated; task/language used instead
-        gc.suppress_tokens = []
-        gc.max_length = 448
-        gc.do_sample = False
-        gc.num_beams = 4
-        gc.length_penalty = 1.0
-        gc.repetition_penalty = 1.2
-        gc.early_stopping = True
-    except Exception:
-        pass
-
-    # Also clear the legacy forced_decoder_ids from config so the model
-    # doesn't try to re-inject them at generate() time.
-    try:
-        model.config.forced_decoder_ids = None
+        if hasattr(model, "generation_config") and model.generation_config is not None:
+            model.generation_config.forced_decoder_ids = None
+            model.generation_config.suppress_tokens = []
+        else:
+            model.generation_config = GenerationConfig(forced_decoder_ids=None, suppress_tokens=[])
     except Exception:
         pass
 
@@ -303,51 +291,49 @@ def transcribe_wavefile(
     state: WhisperState,
     wav_path: Path,
     *,
-    task: str = "transcribe",
-    language: str = "en",
+    num_beams: int = 4,
+    max_length: int = 448,
 ) -> str:
     """
     Transcribe a preprocessed WAV using the loaded model (GPU-only).
     Serialized with a GPU lock.
-
-    Transformers 5.x: generation params live on model.generation_config
-    (configured once at startup).  Per-call overrides use task/language
-    kwargs on model.generate(), NOT a separate GenerationConfig object.
     """
     try:
-        audio_np, sr = sf.read(str(wav_path), dtype="float32")
+        waveform, sr = torchaudio.load(str(wav_path))
     except Exception as e:
-        log.warning(f"soundfile failed to load {wav_path}: {e}")
+        log.warning(f"torchaudio failed to load {wav_path}: {e}")
         return ""
 
-    # Ensure mono (average channels if stereo)
-    if audio_np.ndim == 2:
-        audio_np = audio_np.mean(axis=1)
-    audio_np = audio_np.squeeze()
+    if waveform.ndim == 2:
+        waveform = waveform.mean(dim=0)
+    waveform = waveform.squeeze()
 
     inputs = state.feature_extractor(
-        audio_np,
+        waveform.numpy(),
         sampling_rate=sr,
         return_tensors="pt",
-        return_attention_mask=True,
     )
 
     feats = inputs.input_features.to(state.device, dtype=torch.float16)
-    attention_mask = inputs.attention_mask.to(state.device)
 
-    log.info("[transcribe_wavefile] Acquiring GPU gate…")
+    gen_cfg = GenerationConfig.from_model_config(state.model.config)
+    gen_cfg.forced_decoder_ids = None
+    gen_cfg.suppress_tokens = []
+
     with state.gate.acquire("whisper", timeout_s=120):
-        log.info("[transcribe_wavefile] GPU gate acquired, running model.generate()…")
         with torch.inference_mode():
             predicted = state.model.generate(
-                input_features=feats,
-                attention_mask=attention_mask,
-                task=task,
-                language=language,
+                feats,
+                generation_config=gen_cfg,
+                do_sample=False,
+                max_length=max_length,
+                num_beams=num_beams,
+                length_penalty=1.0,
+                repetition_penalty=1.2,
+                early_stopping=True,
             )
 
     text = state.tokenizer.batch_decode(predicted, skip_special_tokens=True)[0].strip()
-    log.info(f"[transcribe_wavefile] Decoded {len(text)} chars")
     return text
 
 
@@ -742,11 +728,8 @@ def transcribe_file(
 
     t0 = time.time()
     try:
-        log.info(f"[transcribe_file] Preprocessing {src.name} profile={profile}")
         preprocess_audio(src, tmp, profile=profile)
-        log.info(f"[transcribe_file] Preprocessing done, starting Whisper inference…")
         text = transcribe_wavefile(state, tmp)
-        log.info(f"[transcribe_file] Whisper inference done in {time.time()-t0:.1f}s")
         # insert cool algo here to determine if they were towed
         
         rms = get_rms(tmp)
@@ -1100,11 +1083,14 @@ def main():
 
     log.info(f"Starting MCP server transport={args.transport} host={args.host} port={args.port}")
 
-    # In current MCP SDK, host/port are settings on the FastMCP instance,
-    # not kwargs to run().  Apply them before starting.
-    mcp.settings.host = args.host
-    mcp.settings.port = args.port
-    mcp.run(transport=args.transport)
+    # FastMCP's run signature can vary by SDK version; try host/port kwargs, fall back if not supported.
+    try:
+        mcp.run(transport=args.transport, host=args.host, port=args.port)
+    except TypeError:
+        # Older versions ignore host/port in run; in that case, rely on whatever defaults it has.
+        # But at least we tried.
+        log.warning("FastMCP.run() did not accept host/port args in this SDK version. Using default bind settings.")
+        mcp.run(transport=args.transport)
 
 
 if __name__ == "__main__":
