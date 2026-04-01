@@ -192,6 +192,20 @@ def _fmt_duration(seconds):
 
 app.jinja_env.filters['fmt_duration'] = _fmt_duration
 
+
+def _asset_version(relative_path: str) -> str:
+    """Return a stable cache-busting token based on the asset mtime."""
+    try:
+        asset_path = Path(app.static_folder) / relative_path
+        return str(int(asset_path.stat().st_mtime))
+    except OSError:
+        return "0"
+
+
+@app.context_processor
+def inject_asset_helpers():
+    return {"asset_version": _asset_version}
+
 try:
     # Standardized on 'redis_client' as the single global Redis connection
     redis_client = redis.from_url(REDIS_URL, decode_responses=True)

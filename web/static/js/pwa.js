@@ -279,10 +279,11 @@ window.addEventListener('load', _initAll, { once: true });
 async function initNotifOverlay() {
     const overlay      = document.getElementById('notif-overlay');
     const openBtn      = document.getElementById('notif-settings-btn');
+    const mobileOpenBtn = document.getElementById('notif-settings-btn-mobile');
 
-    if (!overlay || !openBtn) return;
-    if (openBtn._notifInitialised) return;   // prevent double-bind
-    openBtn._notifInitialised = true;
+    if (!overlay || (!openBtn && !mobileOpenBtn)) return;
+    if (overlay.dataset.notifInitialised === '1') return;
+    overlay.dataset.notifInitialised = '1';
 
     const backdrop     = document.getElementById('notif-backdrop');
     const closeBtn     = document.getElementById('notif-close');
@@ -389,6 +390,16 @@ async function initNotifOverlay() {
         permBanner.classList.toggle('hidden', notSupported || granted);
     }
 
+    async function openSettingsOverlay(e) {
+        e?.stopPropagation?.();
+        const dd = document.getElementById('menu-dropdown');
+        if (dd) dd.classList.add('hidden');
+
+        openOverlay();
+        _updatePermBanner();
+        await _loadAndRender();
+    }
+
     if (grantBtn) {
         grantBtn.addEventListener('click', async () => {
             await subscribeToPush();
@@ -398,16 +409,8 @@ async function initNotifOverlay() {
     }
 
     // ---- open ----
-    openBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();  // prevent document handler from re-toggling the dropdown
-        // Close menu dropdown first
-        const dd = document.getElementById('menu-dropdown');
-        if (dd) dd.classList.add('hidden');
-
-        openOverlay();
-        _updatePermBanner();
-        await _loadAndRender();
-    });
+    openBtn?.addEventListener('click', openSettingsOverlay);
+    mobileOpenBtn?.addEventListener('click', openSettingsOverlay);
 
     // ---- close ----
     closeBtn?.addEventListener('click', closeOverlay);
