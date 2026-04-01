@@ -84,8 +84,16 @@ def save_subscription(subscription_json):
     ensure_db()
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute('INSERT OR REPLACE INTO subscriptions (endpoint, subscription_json, created_at) VALUES (?, ?, strftime("%s","now"))',
-                (subscription_json.get('endpoint'), json.dumps(subscription_json)))
+    cur.execute(
+        '''
+        INSERT INTO subscriptions (endpoint, subscription_json, created_at)
+        VALUES (?, ?, strftime("%s","now"))
+        ON CONFLICT(endpoint) DO UPDATE SET
+            subscription_json = excluded.subscription_json,
+            created_at = excluded.created_at
+        ''',
+        (subscription_json.get('endpoint'), json.dumps(subscription_json))
+    )
     conn.commit()
     conn.close()
 

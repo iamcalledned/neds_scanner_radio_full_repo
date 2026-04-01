@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from pywebpush import webpush, WebPushException
 from cryptography.hazmat.primitives import serialization
@@ -8,6 +9,7 @@ import base64
 
 VAPID_PUBLIC_FILE = os.path.join(os.path.dirname(__file__), 'vapid_public.key')
 VAPID_PRIVATE_FILE = os.path.join(os.path.dirname(__file__), 'vapid_private.key')
+logger = logging.getLogger("scanner_web.push")
 
 # Helper to load VAPID keys if present
 def load_vapid_keys():
@@ -22,27 +24,7 @@ def load_vapid_keys():
 
 
 def send_push(subscription_info, payload, vapid_private_key, vapid_claims):
-    # Debug: log input shapes (do not log secrets in production)
-    try:
-        pk_type = type(vapid_private_key)
-        print('send_push: vapid_private_key type=', pk_type)
-        if isinstance(vapid_private_key, (bytes, bytearray)):
-            print('send_push: vapid_private_key bytes len=', len(vapid_private_key))
-        else:
-            print('send_push: vapid_private_key str len=', len(vapid_private_key) if vapid_private_key else 0)
-    except Exception:
-        pass
-
-    try:
-        endpoint = subscription_info.get('endpoint') if isinstance(subscription_info, dict) else 'unknown'
-        print('send_push: endpoint=', endpoint[:120])
-        keys = subscription_info.get('keys') if isinstance(subscription_info, dict) else None
-        if keys:
-            p256 = keys.get('p256dh')
-            auth = keys.get('auth')
-            print('send_push: p256dh len=', len(p256) if p256 else None, ' auth len=', len(auth) if auth else None)
-    except Exception:
-        pass
+    endpoint = subscription_info.get('endpoint') if isinstance(subscription_info, dict) else 'unknown'
 
     try:
         webpush(
@@ -55,15 +37,11 @@ def send_push(subscription_info, payload, vapid_private_key, vapid_claims):
         )
         return True, None
     except Exception as ex:
-        # capture initial error text
         try:
             err_text = ex.response.text if hasattr(ex, 'response') and ex.response is not None else str(ex)
         except Exception:
             err_text = str(ex)
-        print('WebPush failed (initial attempt):', err_text)
-        # Try a fallback: some versions of the underlying crypto expect the private
-        # key as a base64url-encoded raw private scalar (32 bytes). Extract the
-        # scalar from the PEM and try again.
+        logger.warning("WebPush failed (initial attempt) for %s: %s", endpoint[:120], err_text)
         try:
             if isinstance(vapid_private_key, (bytes, bytearray)):
                 pem = vapid_private_key
@@ -73,7 +51,7 @@ def send_push(subscription_info, payload, vapid_private_key, vapid_claims):
             priv_nums = priv.private_numbers().private_value
             raw = priv_nums.to_bytes(32, 'big')
             raw_b64 = base64.urlsafe_b64encode(raw).rstrip(b'=').decode('ascii')
-            print('Retrying webpush with raw base64url private scalar (len=', len(raw), ')')
+            logger.info("Retrying WebPush with raw VAPID scalar for %s", endpoint[:120])
             webpush(
                 subscription_info=subscription_info,
                 data=json.dumps(payload),
@@ -87,8 +65,8 @@ def send_push(subscription_info, payload, vapid_private_key, vapid_claims):
                 err2 = ex2.response.text if hasattr(ex2, 'response') and ex2.response is not None else str(ex2)
             except Exception:
                 err2 = str(ex2)
-            print('WebPush failed (raw scalar attempt):', err2)
+            logger.warning("WebPush failed (raw scalar attempt) for %s: %s", endpoint[:120], err2)
             return False, err_text + ' || ' + err2
     except Exception as e:
-        print('send_push unexpected error', e)
+        logger.exception("send_push unexpected error for %s", endpoint[:120])
         return False, str(e)

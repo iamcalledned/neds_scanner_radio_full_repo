@@ -151,14 +151,24 @@ def push_worker():
                     push_payload['feed'] = feed
 
                 success_count = 0
+                failed_count = 0
                 for sub in subs:
+                    endpoint = sub.get('endpoint', 'unknown')
                     try:
-                        push_utils.send_push(sub, push_payload, vapid_priv, vapid_claims)
-                        success_count += 1
+                        ok, err = push_utils.send_push(sub, push_payload, vapid_priv, vapid_claims)
+                        if ok:
+                            success_count += 1
+                        else:
+                            failed_count += 1
+                            if err and ('410' in err or '404' in err or 'unsubscribed' in err.lower() or 'expired' in err.lower()):
+                                push_db.remove_subscription(endpoint)
+                                worker_logger.info(f"Removed stale push subscription | Subscriber: {endpoint}")
+                            worker_logger.warning(f"Push delivery failed | Subscriber: {endpoint} | Error: {err}")
                     except Exception as push_err:
-                        worker_logger.error(f"Push delivery failed | Subscriber: {sub.get('endpoint', 'unknown')} | Error: {str(push_err)}")
+                        failed_count += 1
+                        worker_logger.error(f"Push delivery failed | Subscriber: {endpoint} | Error: {str(push_err)}")
 
-                worker_logger.info(f"Push notification complete | Successful: {success_count}/{len(subs)}")
+                worker_logger.info(f"Push notification complete | Successful: {success_count}/{len(subs)} | Failed: {failed_count}")
                 
             except json.JSONDecodeError:
                 worker_logger.error(f"Invalid JSON payload received | Raw: {payload_str}")
@@ -264,7 +274,7 @@ def new_call_watcher():
         'uptpd': 'Upton PD', 'uptfd': 'Upton FD',
         'blkpd': 'Blackstone PD', 'blkfd': 'Blackstone FD',
         'frkpd': 'Franklin PD', 'frkfd': 'Franklin FD',
-        'milpd': 'Milford PD', 'milfd': 'Milford FD',
+        'milpd': 'Millis PD', 'milfd': 'Millis FD',
         'medpd': 'Medway PD', 'medfd': 'Medway FD',
         'foxpd': 'Foxborough PD', 'sfd': 'Southborough FD',
     }
