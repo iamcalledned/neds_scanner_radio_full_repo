@@ -20,3 +20,5 @@ systemctl --user stop scanner-websocket.service
 systemctl --user status scanner-websocket.service
 
 
+redis-cli DEL scanner:gpu:lock && echo "GPU lock cleared"
+

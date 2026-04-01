@@ -49,11 +49,7 @@ import torch
 import numpy as np
 import soundfile as sf
 
-from transformers import (
-    WhisperForConditionalGeneration,
-    WhisperFeatureExtractor,
-    WhisperTokenizerFast,
-)
+from faster_whisper import WhisperModel
 from transformers.utils import logging as hf_logging
 
 from mcp.server.fastmcp import FastMCP, Context
@@ -222,9 +218,7 @@ def preprocess_audio(inp: Path, outp: Path, profile: str = "default") -> None:
 # ==========================
 @dataclass
 class WhisperState:
-    feature_extractor: WhisperFeatureExtractor
-    tokenizer: WhisperTokenizerFast
-    model: WhisperForConditionalGeneration
+    model: WhisperModel
     device: torch.device
     gate: GPUGate
 
@@ -252,47 +246,19 @@ def load_whisper_model() -> WhisperState:
     if not MODEL_DIR.exists():
         raise FileNotFoundError(f"WHISPER_MODEL_DIR not found: {MODEL_DIR}")
 
-    log.info(f"Loading Whisper model from: {MODEL_DIR}")
+    log.info(f"Loading faster-whisper model from: {MODEL_DIR}")
 
-    # Load components explicitly (Transformers 5.x-friendly)
-    feature_extractor = WhisperFeatureExtractor.from_pretrained(str(MODEL_DIR))
-    tokenizer = WhisperTokenizerFast.from_pretrained(str(MODEL_DIR))
-    model = WhisperForConditionalGeneration.from_pretrained(str(MODEL_DIR))
-
-    # ── Transformers 5.x: configure generation_config on the model ──────────
-    # Use task/language instead of the deprecated forced_decoder_ids.
-    try:
-        gc = model.generation_config
-        gc.forced_decoder_ids = None          # deprecated; task/language used instead
-        gc.suppress_tokens = []
-        gc.max_length = 448
-        gc.do_sample = False
-        gc.num_beams = 4
-        gc.length_penalty = 1.0
-        gc.repetition_penalty = 1.2
-        gc.early_stopping = True
-    except Exception:
-        pass
-
-    # Also clear the legacy forced_decoder_ids from config so the model
-    # doesn't try to re-inject them at generate() time.
-    try:
-        model.config.forced_decoder_ids = None
-    except Exception:
-        pass
-
-    # Move to GPU + fp16
-    model.to(device)
-    model.eval()
-    model = model.half()
+    model = WhisperModel(
+        str(MODEL_DIR),
+        device="cuda",
+        compute_type="float16",
+    )
 
     free, total = torch.cuda.mem_get_info()
     log.info(f"CUDA memory free: {free/(1024**3):.2f} GB / {total/(1024**3):.2f} GB")
     log.info("Model ready on CUDA (fp16)")
 
     return WhisperState(
-        feature_extractor=feature_extractor,
-        tokenizer=tokenizer,
         model=model,
         device=device,
         gate=GPUGate(),
@@ -307,46 +273,23 @@ def transcribe_wavefile(
     language: str = "en",
 ) -> str:
     """
-    Transcribe a preprocessed WAV using the loaded model (GPU-only).
+    Transcribe a preprocessed WAV using the loaded faster-whisper model.
     Serialized with a GPU lock.
-
-    Transformers 5.x: generation params live on model.generation_config
-    (configured once at startup).  Per-call overrides use task/language
-    kwargs on model.generate(), NOT a separate GenerationConfig object.
     """
-    try:
-        audio_np, sr = sf.read(str(wav_path), dtype="float32")
-    except Exception as e:
-        log.warning(f"soundfile failed to load {wav_path}: {e}")
-        return ""
-
-    # Ensure mono (average channels if stereo)
-    if audio_np.ndim == 2:
-        audio_np = audio_np.mean(axis=1)
-    audio_np = audio_np.squeeze()
-
-    inputs = state.feature_extractor(
-        audio_np,
-        sampling_rate=sr,
-        return_tensors="pt",
-        return_attention_mask=True,
-    )
-
-    feats = inputs.input_features.to(state.device, dtype=torch.float16)
-    attention_mask = inputs.attention_mask.to(state.device)
-
     log.info("[transcribe_wavefile] Acquiring GPU gate…")
     with state.gate.acquire("whisper", timeout_s=120):
-        log.info("[transcribe_wavefile] GPU gate acquired, running model.generate()…")
-        with torch.inference_mode():
-            predicted = state.model.generate(
-                input_features=feats,
-                attention_mask=attention_mask,
-                task=task,
-                language=language,
-            )
+        log.info("[transcribe_wavefile] GPU gate acquired, running model.transcribe()…")
+        segments, _ = state.model.transcribe(
+            str(wav_path),
+            task=task,
+            language=language,
+            beam_size=1,
+            word_timestamps=False,
+            condition_on_previous_text=False
+        )
+        
+        text = " ".join([segment.text for segment in segments]).strip()
 
-    text = state.tokenizer.batch_decode(predicted, skip_special_tokens=True)[0].strip()
     log.info(f"[transcribe_wavefile] Decoded {len(text)} chars")
     return text
 
@@ -697,6 +640,8 @@ def transcribe_file(
     write_artifacts: bool = True,
     insert_db: bool = True,
     delete_source_raw: bool = False,
+    custom_output_dir: str = "",
+    skip_wav_copy: bool = False,
 ) -> Dict[str, Any]:
     """
     Preprocess + transcribe a scanner WAV, then write artifacts under ARCHIVE_BASE/clean/<feed>/.
@@ -736,9 +681,13 @@ def transcribe_file(
 
     tmp = TMP_DIR / f"{src.stem}_clean.wav"
 
-    out_txt = clean_dir / f"{src.stem}.txt"
-    out_json = clean_dir / f"{src.stem}.json"
-    out_wav = clean_dir / f"{src.stem}.wav"
+    target_dir = Path(custom_output_dir).expanduser().resolve() if custom_output_dir else clean_dir
+    if custom_output_dir:
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+    out_txt = target_dir / f"{src.stem}.txt"
+    out_json = target_dir / f"{src.stem}.json"
+    out_wav = target_dir / f"{src.stem}.wav"
 
     t0 = time.time()
     try:
@@ -813,7 +762,8 @@ def transcribe_file(
         if write_artifacts:
             out_txt.write_text(text, encoding="utf-8")
             out_json.write_text(json.dumps(meta, indent=2), encoding="utf-8")
-            shutil.copy(tmp, out_wav)
+            if not skip_wav_copy:
+                shutil.copy(tmp, out_wav)
 
         # Optional DB insert
         db_result = None
@@ -888,10 +838,11 @@ def transcribe_file(
             "language": language,
             "source_path": str(src),
             "clean_dir": str(clean_dir),
+            "output_dir": str(target_dir),
             "artifacts": {
                 "txt": str(out_txt) if write_artifacts else None,
                 "json": str(out_json) if write_artifacts else None,
-                "wav": str(out_wav) if write_artifacts else None,
+                "wav": str(out_wav) if write_artifacts and not skip_wav_copy else None,
             },
             "db": db_result,
             "deleted_source": deleted,
