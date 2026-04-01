@@ -158,6 +158,7 @@ def _compute_latest():
             latest[key] = {
                 "file": latest_file.name,
                 "transcript": transcript.strip()[:300] if transcript else None,
+                "duration": data.get("duration"),
             }
         except Exception as e:
             logger.warning("scanner_latest failed for %s: %s", key, e)

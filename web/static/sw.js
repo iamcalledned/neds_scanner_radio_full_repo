@@ -1,6 +1,6 @@
 // In: sw.js (Your complete, corrected file)
 
-const CACHE_NAME = 'scanner-cache-v20260331f';
+const CACHE_NAME = 'scanner-cache-v20260331g';
 const OFFLINE_URL = 'offline.html';
 
 // Use relative paths so this worker works under /scanner/ when installed there.
