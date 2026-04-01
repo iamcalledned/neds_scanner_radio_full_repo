@@ -41,7 +41,7 @@ def send_push(subscription_info, payload, vapid_private_key, vapid_claims):
             err_text = ex.response.text if hasattr(ex, 'response') and ex.response is not None else str(ex)
         except Exception:
             err_text = str(ex)
-        logger.warning("WebPush failed (initial attempt) for %s: %s", endpoint[:120], err_text)
+        logger.debug("webpush.initial_attempt_failed endpoint=%s error=%s", endpoint[:120], err_text)
         try:
             if isinstance(vapid_private_key, (bytes, bytearray)):
                 pem = vapid_private_key
@@ -51,7 +51,7 @@ def send_push(subscription_info, payload, vapid_private_key, vapid_claims):
             priv_nums = priv.private_numbers().private_value
             raw = priv_nums.to_bytes(32, 'big')
             raw_b64 = base64.urlsafe_b64encode(raw).rstrip(b'=').decode('ascii')
-            logger.info("Retrying WebPush with raw VAPID scalar for %s", endpoint[:120])
+            logger.debug("webpush.retry_raw_scalar endpoint=%s", endpoint[:120])
             webpush(
                 subscription_info=subscription_info,
                 data=json.dumps(payload),
@@ -59,13 +59,14 @@ def send_push(subscription_info, payload, vapid_private_key, vapid_claims):
                 vapid_claims=vapid_claims,
                 ttl=60
             )
+            logger.debug("webpush.retry_raw_scalar_succeeded endpoint=%s", endpoint[:120])
             return True, None
         except Exception as ex2:
             try:
                 err2 = ex2.response.text if hasattr(ex2, 'response') and ex2.response is not None else str(ex2)
             except Exception:
                 err2 = str(ex2)
-            logger.warning("WebPush failed (raw scalar attempt) for %s: %s", endpoint[:120], err2)
+            logger.warning("webpush.failed endpoint=%s error=%s", endpoint[:120], err2)
             return False, err_text + ' || ' + err2
     except Exception as e:
         logger.exception("send_push unexpected error for %s", endpoint[:120])

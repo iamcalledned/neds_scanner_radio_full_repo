@@ -1,8 +1,10 @@
 import sqlite3
 import os
 import json
+import logging
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'push_subs.sqlite3')
+logger = logging.getLogger("scanner_web.push_db")
 
 DB_PATH_login = os.environ.get("LOGIN_DB_PATH", "/home/ned/data/login/login.sqlite3")
 
@@ -141,8 +143,9 @@ def list_loggedin_users():
 
 def get_loggedin_users_count():
     """Returns just the count of logged-in users."""
-    print(f"number of logged in users: {len(list_loggedin_users())}")
-    return len(list_loggedin_users())
+    count = list_loggedin_users()
+    logger.debug("logged_in_users.count=%s", count)
+    return count
 
 # You would also need a function to ensure the user_data table exists,
 # similar to push_db.ensure_db(), if it's not already handled elsewhere.

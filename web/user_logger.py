@@ -18,6 +18,7 @@ import datetime
 import json
 import os
 import sqlite3
+import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -28,6 +29,7 @@ _project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 load_dotenv(os.path.join(_project_root, ".env"))
 
 DB_PATH = Path(os.environ.get("SCANNER_DB_PATH", "/home/ned/data/scanner_calls/scanner_calls.db"))
+logger = logging.getLogger("scanner_web.user_activity")
 
 _table_ready = False
 
@@ -103,5 +105,5 @@ def log_activity(action: str, detail: dict = None) -> None:
                 (now, session_hash, client_id, ip, action, detail_json),
             )
             conn.commit()
-    except Exception:
-        pass  # Never let logging crash the app
+    except Exception as e:
+        logger.warning("user_activity.persist_failed action=%s error=%s", action, e)

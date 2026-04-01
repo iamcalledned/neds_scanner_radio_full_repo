@@ -1,12 +1,14 @@
 from flask import Blueprint, request, jsonify, send_file
 import os
 import json
+import logging
 from . import routes_scanner as scanner_routes
 import push_db
 import push_utils
 import redis
 
 push_bp = Blueprint('push', __name__)
+logger = logging.getLogger("scanner_web.routes_push")
 
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
 redis_client = redis.from_url(REDIS_URL)
@@ -21,6 +23,7 @@ def get_vapid_public():
         # return the raw base64url public key as plain text so the client can consume it directly
         with open(VAPID_PUBLIC_FILE, 'r') as f:
             key = f.read().strip()
+        logger.debug("push.vapid_public_served")
         return (key, 200, {'Content-Type': 'text/plain; charset=utf-8'})
     return jsonify({'error': 'no key'}), 404
 
@@ -31,6 +34,7 @@ def subscribe():
     if not data:
         return jsonify({'error': 'invalid json'}), 400
     push_db.save_subscription(data)
+    logger.info("push.subscribe endpoint=%s", str(data.get('endpoint', ''))[:120])
     return jsonify({'success': True})
 
 
@@ -39,6 +43,7 @@ def unsubscribe():
     data = request.get_json()
     endpoint = data.get('endpoint')
     push_db.remove_subscription(endpoint)
+    logger.info("push.unsubscribe endpoint=%s", str(endpoint or '')[:120])
     return jsonify({'success': True})
 
 
@@ -77,6 +82,7 @@ def get_channels():
         if t not in towns:
             towns[t] = []
         towns[t].append({'id': ch['id'], 'label': ch['label'], 'type': ch['type']})
+    logger.debug("push.channels_requested count=%s", len(CHANNELS))
     return jsonify({'channels': CHANNELS, 'by_town': towns})
 
 
@@ -87,6 +93,7 @@ def get_prefs():
     if not endpoint:
         return jsonify({'error': 'endpoint required'}), 400
     prefs = push_db.get_prefs(endpoint)
+    logger.debug("push.prefs_get endpoint=%s feeds=%s", endpoint[:120], len(prefs))
     return jsonify({'feeds': prefs})
 
 
@@ -101,6 +108,7 @@ def save_prefs():
     if not isinstance(feeds, list):
         return jsonify({'error': 'feeds must be a list'}), 400
     push_db.save_prefs(endpoint, feeds)
+    logger.info("push.prefs_saved endpoint=%s feeds=%s", endpoint[:120], len(feeds))
     return jsonify({'success': True})
 
 
@@ -110,6 +118,7 @@ def send_push():
     message = data.get('message', 'Test push')
     # push job to redis list
     redis_client.lpush('push_queue', json.dumps({'message': message}))
+    logger.info("push.send_queued")
     return jsonify({'queued': True})
 
 
@@ -128,6 +137,7 @@ def send_push_now():
     vapid_claims = {'sub': 'mailto:admin@iamcalledned.ai'}
     results = []
     subs = push_db.list_subscriptions()
+    logger.info("push.send_now recipients=%s", len(subs))
     for s in subs:
         try:
             ok, err = push_utils.send_push(s, {'message': message}, vapid_priv, vapid_claims)

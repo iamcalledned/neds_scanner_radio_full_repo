@@ -44,7 +44,7 @@ def _format_iso_time(iso_string):
         # Format as "2:30 PM"
         return local_time.strftime('%-l:%M %p').strip()
     except Exception as e:
-        print(f"Error parsing time '{iso_string}': {e}")
+        logger.warning("time_parse_failed value=%s error=%s", iso_string, e)
         return ""
 
 # -------------------------
@@ -87,17 +87,19 @@ def handle_connect():
         'sessionId': sid
     }, to=sid)
 
-    logger.info(f"[CONNECT] SID={sid} | IP={client_ip} | Agent={user_agent} | Origin={origin}")
+    logger.info("socket.connect sid=%s ip=%s origin=%s", sid, client_ip, origin)
 
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    # request.sid is also available here if needed
-    print(f'Client disconnected: {request.sid}')
+    logger.info("socket.disconnect sid=%s", request.sid)
 
 @socketio.on('client_message')
 def handle_client_message(json_data):
-    print(f"Received 'client_message' from {request.sid}: {json_data.get('data', 'No data')}")
+    payload_preview = ""
+    if isinstance(json_data, dict):
+        payload_preview = str(json_data.get('data', ''))[:120]
+    logger.debug("socket.client_message sid=%s payload=%s", request.sid, payload_preview)
     
     # This broadcasts to EVERYONE. 
     # If you only want to reply to the sender, add 'to=request.sid'
@@ -108,14 +110,14 @@ def handle_client_message(json_data):
 # -------------------------
 def push_worker():
     worker_logger = logging.getLogger('scanner_web.push_worker')
-    worker_logger.info("Push notification worker initializing...")
+    worker_logger.info("push_worker.start")
     
     try:
         vapid_pub, vapid_priv = push_utils.load_vapid_keys()
         vapid_claims = {'sub': 'mailto:admin@iamcalledned.ai'}
-        worker_logger.info("VAPID keys loaded successfully")
+        worker_logger.info("push_worker.vapid_keys_ready")
     except Exception as e:
-        worker_logger.critical(f"Failed to load VAPID keys | Error: {str(e)}")
+        worker_logger.critical("push_worker.vapid_keys_failed error=%s", e)
         return
         
     while True:
@@ -144,7 +146,7 @@ def push_worker():
                 else:
                     subs = push_db.list_subscriptions()
 
-                worker_logger.info(f"Processing push notification | Message: '{message_content}' | Recipients: {len(subs)}")
+                worker_logger.info("push_worker.job_start recipients=%s feed=%s", len(subs), feed or "-")
 
                 push_payload = {'title': title, 'message': message_content}
                 if feed:
@@ -162,29 +164,34 @@ def push_worker():
                             failed_count += 1
                             if err and ('410' in err or '404' in err or 'unsubscribed' in err.lower() or 'expired' in err.lower()):
                                 push_db.remove_subscription(endpoint)
-                                worker_logger.info(f"Removed stale push subscription | Subscriber: {endpoint}")
-                            worker_logger.warning(f"Push delivery failed | Subscriber: {endpoint} | Error: {err}")
+                                worker_logger.info("push_worker.subscription_removed endpoint=%s", endpoint)
+                            worker_logger.warning("push_worker.delivery_failed endpoint=%s error=%s", endpoint, err)
                     except Exception as push_err:
                         failed_count += 1
-                        worker_logger.error(f"Push delivery failed | Subscriber: {endpoint} | Error: {str(push_err)}")
+                        worker_logger.error("push_worker.delivery_error endpoint=%s error=%s", endpoint, push_err)
 
-                worker_logger.info(f"Push notification complete | Successful: {success_count}/{len(subs)} | Failed: {failed_count}")
+                worker_logger.info(
+                    "push_worker.job_complete recipients=%s delivered=%s failed=%s",
+                    len(subs),
+                    success_count,
+                    failed_count,
+                )
                 
             except json.JSONDecodeError:
-                worker_logger.error(f"Invalid JSON payload received | Raw: {payload_str}")
+                worker_logger.error("push_worker.invalid_json")
             except Exception as e:
-                worker_logger.error(f"Push processing error | Error: {str(e)}")
+                worker_logger.error("push_worker.job_error error=%s", e)
                 
         except redis.RedisError as redis_err:
-            worker_logger.error(f"Redis connection error | Error: {str(redis_err)} | Action: Reconnecting in 5s")
+            worker_logger.error("push_worker.redis_error error=%s retry_seconds=%s", redis_err, 5)
             socketio.sleep(5)
         except Exception as e:
-            worker_logger.error(f"Unexpected worker error | Error: {str(e)} | Action: Retry in 5s")
+            worker_logger.error("push_worker.unexpected_error error=%s retry_seconds=%s", e, 5)
             socketio.sleep(5)
 
 def transmitting_worker():
     worker_logger = logging.getLogger('scanner_web.transmitting_worker')
-    worker_logger.info("Transmitting status monitor initializing...")
+    worker_logger.info("transmitting_worker.start")
     
     last_status = {}
     status_check_count = 0
@@ -201,7 +208,7 @@ def transmitting_worker():
             active_departments = []
             
             if keys:
-                worker_logger.debug(f"Status check #{status_check_count} | Found {len(keys)} status keys")
+                worker_logger.debug("transmitting_worker.status_check count=%s keys=%s", status_check_count, len(keys))
                 
                 # Pipeline Redis gets for efficiency
                 pipe = r.pipeline()
@@ -220,7 +227,7 @@ def transmitting_worker():
                                 active_found = True
                                 active_departments.append(dept_id)
                     except IndexError:
-                        worker_logger.warning(f"Malformed Redis key detected | Key: {key}")
+                        worker_logger.warning("transmitting_worker.malformed_key key=%s", key)
             
             # Set default 'N' status for departments not found in Redis
             for dept_id in ALL_DEPARTMENT_IDS:
@@ -247,11 +254,11 @@ def transmitting_worker():
             last_status = current_status.copy()
             
         except redis.RedisError as e:
-            worker_logger.error(f"Redis connection error | Error: {str(e)} | Action: Reconnecting in 5s")
+            worker_logger.error("transmitting_worker.redis_error error=%s retry_seconds=%s", e, 5)
             last_status = {}
             socketio.sleep(5)
         except Exception as e:
-            worker_logger.error(f"Unexpected monitoring error | Error: {str(e)} | Action: Retry in 1s")
+            worker_logger.error("transmitting_worker.unexpected_error error=%s retry_seconds=%s", e, 1)
             socketio.sleep(1)
         
         # Adaptive sleep duration based on activity
@@ -263,7 +270,7 @@ def new_call_watcher():
     When a feed's latest_time advances, enqueues a push notification.
     """
     worker_logger = logging.getLogger('scanner_web.new_call_watcher')
-    worker_logger.info("New call watcher initializing...")
+    worker_logger.info("new_call_watcher.start")
 
     # Human-readable feed names for notification titles
     FEED_NAMES = {
@@ -284,9 +291,9 @@ def new_call_watcher():
     try:
         for key in r.scan_iter(match='scanner:*:latest_time'):
             last_times[key] = r.get(key) or ''
-        worker_logger.info(f"Seeded {len(last_times)} feed timestamps")
+        worker_logger.info("new_call_watcher.seeded feeds=%s", len(last_times))
     except Exception as e:
-        worker_logger.warning(f"Could not seed timestamps: {e}")
+        worker_logger.warning("new_call_watcher.seed_failed error=%s", e)
 
     while True:
         try:
@@ -313,13 +320,13 @@ def new_call_watcher():
                                 'targeted_endpoints': [s.get('endpoint') for s in targeted],
                             })
                             r.lpush('push_queue', job)
-                            worker_logger.info(f"New call on {feed} — queued push for {len(targeted)} subscriber(s)")
+                            worker_logger.info("new_call_watcher.queued feed=%s subscribers=%s", feed, len(targeted))
                 except Exception as key_err:
-                    worker_logger.warning(f"Error processing key {key}: {key_err}")
+                    worker_logger.warning("new_call_watcher.key_failed key=%s error=%s", key, key_err)
         except redis.RedisError as e:
-            worker_logger.error(f"Redis error in watcher: {e}")
+            worker_logger.error("new_call_watcher.redis_error error=%s", e)
         except Exception as e:
-            worker_logger.error(f"Unexpected watcher error: {e}")
+            worker_logger.error("new_call_watcher.unexpected_error error=%s", e)
 
         socketio.sleep(5)  # Poll every 5 seconds
 
@@ -335,7 +342,7 @@ def init_sockets(app, redis_client, all_feeds_list, all_department_ids_list, loc
     socketio.init_app(app, async_mode='eventlet', cors_allowed_origins="*")
     
     # Start background workers
-    logger.info("Starting socket background workers...")
+    logger.info("socket_workers.start")
     socketio.start_background_task(target=push_worker)
     socketio.start_background_task(target=transmitting_worker)
     socketio.start_background_task(target=new_call_watcher)

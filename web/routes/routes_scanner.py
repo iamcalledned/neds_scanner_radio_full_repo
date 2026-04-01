@@ -746,7 +746,7 @@ def scanner_audio(filename):
 
 @scanner_bp.route("/scanner/submit_edit", methods=["POST"])
 def submit_edit():
-    logger.info("submit_edit request received")
+    logger.debug("submit_edit.request")
     data = request.get_json()
     if not data:
         return jsonify({"success": False, "error": "Invalid JSON"}), 400
@@ -772,6 +772,7 @@ def submit_edit():
     )
 
     if result['success']:
+        logger.info("submit_edit.saved filename=%s feed=%s", filename, feed)
         log_activity("transcript_edit", {"filename": filename, "feed": feed})
         return jsonify({"success": True})
     else:
@@ -987,7 +988,7 @@ def scanner_stats():
     if cached is not None:
         return jsonify(cached)
     stats = _compute_stats()
-    logger.info("Scanner stats computed")
+    logger.debug("scanner_stats.computed")
     _set_cached_response("stats", stats)
     _set_cached_response_redis("stats", stats)
     return jsonify(stats)
@@ -995,7 +996,7 @@ def scanner_stats():
 
 @scanner_bp.route("/scanner/increment_play", methods=["POST"])
 def increment_play():
-    logger.info("increment_play request received")
+    logger.debug("increment_play.request")
     data = request.get_json()
     filename = data.get("filename")
     feed = data.get("feed")
@@ -1015,6 +1016,7 @@ def increment_play():
     except Exception as e:
         return jsonify({"error": f"Failed to update: {e}"}), 500
 
+    logger.info("increment_play.updated filename=%s feed=%s play_count=%s", filename, feed, play_count)
     log_activity("play_audio", {"filename": filename, "feed": feed})
     return jsonify({"play_count": play_count})
 
@@ -1110,7 +1112,7 @@ def submit_intent():
     Saves updated metadata JSON for ML training and updates the clean source file
     to indicate this call has been labeled.
     """
-    logger.info("submit_intent request received")
+    logger.debug("submit_intent.request")
     data = request.get_json()
     if not data:
         return jsonify({"success": False, "error": "Invalid JSON"}), 400
@@ -1189,7 +1191,7 @@ def submit_intent():
         with open(dst_json, "w") as f:
             json.dump(meta, f, indent=2)
 
-        logger.info("Intent saved for %s", filename)
+        logger.info("submit_intent.saved filename=%s feed=%s intents=%s dispositions=%s", filename, feed, len(intents), len(dispositions))
         log_activity("submit_intent", {"filename": filename, "feed": feed, "intents": intents, "dispositions": dispositions})
         return jsonify({
             "success": True,

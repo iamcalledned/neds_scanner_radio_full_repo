@@ -34,7 +34,7 @@ import redis
 import pytz
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, send_from_directory, send_file, jsonify, render_template, request, g, has_request_context
+from flask import Flask, send_from_directory, send_file, jsonify, render_template, request, g, has_request_context, got_request_exception
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # --- 3. Local Application Imports ---
@@ -72,12 +72,18 @@ class RequestContextFilter(logging.Filter):
             record.method = request.method
             record.path = request.path
             record.user_agent = request.headers.get("User-Agent", "-")
+            record.endpoint = request.endpoint or "-"
+            record.status_code = getattr(g, "log_status_code", "-")
+            record.duration_ms = getattr(g, "log_duration_ms", "-")
         else:
             record.request_id = "-"
             record.remote_addr = "-"
             record.method = "-"
             record.path = "-"
             record.user_agent = "-"
+            record.endpoint = "-"
+            record.status_code = "-"
+            record.duration_ms = "-"
         return True
 
 
@@ -93,7 +99,7 @@ dictConfig({
         },
         "json": {
             "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "fmt": "%(asctime)s %(levelname)s %(name)s %(message)s %(service)s %(env)s %(request_id)s %(remote_addr)s %(method)s %(path)s %(user_agent)s"
+            "fmt": "%(asctime)s %(levelname)s %(name)s %(message)s %(service)s %(env)s %(request_id)s %(remote_addr)s %(method)s %(path)s %(endpoint)s %(status_code)s %(duration_ms)s %(user_agent)s"
         }
     },
     "handlers": {
@@ -122,6 +128,21 @@ dictConfig({
         },
         "scanner_web.requests": {
             "level": LOG_LEVEL,
+            "handlers": ["console", "file"],
+            "propagate": False
+        },
+        "werkzeug": {
+            "level": "WARNING",
+            "handlers": ["console", "file"],
+            "propagate": False
+        },
+        "engineio": {
+            "level": "WARNING",
+            "handlers": ["console", "file"],
+            "propagate": False
+        },
+        "socketio": {
+            "level": "WARNING",
             "handlers": ["console", "file"],
             "propagate": False
         }
@@ -338,10 +359,10 @@ def calculate_all_stats():
     It caches the result in Redis AND broadcasts it via Socket.IO.
     """
     if not redis_client:
-        logger.error("[!] (calculate_all_stats) No Redis connection, skipping stats update.")
+        logger.error("stats.calculate.skipped redis_unavailable=true")
         return
 
-    logger.info("[*] (calculate_all_stats) Starting stats calculation...")
+    logger.debug("stats.calculate.start")
     
     # --- Part 1: Fast Database Stats ---
     try:
@@ -349,7 +370,7 @@ def calculate_all_stats():
         db_stats = get_todays_stats() 
         # db_stats is {'total_minutes': X, 'active_feeds': Y, 'total_calls': Z}
     except Exception as e:
-        logger.error(f"[!] (calculate_all_stats) Failed to get stats from database: {e}")
+        logger.error("stats.calculate.db_failed error=%s", e)
         db_stats = {'total_minutes': 0, 'active_feeds': 0, 'total_calls': 0}
 
     # --- Part 2: Slow Filesystem Stats ---
@@ -371,7 +392,7 @@ def calculate_all_stats():
             files_in_feed = list(path.glob("rec_*.wav")) + list(path.glob("rec_*.mp3"))
             all_files.extend(files_in_feed)
         except Exception as e:
-            logger.error(f"[!] (calculate_all_stats) Failed to access directory for {key}: {e}")
+            logger.error("stats.calculate.directory_failed feed=%s error=%s", key, e)
             continue
 
     for file_path in all_files:
@@ -382,7 +403,7 @@ def calculate_all_stats():
                 stats["total_calls_today_fs"] += 1
             stats["total_disk_usage_bytes"] += file_stat.st_size
         except Exception as e:
-            logger.warning(f"[!] (calculate_all_stats) Could not process file {file_path.name}: {e}")
+            logger.warning("stats.calculate.file_skipped file=%s error=%s", file_path.name, e)
 
     stats["total_calls_all_time"] = len(all_files)
     # Use the helper function (defined in your Helper Functions section)
@@ -400,7 +421,7 @@ def calculate_all_stats():
         # Get the live listener count from the socketio server
         final_stats["listeners"] = len(socketio.server.eio.sockets)
     except Exception as e:
-        logger.warning(f"[!] (calculate_all_stats) Could not get listener count: {e}")
+        logger.warning("stats.calculate.listener_count_failed error=%s", e)
         final_stats["listeners"] = 0
 
     try:
@@ -411,10 +432,10 @@ def calculate_all_stats():
         # (This 'socketio' object must be the one initialized in your app.py)
         socketio.emit('stats_update', final_stats)
         
-        logger.info(f"[*] (calculate_all_stats) Stats updated in Redis and broadcasted. {final_stats.get('total_calls', 0)} calls today.")
+        logger.debug("stats.calculate.complete total_calls=%s", final_stats.get('total_calls', 0))
 
     except Exception as e:
-        logger.error(f"[!] (calculate_all_stats) Failed to write to Redis or emit: {e}")
+        logger.error("stats.calculate.redis_write_failed error=%s", e)
 
         
 # --- 8. App Setup, Hooks & Blueprints ---
@@ -430,9 +451,7 @@ def log_request_info():
         or str(uuid4())
     )
     g.start_time = time.time()
-    request_logger.info(
-        "request.start"
-    )
+    request_logger.info("request.start")
 
 @app.after_request
 def log_response_info(response):
@@ -442,13 +461,21 @@ def log_response_info(response):
     duration_ms = None
     if hasattr(g, "start_time"):
         duration_ms = int((time.time() - g.start_time) * 1000)
+    g.log_status_code = response.status_code
+    g.log_duration_ms = duration_ms
     response.headers["X-Request-Id"] = getattr(g, "request_id", "-")
-    request_logger.info(
-        "request.end status=%s duration_ms=%s",
-        response.status_code,
-        duration_ms
-    )
+    log_fn = request_logger.info
+    if response.status_code >= 500:
+        log_fn = request_logger.error
+    elif response.status_code >= 400:
+        log_fn = request_logger.warning
+    log_fn("request.end")
     return response
+
+
+@got_request_exception.connect_via(app)
+def log_unhandled_exception(sender, exception, **extra):
+    logger.exception("unhandled.exception endpoint=%s", request.endpoint or "-")
 
 @app.template_filter("datetimeformat")
 def datetimeformat_filter(value, format="%b %d, %I:%M %p"):
@@ -475,7 +502,7 @@ app.register_blueprint(auth_bp)
 # --- PWA & Static File Routes ---
 @app.route('/sw.js')
 def service_worker():
-    logger.info(f"[SW.js] Hit at {datetime.now()} from {request.remote_addr}")
+    logger.debug("service_worker.requested")
     sw_path = os.path.join(app.root_path, app.static_folder, 'sw.js')
     if os.path.exists(sw_path):
         return send_file(sw_path, mimetype='application/javascript')
@@ -495,7 +522,7 @@ def icons(filename):
 
 @app.route('/scanner/sw.js')
 def scanner_service_worker():
-    logger.info(f"[SW.js] /scanner/sw.js hit at {datetime.now()} from {request.remote_addr}")
+    logger.debug("scanner_service_worker.requested")
     return service_worker()
 
 @app.route('/scanner/static/<path:path>')
@@ -524,7 +551,7 @@ def scanner_stats_page():
 def api_users():
     try:
         count = get_loggedin_users_count()
-        logger.info(f"Active users count: {count}")
+        logger.debug("active_users.count=%s", count)
         return jsonify({"active_users": count}), 200
     except Exception as e:
         logger.error(f"Error fetching logged-in user count: {e}")
@@ -564,7 +591,7 @@ def serve_audio_file(department, filename):
 
 @app.route('/scanner/api/stats_data')
 def api_stats_data():
-    logger.info("Generating stats data...")
+    logger.debug("stats_data.requested")
     town_filter = request.args.get('town') 
     dept_filter = request.args.get('department') 
 
@@ -685,31 +712,27 @@ def api_property():
 
 def initialize_application():
     """Initialize application components and background tasks"""
-    logger.info("Scanner Web Application initializing...")
-    
-    logger.info("Initializing user activity log table...")
+    logger.info("application.init.start")
+
     init_user_activity_table()
 
-    logger.info("Verifying push notification database...")
     push_db.ensure_db()
     
-    logger.info("Initializing Sockets and starting background workers...")
-    # Pass the global redis_client to your socket initializer
     init_sockets(app, redis_client, ALL_FEEDS_LIST, ALL_DEPARTMENT_IDS, LOCAL_TIMEZONE)
-    
-    logger.info("Configuration summary:")
-    logger.info(f"├── Archive Base: {ARCHIVE_BASE}")
-    logger.info(f"├── Redis URL: {REDIS_URL}")
-    logger.info(f"├── Timezone: {LOCAL_TIMEZONE}")
-    logger.info(f"├── Monitored Departments: {len(ALL_DEPARTMENT_IDS)}")
-    logger.info("└── Departments: " + ", ".join(ALL_DEPARTMENT_IDS))
+
+    logger.info(
+        "application.init.ready archive_base=%s timezone=%s departments=%s redis_configured=%s",
+        ARCHIVE_BASE,
+        LOCAL_TIMEZONE,
+        len(ALL_DEPARTMENT_IDS),
+        bool(redis_client),
+    )
 
     try:
-        logger.info("[Cache] Warming API cache...")
         warm_api_cache()
-        logger.info("[Cache] API cache warm complete.")
+        logger.info("application.cache_warm.complete")
     except Exception as e:
-        logger.warning(f"[Cache] API cache warm failed: {e}")
+        logger.warning("application.cache_warm.failed error=%s", e)
 
 # Initialize application components
 initialize_application()
@@ -722,7 +745,7 @@ if __name__ == "__main__":
     # This check prevents the scheduler from running twice when debug=True
     # or when run by a reloader.
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-        logger.info("[*] Starting background scheduler (APScheduler)...")
+        logger.info("scheduler.starting")
         scheduler.add_job(
             calculate_all_stats, 
             'interval', 
@@ -739,21 +762,18 @@ if __name__ == "__main__":
         
         # Register a function to shut down the scheduler when the app exits
         atexit.register(lambda: scheduler.shutdown())
-        logger.info("[*] APScheduler started for stats calculation.")
+        logger.info("scheduler.started")
     else:
-        logger.info("[*] Werkzeug reloader active, scheduler already started in main process.")
+        logger.info("scheduler.skip_reloader_process")
 
-    
-    logger.info("=" * 60)
-    logger.info("Scanner Web Service Starting")
-    logger.info("=" * 60)
-    logger.info(f"Runtime Configuration:")
-    logger.info(f"├── Environment: DEVELOPMENT")
-    logger.info(f"├── Host: {host}")
-    logger.info(f"├── Port: {port}")
-    logger.info(f"├── Debug Mode: Enabled")
-    logger.info(f"├── Auto Reload: Disabled (as per your config)")
-    logger.info(f"└── URL: http://{host}:{port}")
+    logger.info(
+        "service.start env=%s host=%s port=%s debug=%s reloader=%s",
+        APP_ENV,
+        host,
+        port,
+        True,
+        False,
+    )
     
     # Use the socketio.run() to correctly start the eventlet server
     socketio.run(app, host=host, port=port, debug=True, use_reloader=False)
