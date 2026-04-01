@@ -487,11 +487,6 @@ def scanner_icons(filename):
 def scanner_offline():
     return send_from_directory(app.static_folder, 'offline.html')
 
-# --- Page-Rendering Routes ---
-@app.route('/scanner/today')
-def scanner_today_page():
-    return render_template('scanner_today.html')
-
 @app.route('/scanner/stats')
 def scanner_stats_page():
     return render_template('scanner_stats.html')
