@@ -50,6 +50,7 @@ API_CACHE = {}
 API_CACHE_LOCK = threading.Lock()
 API_CACHE_TTL = {
     "latest": 10,
+    "home_live_calls": 10,
     "stats": 30,
     "today_counts": 30,
     "archive_calls": 15
@@ -237,6 +238,25 @@ def _compute_latest():
     return latest
 
 
+def _compute_home_live_calls(limit=6):
+    with get_conn(readonly=True) as conn:
+        rows = conn.execute("""
+            SELECT *
+            FROM calls
+            WHERE category IN ({placeholders})
+            ORDER BY timestamp DESC
+            LIMIT ?
+        """.format(placeholders=",".join("?" for _ in VALID_FEEDS)), [*sorted(VALID_FEEDS), limit]).fetchall()
+
+    calls = []
+    for row in rows:
+        try:
+            calls.append(_row_to_call_payload(row))
+        except Exception as e:
+            logger.warning("home_live_calls failed for %s: %s", row["filename"], e)
+    return {"calls": calls}
+
+
 def _compute_stats():
     stats = {
         "total_calls_today": 0,
@@ -320,11 +340,14 @@ def _compute_today_counts():
 
 def warm_api_cache():
     latest = _compute_latest()
+    home_live_calls = _compute_home_live_calls()
     stats = _compute_stats()
     today_counts = _compute_today_counts()
 
     _set_cached_response("latest", latest)
     _set_cached_response_redis("latest", latest)
+    _set_cached_response("home_live_calls", home_live_calls)
+    _set_cached_response_redis("home_live_calls", home_live_calls)
     _set_cached_response("stats", stats)
     _set_cached_response_redis("stats", stats)
     _set_cached_response("today_counts", today_counts)
@@ -923,6 +946,18 @@ def scanner_latest():
     _set_cached_response("latest", latest)
     _set_cached_response_redis("latest", latest)
     return jsonify(latest)
+
+
+@scanner_bp.route("/scanner/api/home_live_calls")
+def scanner_home_live_calls():
+    cached = _get_cached_response_redis("home_live_calls") or _get_cached_response("home_live_calls")
+    if cached is not None:
+        return jsonify(cached)
+
+    payload = _compute_home_live_calls()
+    _set_cached_response("home_live_calls", payload)
+    _set_cached_response_redis("home_live_calls", payload)
+    return jsonify(payload)
 
 @scanner_bp.route('/scanner/api/user_count')
 def get_user_count():

@@ -29,6 +29,7 @@ const API_CACHE_KEYS = {
     stats: 'scanner_api_stats',
     wsUsers: 'scanner_api_ws_users',
     latest: 'scanner_api_latest',
+    homeLiveCalls: 'scanner_api_home_live_calls',
     todayCounts: 'scanner_api_today_counts'
 };
 
@@ -530,16 +531,7 @@ async function refreshCallBoard(force = false) {
     };
 
     const renderEntries = (data) => {
-        const entries = Object.entries(data || {})
-            .filter(([_, value]) => value?.file)
-            .map(([key, value]) => ({
-                feed: key,
-                transcript: value?.transcript,
-                file: value.file,
-                duration: value?.duration || 0,
-            }))
-            .sort((a, b) => b.file.localeCompare(a.file))
-            .slice(0, CALL_CARD_LIMIT);
+        const entries = (data?.calls || []).slice(0, CALL_CARD_LIMIT);
 
         if (!entries.length) {
             grid.innerHTML = '';
@@ -553,7 +545,7 @@ async function refreshCallBoard(force = false) {
         initAllHomeWaveformPlayers(grid);
     };
 
-    fetchJsonWithCache("/scanner/api/latest", API_CACHE_KEYS.latest, 15000, renderEntries);
+    fetchJsonWithCache("/scanner/api/home_live_calls", API_CACHE_KEYS.homeLiveCalls, 15000, renderEntries);
 }
 
 function initCallBoard() {
