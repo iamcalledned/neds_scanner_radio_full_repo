@@ -23,8 +23,8 @@
     window.initialCallsCount = {{ initial_call_count | default(0) }};
   </script>
 
-  <script src="/scanner/static/js/scanner_app_new.js?v=v20260331h" defer></script>
-  <script src="/scanner/static/js/scanner_view.js?v=v20260331h" defer></script>
+  <script src="/scanner/static/js/scanner_app_new.js?v=v20260331i" defer></script>
+  <script src="/scanner/static/js/scanner_view.js?v=v20260331i" defer></script>
   <script src="/scanner/static/js/pwa.js?v=v20260331c" defer></script>
 
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRCK642NXJ"></script>
@@ -425,7 +425,7 @@
             <div class="flex-1 relative wave-scrub cursor-pointer">
               <canvas class="wave-canvas block w-full rounded" height="44"></canvas>
             </div>
-            <span class="wave-time text-xs text-slate-500 tabular-nums w-10 text-right shrink-0">--:--</span>
+            <span class="wave-time text-xs text-slate-500 tabular-nums w-10 text-right shrink-0">{{ call.duration | fmt_duration }}</span>
           </div>
         </div>
 

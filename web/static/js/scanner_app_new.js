@@ -484,7 +484,7 @@ function buildCallCardHTML(entry) {
             <div class="flex-1 home-wave-scrub cursor-pointer">
               <canvas class="home-wave-canvas block w-full rounded" height="28"></canvas>
             </div>
-            <span class="home-wave-time text-xs text-slate-600 tabular-nums w-9 text-right shrink-0">${_homeFmtTime((entry.duration || (entry.metadata && entry.metadata.duration)) || 0)}</span>
+            <span class="home-wave-time text-xs text-slate-600 tabular-nums w-9 text-right shrink-0">${entry.duration > 0 ? _homeFmtTime(entry.duration) : '--:--'}</span>
           </div>
         </div>` : `<div class="call-card-wave ${deptMeta.waveformClass}"></div>`;
         return `

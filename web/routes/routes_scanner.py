@@ -155,10 +155,23 @@ def _compute_latest():
                 or data.get("edited_transcript")
                 or data.get("transcript")
             )
+            from shared.scanner_db import get_conn as _get_conn
+            duration = data.get("duration") or 0
+            if not duration:
+                try:
+                    with _get_conn(readonly=True) as _conn:
+                        row = _conn.execute(
+                            "SELECT duration FROM calls WHERE filename = ? OR wav_path LIKE ? LIMIT 1",
+                            (latest_file.name, f"%{latest_file.stem}%")
+                        ).fetchone()
+                        if row and row["duration"]:
+                            duration = row["duration"]
+                except Exception:
+                    pass
             latest[key] = {
                 "file": latest_file.name,
                 "transcript": transcript.strip()[:300] if transcript else None,
-                "duration": data.get("duration"),
+                "duration": duration,
             }
         except Exception as e:
             logger.warning("scanner_latest failed for %s: %s", key, e)
@@ -378,6 +391,7 @@ def _compute_archive_calls(feed, offset, limit):
                 "timestamp": base.replace("rec_", "").replace("_", " "),
                 "timestamp_human": timestamp_human,
                 "feed": feed,
+                "duration": metadata.get("duration") or 0,
                 "metadata": metadata
             })
         except Exception as e:
@@ -450,6 +464,7 @@ def load_calls(directory, feed="pd", filter_today=False, limit=None):
                 "timestamp": timestamp,
                 "timestamp_human": timestamp_human,
                 "feed": feed,
+                "duration": metadata.get("duration") or 0,
                 "metadata": metadata
             })
 

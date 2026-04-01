@@ -177,7 +177,7 @@ function renderCall(call, index) {
         <div class="flex-1 relative wave-scrub cursor-pointer">
           <canvas class="wave-canvas block w-full rounded" height="44"></canvas>
         </div>
-        <span class="wave-time text-xs text-slate-500 tabular-nums w-10 text-right shrink-0">${_fmtTime((call.metadata && call.metadata.duration) || 0)}</span>
+        <span class="wave-time text-xs text-slate-500 tabular-nums w-10 text-right shrink-0">${call.duration > 0 ? _fmtTime(call.duration) : '--:--'}</span>
       </div>
     </div>
     <div class="space-y-3 mt-3">

@@ -175,8 +175,22 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; HopedaleScraper/1.0)"}
 
 # --- 5. Global Object Initialization ---
 
-app = Flask(__name__, template_folder='templates') 
+app = Flask(__name__, template_folder='templates')
 # app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'a-very-secret-key')
+
+def _fmt_duration(seconds):
+    """Format a duration in seconds as M:SS. Returns '--:--' for None/0/invalid."""
+    try:
+        s = float(seconds)
+        if s <= 0 or not (s == s):  # handles None, 0, NaN
+            return '--:--'
+        m = int(s // 60)
+        sec = int(s % 60)
+        return f"{m}:{sec:02d}"
+    except (TypeError, ValueError):
+        return '--:--'
+
+app.jinja_env.filters['fmt_duration'] = _fmt_duration
 
 try:
     # Standardized on 'redis_client' as the single global Redis connection
