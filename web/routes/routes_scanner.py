@@ -8,13 +8,15 @@ import os
 import time
 import threading
 import uuid
-import requests, datetime
 from datetime import datetime, date, timedelta
-import fcntl
 import redis
 import logging
 
-from shared.scanner_db import read_metadata_from_sqlite, submit_edit_to_sqlite
+from shared.scanner_db import (
+    get_conn,
+    increment_play_count,
+    submit_edit_to_sqlite,
+)
 from user_logger import log_activity
 
 
@@ -25,14 +27,17 @@ GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 LOGIN_PROCESS_URL = os.environ.get('LOGIN_PROCESS_URL', 'http://127.0.0.1:8010/api/login')
 LOGIN_API_URL = os.environ.get('LOGIN_API_URL', 'http://127.0.0.1:8010')
 ARCHIVE_DIR = os.environ.get("ARCHIVE_DIR", os.path.join(os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls/scanner_archive"), "clean"))
-PD_DIR = Path(os.path.join(ARCHIVE_DIR, "pd"))
 REVIEW_DIR = Path(os.environ.get("REVIEW_DIR", os.path.join(os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls/scanner_archive"), "review")))
 SEGMENT_DIR = Path(os.environ.get("SEGMENT_DIR", os.path.join(os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls/scanner_archive"), "segmentation/processed")))
 CALLS_PER_PAGE = 10
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
 
 
-VALID_FEEDS = {"pd", "fd", "mpd", "mfd", "sfd", "bpd", "bfd", "mndfd", "mndpd", "blkfd", "blkpd", "uptfd", "uptpd", "frkpd", "frkfd"}
+VALID_FEEDS = {
+    "pd", "fd", "mpd", "mfd", "sfd", "bpd", "bfd",
+    "mndfd", "mndpd", "blkfd", "blkpd", "uptfd", "uptpd",
+    "frkpd", "frkfd", "milpd", "milfd", "medpd", "medfd", "foxpd",
+}
 
 
 
@@ -57,6 +62,84 @@ def _get_redis_client():
         return redis.from_url(REDIS_URL, decode_responses=True)
     except Exception:
         return None
+
+
+def _safe_fromisoformat(value):
+    if not value:
+        return None
+    try:
+        if isinstance(value, str) and value.endswith("Z"):
+            value = value[:-1] + "+00:00"
+        dt = datetime.fromisoformat(value)
+        if dt.tzinfo is not None:
+            return dt.astimezone().replace(tzinfo=None)
+        return dt
+    except Exception:
+        return None
+
+
+def _timestamp_from_filename(filename):
+    stem = Path(filename).stem
+    parts = stem.split("_")
+    if len(parts) < 3:
+        return None
+    try:
+        return datetime.strptime(f"{parts[1]}_{parts[2]}", "%Y-%m-%d_%H-%M-%S")
+    except Exception:
+        return None
+
+
+def _row_to_metadata(row):
+    metadata = dict(row)
+    for field in ("classification", "extra"):
+        raw = metadata.get(field)
+        if isinstance(raw, str):
+            try:
+                metadata[field] = json.loads(raw)
+            except json.JSONDecodeError:
+                metadata[field] = {}
+        elif raw is None:
+            metadata[field] = {}
+
+    extra = metadata.get("extra") or {}
+    if isinstance(extra, dict):
+        if extra.get("enhanced_transcript") and not metadata.get("enhanced_transcript"):
+            metadata["enhanced_transcript"] = extra["enhanced_transcript"]
+        if extra.get("derived_full_address") and not metadata.get("derived_full_address"):
+            metadata["derived_full_address"] = extra["derived_full_address"]
+
+    if metadata.get("derived_address") and not metadata.get("derived_full_address"):
+        metadata["derived_full_address"] = metadata["derived_address"]
+
+    return metadata
+
+
+def _row_to_call_payload(row, feed_override=None, timestamp_format="%b %d, %I:%M %p"):
+    metadata = _row_to_metadata(row)
+    edited_transcript = row["edited_transcript"] or ""
+    transcript = row["transcript"] or "(no transcript)"
+    edit_pending = False
+
+    if edited_transcript:
+        transcript = edited_transcript
+        edit_pending = not bool(metadata.get("edited"))
+
+    ts = _safe_fromisoformat(row["timestamp"]) or _timestamp_from_filename(row["filename"])
+    timestamp_human = ts.strftime(timestamp_format) if ts else row["filename"]
+
+    return {
+        "file": row["filename"],
+        "path": f"/scanner/audio/{row['filename']}",
+        "transcript": transcript,
+        "edited_transcript": edited_transcript,
+        "enhanced_transcript": metadata.get("enhanced_transcript", ""),
+        "edit_pending": edit_pending,
+        "timestamp": row["timestamp"] or "",
+        "timestamp_human": timestamp_human,
+        "feed": feed_override or row["category"] or "",
+        "duration": row["duration"] or 0,
+        "metadata": metadata,
+    }
 
 
 def _archive_cache_key(feed, offset, limit):
@@ -114,96 +197,47 @@ def _set_cached_response_redis(cache_key, data):
 
 
 def _compute_latest():
-    from pathlib import Path
-    import json as json_lib
-
-    feeds = {
-        "pd": Path(f"{ARCHIVE_DIR}/pd"),
-        "fd": Path(f"{ARCHIVE_DIR}/fd"),
-        "mpd": Path(f"{ARCHIVE_DIR}/mpd"),
-        "mfd": Path(f"{ARCHIVE_DIR}/mfd"),
-        "sfd": Path(f"{ARCHIVE_DIR}/sfd"),
-        "bpd": Path(f"{ARCHIVE_DIR}/bpd"),
-        "bfd": Path(f"{ARCHIVE_DIR}/bfd"),
-        "mndfd": Path(f"{ARCHIVE_DIR}/mndfd"),
-        "mndpd": Path(f"{ARCHIVE_DIR}/mndpd"),
-        "uptfd": Path(f"{ARCHIVE_DIR}/uptfd"),
-        "uptpd": Path(f"{ARCHIVE_DIR}/uptpd"),
-        "blkpd": Path(f"{ARCHIVE_DIR}/blkpd"),
-        "blkfd": Path(f"{ARCHIVE_DIR}/blkfd"),
-        "milpd": Path(f"{ARCHIVE_DIR}/milpd"),
-        "milfd": Path(f"{ARCHIVE_DIR}/milfd"),
-        "medpd": Path(f"{ARCHIVE_DIR}/medpd"),
-        "medfd": Path(f"{ARCHIVE_DIR}/medfd"),
-        "foxpd": Path(f"{ARCHIVE_DIR}/foxpd"),
-        "frkpd": Path(f"{ARCHIVE_DIR}/frkpd"),
-        "frkfd": Path(f"{ARCHIVE_DIR}/frkfd"),
-    }
-
     latest = {}
-    for key, path in feeds.items():
-        try:
-            files = sorted(path.glob("rec_*.json"), reverse=True)
-            if not files:
+    with get_conn(readonly=True) as conn:
+        for key in sorted(VALID_FEEDS):
+            try:
+                row = conn.execute("""
+                    SELECT filename, duration, transcript, edited_transcript, extra
+                    FROM calls
+                    WHERE category = ?
+                    ORDER BY timestamp DESC
+                    LIMIT 1
+                """, (key,)).fetchone()
+
+                if not row:
+                    latest[key] = None
+                    continue
+
+                extra = {}
+                if row["extra"]:
+                    try:
+                        extra = json.loads(row["extra"])
+                    except json.JSONDecodeError:
+                        extra = {}
+
+                transcript = (
+                    extra.get("enhanced_transcript")
+                    or row["edited_transcript"]
+                    or row["transcript"]
+                )
+                latest[key] = {
+                    "file": row["filename"],
+                    "transcript": transcript.strip()[:300] if transcript else None,
+                    "duration": row["duration"] or 0,
+                }
+            except Exception as e:
+                logger.warning("scanner_latest failed for %s: %s", key, e)
                 latest[key] = None
-                continue
-            latest_file = files[0]
-            with open(latest_file, "r") as f:
-                data = json_lib.load(f)
-            transcript = (
-                data.get("enhanced_transcript")
-                or data.get("edited_transcript")
-                or data.get("transcript")
-            )
-            from shared.scanner_db import get_conn as _get_conn
-            duration = data.get("duration") or 0
-            if not duration:
-                try:
-                    with _get_conn(readonly=True) as _conn:
-                        row = _conn.execute(
-                            "SELECT duration FROM calls WHERE filename = ? OR wav_path LIKE ? LIMIT 1",
-                            (latest_file.name, f"%{latest_file.stem}%")
-                        ).fetchone()
-                        if row and row["duration"]:
-                            duration = row["duration"]
-                except Exception:
-                    pass
-            latest[key] = {
-                "file": latest_file.name,
-                "transcript": transcript.strip()[:300] if transcript else None,
-                "duration": duration,
-            }
-        except Exception as e:
-            logger.warning("scanner_latest failed for %s: %s", key, e)
-            latest[key] = None
 
     return latest
 
 
 def _compute_stats():
-    feeds = {
-        "pd": Path(f"{ARCHIVE_DIR}/pd"),
-        "fd": Path(f"{ARCHIVE_DIR}/fd"),
-        "mpd": Path(f"{ARCHIVE_DIR}/mpd"),
-        "mfd": Path(f"{ARCHIVE_DIR}/mfd"),
-        "sfd": Path(f"{ARCHIVE_DIR}/sfd"),
-        "bpd": Path(f"{ARCHIVE_DIR}/bpd"),
-        "bfd": Path(f"{ARCHIVE_DIR}/bfd"),
-        "mndfd": Path(f"{ARCHIVE_DIR}/mndfd"),
-        "mndpd": Path(f"{ARCHIVE_DIR}/mndpd"),
-        "uptfd": Path(f"{ARCHIVE_DIR}/uptfd"),
-        "uptpd": Path(f"{ARCHIVE_DIR}/uptpd"),
-        "blkpd": Path(f"{ARCHIVE_DIR}/blkpd"),
-        "blkfd": Path(f"{ARCHIVE_DIR}/blkfd"),
-        "milpd": Path(f"{ARCHIVE_DIR}/milpd"),
-        "milfd": Path(f"{ARCHIVE_DIR}/milfd"),
-        "medpd": Path(f"{ARCHIVE_DIR}/medpd"),
-        "medfd": Path(f"{ARCHIVE_DIR}/medfd"),
-        "foxpd": Path(f"{ARCHIVE_DIR}/foxpd"),
-        "frkpd": Path(f"{ARCHIVE_DIR}/frkpd"),
-        "frkfd": Path(f"{ARCHIVE_DIR}/frkfd"),
-    }
-
     stats = {
         "total_calls_today": 0,
         "total_calls": 0,
@@ -214,30 +248,26 @@ def _compute_stats():
         "active_feeds": 0
     }
 
-    today_date = date.today()
-    all_files = []
+    with get_conn(readonly=True) as conn:
+        totals = conn.execute("""
+            SELECT
+                COUNT(*) AS total_calls_all_time,
+                COALESCE(SUM(CASE WHEN date(timestamp) = ? THEN 1 ELSE 0 END), 0) AS total_calls_today
+            FROM calls
+        """, (date.today().isoformat(),)).fetchone()
+        stats["total_calls_today"] = totals["total_calls_today"] if totals else 0
+        stats["total_calls_all_time"] = totals["total_calls_all_time"] if totals else 0
 
-    for key, path in feeds.items():
+    for feed in VALID_FEEDS:
         try:
-            files_in_feed = list(path.glob("rec_*.wav")) + list(path.glob("rec_*.mp3"))
-            all_files.extend(files_in_feed)
+            feed_dir = Path(ARCHIVE_DIR) / feed
+            for file_path in list(feed_dir.glob("rec_*.wav")) + list(feed_dir.glob("rec_*.mp3")):
+                try:
+                    stats["total_disk_usage_bytes"] += file_path.stat().st_size
+                except Exception as e:
+                    logger.warning("Could not process file %s: %s", file_path.name, e)
         except Exception as e:
-            logger.warning("Failed to access directory for %s: %s", key, e)
-            continue
-
-    for file_path in all_files:
-        try:
-            file_stat = file_path.stat()
-            file_mtime = date.fromtimestamp(file_stat.st_mtime)
-
-            if file_mtime == today_date:
-                stats["total_calls_today"] += 1
-
-            stats["total_disk_usage_bytes"] += file_stat.st_size
-        except Exception as e:
-            logger.warning("Could not process file %s: %s", file_path.name, e)
-
-    stats["total_calls_all_time"] = len(all_files)
+            logger.warning("Failed to access directory for %s: %s", feed, e)
 
     from shared.scanner_db import get_todays_stats
     stats2 = get_todays_stats()
@@ -260,68 +290,30 @@ def _compute_stats():
 
 
 def _compute_today_counts():
-    feeds = {
-        "pd": PD_DIR,
-        "fd": Path(f"{ARCHIVE_DIR}/fd"),
-        "mpd": Path(f"{ARCHIVE_DIR}/mpd"),
-        "mfd": Path(f"{ARCHIVE_DIR}/mfd"),
-        "sfd": Path(f"{ARCHIVE_DIR}/sfd"),
-        "bpd": Path(f"{ARCHIVE_DIR}/bpd"),
-        "bfd": Path(f"{ARCHIVE_DIR}/bfd"),
-        "mndfd": Path(f"{ARCHIVE_DIR}/mndfd"),
-        "mndpd": Path(f"{ARCHIVE_DIR}/mndpd"),
-        "uptfd": Path(f"{ARCHIVE_DIR}/uptfd"),
-        "uptpd": Path(f"{ARCHIVE_DIR}/uptpd"),
-        "blkpd": Path(f"{ARCHIVE_DIR}/blkpd"),
-        "blkfd": Path(f"{ARCHIVE_DIR}/blkfd"),
-        "milpd": Path(f"{ARCHIVE_DIR}/milpd"),
-        "milfd": Path(f"{ARCHIVE_DIR}/milfd"),
-        "medpd": Path(f"{ARCHIVE_DIR}/medpd"),
-        "medfd": Path(f"{ARCHIVE_DIR}/medfd"),
-        "foxpd": Path(f"{ARCHIVE_DIR}/foxpd"),
-        "frkpd": Path(f"{ARCHIVE_DIR}/frkpd"),
-        "frkfd": Path(f"{ARCHIVE_DIR}/frkfd"),
+    results = {
+        feed_id: {"count": 0, "latest_time": None, "hooks_count": 0}
+        for feed_id in VALID_FEEDS
     }
-    results = {}
-    today_start = datetime.combine(date.today(), datetime.min.time())
 
-    for feed_id, feed_path in feeds.items():
-        daily_call_count = 0
-        latest_time = None
+    with get_conn(readonly=True) as conn:
+        rows = conn.execute("""
+            SELECT
+                category,
+                COUNT(*) AS count,
+                MAX(timestamp) AS latest_time,
+                SUM(CASE WHEN hook_request IN (1, '1', TRUE) THEN 1 ELSE 0 END) AS hooks_count
+            FROM calls
+            WHERE date(timestamp) = ?
+            GROUP BY category
+        """, (date.today().isoformat(),)).fetchall()
 
-        if not feed_path.exists():
-            results[feed_id] = {"count": 0, "latest_time": None}
-            continue
-
-        wav_files = list(feed_path.glob("*.wav"))
-        for wav_file in wav_files:
-            try:
-                filename_parts = wav_file.stem.split('_')
-                timestamp_str_to_parse = f"{filename_parts[1]}_{filename_parts[2]}"
-                file_dt = datetime.strptime(timestamp_str_to_parse, "%Y-%m-%d_%H-%M-%S")
-
-                if file_dt >= today_start:
-                    daily_call_count += 1
-                    if latest_time is None or file_dt > latest_time:
-                        latest_time = file_dt
-            except (ValueError, IndexError):
-                continue
-
-        results[feed_id] = {
-            "count": daily_call_count,
-            "latest_time": latest_time.isoformat() if latest_time else None,
-            "hooks_count": 0
-        }
-
-    # Overlay per-feed hook counts from DB (category col = feed code: pd, mpd, bpd, …)
-    try:
-        from shared.scanner_db import get_todays_hook_counts_by_feed
-        hook_counts = get_todays_hook_counts_by_feed()
-        for feed_id, count in hook_counts.items():
-            if feed_id in results:
-                results[feed_id]["hooks_count"] = count
-    except Exception as e:
-        logger.warning("Failed to load hook counts: %s", e)
+    for row in rows:
+        if row["category"] in results:
+            results[row["category"]] = {
+                "count": row["count"] or 0,
+                "latest_time": row["latest_time"],
+                "hooks_count": row["hooks_count"] or 0,
+            }
 
     return results
 
@@ -346,58 +338,30 @@ def warm_api_cache():
 
 
 def _compute_archive_calls(feed, offset, limit):
-    today = date.today()
-    directory = Path(f"{ARCHIVE_DIR}/{feed}")
     calls = []
+    today_str = date.today().isoformat()
 
-    today_str = today.strftime("%Y-%m-%d")
-    pattern = f"rec_{today_str}_*.wav"
-    todays_wav_paths = sorted(directory.glob(pattern), reverse=True)
-    total_count = len(todays_wav_paths)
-    paths_to_load = todays_wav_paths[offset : offset + limit]
+    with get_conn(readonly=True) as conn:
+        total_row = conn.execute("""
+            SELECT COUNT(*) AS total_count
+            FROM calls
+            WHERE category = ? AND date(timestamp) = ?
+        """, (feed, today_str)).fetchone()
+        rows = conn.execute("""
+            SELECT *
+            FROM calls
+            WHERE category = ? AND date(timestamp) = ?
+            ORDER BY timestamp DESC
+            LIMIT ? OFFSET ?
+        """, (feed, today_str, limit, offset)).fetchall()
 
-    r = redis.from_url(REDIS_URL, decode_responses=True)
-
-    for wav in paths_to_load:
-        base = wav.stem
-        wav_path_str = str(wav.absolute())
-
+    for row in rows:
         try:
-            metadata = read_metadata_from_sqlite(wav_path_str, r)
-            parts = base.split("_")
-            timestamp_str = f"{parts[1]}_{parts[2]}"
-            dt = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
-            timestamp_human = dt.strftime("%b %d, %I:%M %p")
-
-            transcript = metadata.get("transcript", "(no transcript)")
-            edited_transcript = metadata.get("edited_transcript", "")
-            enhanced_transcript = metadata.get("enhanced_transcript", "")
-            edit_pending = metadata.get("edit_pending", False)
-
-            if metadata.get("edited") and edited_transcript:
-                transcript = edited_transcript
-                edit_pending = False
-            elif edited_transcript:
-                transcript = edited_transcript
-                edit_pending = True
-
-            calls.append({
-                "file": wav.name,
-                "path": f"/scanner/audio/{wav.name}",
-                "transcript": transcript,
-                "edited_transcript": edited_transcript,
-                "enhanced_transcript": enhanced_transcript,
-                "edit_pending": edit_pending,
-                "timestamp": base.replace("rec_", "").replace("_", " "),
-                "timestamp_human": timestamp_human,
-                "feed": feed,
-                "duration": metadata.get("duration") or 0,
-                "metadata": metadata
-            })
+            calls.append(_row_to_call_payload(row, feed_override=feed))
         except Exception as e:
-            logger.warning("API failed to load metadata for %s: %s", base, e)
+            logger.warning("API failed to load metadata for %s: %s", row["filename"], e)
 
-    return {"calls": calls, "total_count": total_count}
+    return {"calls": calls, "total_count": total_row["total_count"] if total_row else 0}
 
 
 
@@ -405,74 +369,27 @@ def load_calls(directory, feed="pd", filter_today=False, limit=None):
     """
     Load calls from a directory, using SQLite for metadata instead of JSON files.
     """
+    params = [feed]
+    clauses = ["category = ?"]
+    sql = "SELECT * FROM calls WHERE {where} ORDER BY timestamp DESC"
+
+    if filter_today:
+        clauses.append("date(timestamp) = ?")
+        params.append(date.today().isoformat())
+
+    if limit:
+        sql += " LIMIT ?"
+        params.append(limit)
+
+    with get_conn(readonly=True) as conn:
+        rows = conn.execute(sql.format(where=" AND ".join(clauses)), params).fetchall()
+
     calls = []
-    today = date.today()
-
-    # Get Redis connection from the app context
-    r = redis.from_url(REDIS_URL, decode_responses=True)
-
-    for wav in sorted(Path(directory).glob("*.wav"), reverse=True):
-        base = wav.stem
-        wav_path = str(wav.absolute())  # Full path for SQLite lookup
-
+    for row in rows:
         try:
-            date_str = base.split("_")[1]
-            call_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-        except Exception:
-            call_date = None
-
-        if filter_today and call_date != today:
-            continue
-
-        timestamp = base.replace("rec_", "").replace("_", " ")
-        try:
-            dt = datetime.strptime(base.replace("rec_", ""), "%Y-%m-%d_%H-%M-%S")
-            timestamp_human = dt.strftime("%b %d, %I:%M %p")
-        except Exception:
-            timestamp_human = timestamp
-
-        try:
-            # Get metadata from SQLite instead of JSON file
-            metadata = read_metadata_from_sqlite(wav_path, r)
-            parts = base.split("_")
-            timestamp_str = f"{parts[1]}_{parts[2]}"
-            dt = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
-            timestamp_human = dt.strftime("%b %d, %I:%M %p")
-
-            # Determine transcript and edit status from metadata
-            transcript = metadata.get("transcript", "(no transcript)")
-            edited_transcript = metadata.get("edited_transcript", "")
-            enhanced_transcript = metadata.get("enhanced_transcript", "")
-            edit_pending = metadata.get("edit_pending", False)
-
-            # If there's an edited version and it's approved, use that
-            if metadata.get("edited") and edited_transcript:
-                transcript = edited_transcript
-                edit_pending = False
-            # If there's an edited version but not approved, mark as pending
-            elif edited_transcript:
-                transcript = edited_transcript
-                edit_pending = True
-
-            calls.append({
-                "file": wav.name,
-                "path": f"/scanner/audio/{wav.name}",
-                "transcript": transcript,
-                "edited_transcript": edited_transcript,
-                "enhanced_transcript": enhanced_transcript,
-                "edit_pending": edit_pending,
-                "timestamp": timestamp,
-                "timestamp_human": timestamp_human,
-                "feed": feed,
-                "duration": metadata.get("duration") or 0,
-                "metadata": metadata
-            })
-
-            if limit and len(calls) >= limit:
-                break
-
+            calls.append(_row_to_call_payload(row, feed_override=feed))
         except Exception as e:
-            logger.warning("Failed to load metadata for %s: %s", base, e)
+            logger.warning("Failed to load metadata for %s: %s", row["filename"], e)
 
     return calls
 
@@ -720,38 +637,33 @@ def scanner_archive():
     json_mode = request.args.get("json") == "1"
     days_back = int(request.args.get("days_back", 30))  # default 30, no hard cap
 
-    base_dir = Path(ARCHIVE_DIR)
-    if feed:
-        base_dir = base_dir / feed
-
     cutoff = datetime.now() - timedelta(days=days_back)
     calls_per_page = 10
-
-    r = redis.from_url(REDIS_URL, decode_responses=True)
 
     # ============================================
     # 1️⃣ QUICK SUMMARY MODE: list days + counts
     # ============================================
     if json_mode and not day:
-        day_counts = defaultdict(int)
+        params = [cutoff.isoformat(timespec="seconds")]
+        clauses = ["timestamp >= ?"]
+        if feed:
+            clauses.append("category = ?")
+            params.append(feed)
 
-        for wav in sorted(base_dir.glob("rec_*.wav"), reverse=True):
-            base = wav.stem
-            try:
-                date_str = base.split("_")[1]
-                date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-            except Exception:
-                continue
+        with get_conn(readonly=True) as conn:
+            rows = conn.execute(f"""
+                SELECT date(timestamp) AS day_key, COUNT(*) AS call_count
+                FROM calls
+                WHERE {' AND '.join(clauses)}
+                GROUP BY date(timestamp)
+                ORDER BY day_key DESC
+            """, params).fetchall()
 
-            if date_obj < cutoff:
-                break  # stop scanning once past requested range
-
-            day_key = date_obj.strftime("%Y-%m-%d")
-            day_counts[day_key] += 1
+        day_counts = {row["day_key"]: row["call_count"] for row in rows if row["day_key"]}
 
         return jsonify({
-            "days": sorted(day_counts.keys(), reverse=True),
-            "call_totals": dict(day_counts)
+            "days": list(day_counts.keys()),
+            "call_totals": day_counts
         })
 
     # ============================================
@@ -759,49 +671,22 @@ def scanner_archive():
     # ============================================
     if json_mode and day:
         start = (page - 1) * calls_per_page
-        end = start + calls_per_page
-        calls = []
+        params = [day]
+        clauses = ["date(timestamp) = ?"]
+        if feed:
+            clauses.append("category = ?")
+            params.append(feed)
 
-        for wav in sorted(base_dir.glob(f"rec_{day}_*.wav"), reverse=True)[start:end]:
-            base = wav.stem
-            wav_path = str(wav.absolute())
+        with get_conn(readonly=True) as conn:
+            rows = conn.execute(f"""
+                SELECT *
+                FROM calls
+                WHERE {' AND '.join(clauses)}
+                ORDER BY timestamp DESC
+                LIMIT ? OFFSET ?
+            """, [*params, calls_per_page, start]).fetchall()
 
-            try:
-                parts = base.split("_")
-                timestamp_str = f"{parts[1]}_{parts[2]}"
-                dt = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
-                timestamp_human = dt.strftime("%Y-%m-%d %H-%M-%S")
-            except Exception:
-                timestamp_human = base
-
-            # Use SQLite metadata (consistent with view page)
-            try:
-                metadata = read_metadata_from_sqlite(wav_path, r)
-            except Exception:
-                metadata = {}
-
-            transcript = metadata.get("edited_transcript") or metadata.get("transcript", "(no transcript)")
-            enhanced_transcript = metadata.get("enhanced_transcript", "")
-            derived_address = metadata.get("derived_address", "")
-            addr_confidence = metadata.get("address_confidence", "none")
-            hook_request = metadata.get("hook_request", "0")
-            play_count = metadata.get("play_count", 0)
-
-            calls.append({
-                "file": wav.name,
-                "path": f"/scanner/audio/{wav.name}",
-                "timestamp_human": timestamp_human,
-                "transcript": transcript,
-                "enhanced_transcript": enhanced_transcript,
-                "feed": feed or "",
-                "metadata": {
-                    "derived_address": derived_address,
-                    "address_confidence": addr_confidence,
-                    "hook_request": hook_request,
-                    "play_count": play_count,
-                    "enhanced_transcript": enhanced_transcript,
-                }
-            })
+        calls = [_row_to_call_payload(row, feed_override=feed or row["category"], timestamp_format="%Y-%m-%d %H-%M-%S") for row in rows]
 
         return jsonify({"calls": calls, "total": len(calls)})
 
@@ -933,58 +818,25 @@ def new_counts():
     Efficiently count new calls for each feed since a given timestamp.
     Expects query params like ?pd_since=ISO_TIMESTAMP&fd_since=...
     """
-    feeds = {
-        "pd": PD_DIR,
-        "fd": Path(f"{ARCHIVE_DIR}/fd"),
-        "mpd": Path(f"{ARCHIVE_DIR}/mpd"),
-        "mfd": Path(f"{ARCHIVE_DIR}/mfd"),
-        "sfd": Path(f"{ARCHIVE_DIR}/sfd"),
-        "bpd": Path(f"{ARCHIVE_DIR}/bpd"),
-        "bfd": Path(f"{ARCHIVE_DIR}/bfd"),
-        "mndfd": Path(f"{ARCHIVE_DIR}/mndfd"),
-        "mndpd": Path(f"{ARCHIVE_DIR}/mndpd"),
-        "uptfd": Path(f"{ARCHIVE_DIR}/uptfd"),
-        "uptpd": Path(f"{ARCHIVE_DIR}/uptpd"),
-        "blkpd": Path(f"{ARCHIVE_DIR}/blkpd"),
-        "blkfd": Path(f"{ARCHIVE_DIR}/blkfd"),
-        "milpd": Path(f"{ARCHIVE_DIR}/milpd"),
-        "milfd": Path(f"{ARCHIVE_DIR}/milfd"),
-        "medpd": Path(f"{ARCHIVE_DIR}/medpd"),
-        "medfd": Path(f"{ARCHIVE_DIR}/medfd"),
-        "foxpd": Path(f"{ARCHIVE_DIR}/foxpd"),
-        "frkpd": Path(f"{ARCHIVE_DIR}/frkpd"),
-        "frkfd": Path(f"{ARCHIVE_DIR}/frkfd"),
-
-
-    }
     counts = {}
 
-    for feed_id, feed_path in feeds.items():
-        since_str = request.args.get(f"{feed_id}_since")
-        if not since_str:
-            counts[feed_id] = 0
-            continue
-
-        try:
-            # Python's fromisoformat before 3.11 doesn't like 'Z' suffix.
-            if since_str.endswith('Z'):
-                since_str = since_str[:-1] + '+00:00'
-            since_dt = datetime.fromisoformat(since_str)
-        except (ValueError, TypeError):
-            counts[feed_id] = 0
-            continue
-
-        new_call_count = 0
-        for wav_file in feed_path.glob("*.wav"):
+    with get_conn(readonly=True) as conn:
+        for feed_id in VALID_FEEDS:
+            since_str = request.args.get(f"{feed_id}_since")
             try:
-                # Filename format: rec_YYYY-MM-DD_HH-MM-SS.wav
-                filename_ts_str = wav_file.stem.replace("rec_", "")
-                file_dt = datetime.strptime(filename_ts_str, "%Y-%m-%d_%H-%M-%S")
-                if file_dt > since_dt.replace(tzinfo=None): # Compare naive datetimes
-                    new_call_count += 1
-            except (ValueError, IndexError):
-                continue # Ignore malformed filenames
-        counts[feed_id] = new_call_count
+                since_dt = _safe_fromisoformat(since_str)
+                if not since_dt:
+                    counts[feed_id] = 0
+                    continue
+
+                row = conn.execute("""
+                    SELECT COUNT(*) AS new_call_count
+                    FROM calls
+                    WHERE category = ? AND timestamp > ?
+                """, (feed_id, since_dt.isoformat(timespec="seconds"))).fetchone()
+                counts[feed_id] = row["new_call_count"] if row else 0
+            except Exception:
+                counts[feed_id] = 0
 
     return jsonify(counts)
 
@@ -994,20 +846,20 @@ def pd_heatmap():
     start = now - timedelta(days=6)
     heatmap = defaultdict(lambda: [0] * 24)
 
-    for file in PD_DIR.glob("*.json"):
-        try:
-            with open(file) as f:
-                meta = json.load(f)
-            ts = meta.get("timestamp")
-            if not ts:
-                continue
-            dt = datetime.fromisoformat(ts)
-            if dt < start:
-                continue
-            date_key = dt.strftime("%Y-%m-%d")
-            heatmap[date_key][dt.hour] += 1
-        except Exception:
+    with get_conn(readonly=True) as conn:
+        rows = conn.execute("""
+            SELECT timestamp
+            FROM calls
+            WHERE category = 'pd' AND timestamp >= ?
+            ORDER BY timestamp ASC
+        """, (start.isoformat(timespec="seconds"),)).fetchall()
+
+    for row in rows:
+        dt = _safe_fromisoformat(row["timestamp"])
+        if not dt:
             continue
+        date_key = dt.strftime("%Y-%m-%d")
+        heatmap[date_key][dt.hour] += 1
 
     sorted_days = sorted(heatmap.keys())
     matrix = [heatmap[day] for day in sorted_days]
@@ -1116,35 +968,20 @@ def increment_play():
     if not filename or not feed:
         return jsonify({"error": "Missing filename or feed"}), 400
 
-    json_path = Path(f"{ARCHIVE_DIR}/{feed}") / (Path(filename).stem + ".json")
-    if not json_path.exists():
-        return jsonify({"error": "JSON not found"}), 404
-
-    # --- Lock + read/write safely ---
     try:
-        with open(json_path, "r+", encoding="utf-8") as f:
-            # Lock the file so only one process updates it at a time
-            fcntl.flock(f, fcntl.LOCK_EX)
-            try:
-                meta = json.load(f)
-            except Exception:
-                meta = {}
+        increment_play_count(filename)
+        with get_conn(readonly=True) as conn:
+            row = conn.execute("SELECT play_count FROM calls WHERE filename = ?", (filename,)).fetchone()
+            play_count = row["play_count"] if row else 0
 
-            meta["play_count"] = meta.get("play_count", 0) + 1
-
-            # Rewind and rewritc atomically
-            f.seek(0)
-            json.dump(meta, f, indent=2)
-            f.truncate()
-            f.flush()
-            os.fsync(f.fileno())
-
-            fcntl.flock(f, fcntl.LOCK_UN)
+        redis_client = _get_redis_client()
+        if redis_client:
+            redis_client.set(f"scanner:play_count:{filename}", play_count)
     except Exception as e:
         return jsonify({"error": f"Failed to update: {e}"}), 500
 
     log_activity("play_audio", {"filename": filename, "feed": feed})
-    return jsonify({"play_count": meta["play_count"]})
+    return jsonify({"play_count": play_count})
 
 
 

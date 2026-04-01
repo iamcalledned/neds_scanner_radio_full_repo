@@ -1,19 +1,50 @@
 from flask import Blueprint, jsonify, send_from_directory, abort
 from pathlib import Path
+import os
 import json
 import logging
+
+from shared.scanner_db import get_conn
 
 api_scanner_bp = Blueprint("api_scanner", __name__)
 logger = logging.getLogger("scanner_web.routes_api_scanner")
 
-ARCHIVE_BASE = Path("/home/ned/scanner_archive/clean")
+ARCHIVE_BASE = Path(os.environ.get("ARCHIVE_DIR", os.path.join(
+    os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls/scanner_archive"),
+    "clean",
+)))
+VALID_FEEDS = [
+    "pd", "fd", "mpd", "mfd", "sfd", "bpd", "bfd",
+    "mndfd", "mndpd", "uptfd", "uptpd", "blkpd", "blkfd",
+    "milpd", "milfd", "medpd", "medfd", "foxpd", "frkpd", "frkfd",
+]
 
 def find_file(filename):
-    for sub in ["pd", "fd"]:
+    for sub in VALID_FEEDS:
         f = ARCHIVE_BASE / sub / filename
         if f.exists():
             return f
     return None
+
+
+def _row_to_metadata(row):
+    metadata = dict(row)
+    for field in ("classification", "extra"):
+        raw = metadata.get(field)
+        if isinstance(raw, str):
+            try:
+                metadata[field] = json.loads(raw)
+            except json.JSONDecodeError:
+                metadata[field] = {}
+        elif raw is None:
+            metadata[field] = {}
+
+    extra = metadata.get("extra") or {}
+    if isinstance(extra, dict) and extra.get("enhanced_transcript"):
+        metadata["enhanced_transcript"] = extra["enhanced_transcript"]
+    if metadata.get("derived_address") and not metadata.get("derived_full_address"):
+        metadata["derived_full_address"] = metadata["derived_address"]
+    return metadata
 
 
 
@@ -48,64 +79,48 @@ def api_latest_times():
 
 @api_scanner_bp.route("/api/calls")
 def list_calls():
+    with get_conn(readonly=True) as conn:
+        rows = conn.execute("""
+            SELECT *
+            FROM calls
+            WHERE category IN ('pd', 'fd')
+            ORDER BY timestamp DESC
+        """).fetchall()
+
     calls = []
-    for sub in ["pd", "fd"]:
-        for wav in sorted((ARCHIVE_BASE / sub).glob("*.wav"), reverse=True):
-            base = wav.stem
-            json_path = wav.with_suffix(".json")
-            call_id = base.replace("rec_", "")
-            entry = {
-                "id": call_id,
-                "feed": sub,
-                "audio": f"/api/audio/{wav.name}",
-                "transcript": "",  # will set below
-                "filename": wav.name,
-            }
-
-            if json_path.exists():
-                try:
-                    with open(json_path) as f:
-                        meta = json.load(f)
-
-                        # Choose transcript
-                        if meta.get("edited") and meta.get("edited_transcript"):
-                            entry["transcript"] = meta["edited_transcript"]
-                            entry["edited"] = True
-                        else:
-                            entry["transcript"] = meta.get("transcript", "")
-                            entry["edited"] = False
-
-                        entry["metadata"] = meta
-
-                except Exception as e:
-                    logger.warning("Skipping %s: %s", json_path.name, e)
-
-            calls.append(entry)
+    for row in rows:
+        metadata = _row_to_metadata(row)
+        transcript = row["edited_transcript"] or row["transcript"] or ""
+        calls.append({
+            "id": Path(row["filename"]).stem.replace("rec_", ""),
+            "feed": row["category"],
+            "audio": f"/api/audio/{row['filename']}",
+            "transcript": transcript,
+            "filename": row["filename"],
+            "edited": bool(row["edited_transcript"]),
+            "metadata": metadata,
+        })
 
     return jsonify(calls)
 
 @api_scanner_bp.route("/api/call/<call_id>")
 def get_call_details(call_id):
-    base = f"rec_{call_id}"
-    wav = find_file(f"{base}.wav")
-    if not wav:
+    filename = f"rec_{call_id}.wav"
+    with get_conn(readonly=True) as conn:
+        row = conn.execute("SELECT * FROM calls WHERE filename = ? LIMIT 1", (filename,)).fetchone()
+
+    if not row:
         return abort(404, description="Call not found")
-    txt = wav.with_suffix(".txt")
-    json_path = wav.with_suffix(".json")
+
+    metadata = _row_to_metadata(row)
 
     data = {
         "id": call_id,
-        "audio": f"/api/audio/{wav.name}",
-        "filename": wav.name,
-        "transcript": txt.read_text() if txt.exists() else "",
-        "metadata": {}
+        "audio": f"/api/audio/{row['filename']}",
+        "filename": row["filename"],
+        "transcript": row["edited_transcript"] or row["transcript"] or "",
+        "metadata": metadata,
     }
-
-    if json_path.exists():
-        try:
-            data["metadata"] = json.loads(json_path.read_text())
-        except Exception as e:
-            logger.warning("Failed reading metadata for %s: %s", json_path.name, e)
 
     return jsonify(data)
 

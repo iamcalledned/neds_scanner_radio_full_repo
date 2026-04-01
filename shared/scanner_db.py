@@ -623,15 +623,15 @@ def read_metadata_from_sqlite(wav_filepath, r):
         log.warning(f"Error reading metadata from SQLite for {base_filename}: {e}")
         metadata = {}
 
-    # Overlay live play-count from Redis
+    # Overlay live play-count from Redis, but keep the DB value as fallback.
+    db_play_count = metadata.get("play_count", 0)
     play_count_key = f"scanner:play_count:{base_filename}"
     try:
         play_count_str = r.get(play_count_key)
-        metadata["play_count"] = int(play_count_str) if play_count_str else 0
+        metadata["play_count"] = int(play_count_str) if play_count_str else db_play_count
     except (_redis_lib.RedisError, ValueError) as e:
         log.warning(f"Could not read play count from Redis for {base_filename}: {e}")
-        if "play_count" not in metadata:
-            metadata["play_count"] = 0
+        metadata["play_count"] = db_play_count
 
     return metadata
 
