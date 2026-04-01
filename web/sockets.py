@@ -226,13 +226,13 @@ def transmitting_worker():
             
             if changed_statuses:
                 changes_str = " | ".join(f"{dept}: {status}" for dept, status in changed_statuses.items())
-                worker_logger.info(f"Department status changes detected | {changes_str}")
+                #worker_logger.info(f"Department status changes detected | {changes_str}")
                 socketio.emit('transmitting_update', changed_statuses)
             
             # Update activity tracking
             if active_found:
                 last_active_time = datetime.datetime.now()
-                worker_logger.info(f"Active transmission detected | Departments: {', '.join(active_departments)}")
+                #worker_logger.info(f"Active transmission detected | Departments: {', '.join(active_departments)}")
             
             last_status = current_status.copy()
             
