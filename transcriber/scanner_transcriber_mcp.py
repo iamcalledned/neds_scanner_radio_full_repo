@@ -42,7 +42,8 @@ import urllib.request
 import urllib.error
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from collections import OrderedDict
+from typing import Any, Dict, Optional, Tuple, List
 from contextlib import asynccontextmanager
 
 import torch
@@ -89,6 +90,7 @@ ARCHIVE_BASE = Path(os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls
 TMP_DIR = Path(os.environ.get("SCANNER_TMP_DIR", "/tmp/scanner_tmp")).expanduser().resolve()
 
 MODEL_DIR = Path(os.environ.get("WHISPER_MODEL_DIR", "/home/ned/models/trained_whisper_medium_d022526")).expanduser().resolve()
+DEFAULT_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "float16")
 
 MIN_DURATION = float(os.environ.get("MIN_DURATION", "2"))
 RMS_THRESHOLD = float(os.environ.get("RMS_THRESHOLD", "0.001"))
@@ -106,6 +108,15 @@ ALLOWED_ROOTS = [Path(p).expanduser().resolve() for p in ALLOWED_ROOTS]
 ENABLE_DB = os.environ.get("ENABLE_SCANNER_DB", "1").strip() not in ("0", "false", "False")
 DB_IMPORT_OK = False
 scanner_db = None
+
+# Dynamic model routing config
+MODEL_CATALOG_JSON = os.environ.get("MODEL_CATALOG_JSON", "")
+MODEL_CATALOG_FILE = os.environ.get("MODEL_CATALOG_FILE", "")
+MODEL_ROUTING_RULES = os.environ.get("MODEL_ROUTING_RULES", "")
+MODEL_ROUTING_FILE = os.environ.get("MODEL_ROUTING_FILE", "")
+DEFAULT_MODEL_KEY = os.environ.get("DEFAULT_MODEL_KEY", "default")
+MODEL_CACHE_LIMIT = int(os.environ.get("MODEL_CACHE_LIMIT", "1"))
+WARM_DEFAULT_MODEL = os.environ.get("WARM_DEFAULT_MODEL", "1").strip().lower() not in ("0", "false", "no")
 
 
 # ==========================
@@ -223,6 +234,86 @@ class WhisperState:
     gate: GPUGate
 
 
+@dataclass
+class ModelInfo:
+    key: str
+    path: Path
+    compute_type: str = DEFAULT_COMPUTE_TYPE
+
+
+@dataclass
+class RoutingRule:
+    model_key: str
+    feed_regex: Optional[re.Pattern] = None
+    path_regex: Optional[re.Pattern] = None
+    min_duration: Optional[float] = None
+    max_duration: Optional[float] = None
+
+    def matches(self, *, feed: str, path: Path, duration: float) -> bool:
+        if self.feed_regex and not self.feed_regex.search(feed or ""):
+            return False
+        if self.path_regex and not self.path_regex.search(str(path).lower()):
+            return False
+        if self.min_duration is not None and duration < self.min_duration:
+            return False
+        if self.max_duration is not None and duration > self.max_duration:
+            return False
+        return True
+
+
+class ModelRouter:
+    """
+    Lightweight model registry + routing rules.
+    Keeps at most MODEL_CACHE_LIMIT models loaded to avoid VRAM thrash.
+    """
+
+    def __init__(self, catalog: Dict[str, ModelInfo], rules: List[RoutingRule], default_key: str):
+        self.catalog = catalog
+        self.rules = rules
+        self.default_key = default_key if default_key in catalog else "default"
+        self.cache: OrderedDict[str, WhisperModel] = OrderedDict()
+        self.max_cached = max(1, MODEL_CACHE_LIMIT)
+        self.gate = GPUGate()
+
+    def _trim_cache(self) -> None:
+        while len(self.cache) > self.max_cached:
+            evict_key, evict_model = self.cache.popitem(last=False)
+            try:
+                del evict_model
+                torch.cuda.empty_cache()
+            except Exception:
+                pass
+            log.info(f"[router] Evicted model '{evict_key}' from cache to respect MODEL_CACHE_LIMIT={self.max_cached}")
+
+    def get_model(self, key: str) -> WhisperModel:
+        if key not in self.catalog:
+            log.warning(f"[router] Requested model '{key}' not in catalog; falling back to default '{self.default_key}'")
+            key = self.default_key
+
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            return self.cache[key]
+
+        info = self.catalog[key]
+        log.info(f"[router] Loading model '{key}' from {info.path}")
+        _require_cuda()
+        model = WhisperModel(str(info.path), device="cuda", compute_type=info.compute_type)
+        self.cache[key] = model
+        self._trim_cache()
+        return model
+
+    def choose_model(self, *, path: Path, feed: str, duration: float) -> str:
+        for rule in self.rules:
+            if rule.matches(feed=feed, path=path, duration=duration):
+                return rule.model_key if rule.model_key in self.catalog else self.default_key
+        return self.default_key
+
+    def get_state(self, key: str) -> WhisperState:
+        model = self.get_model(key)
+        device = torch.device("cuda")
+        return WhisperState(model=model, device=device, gate=self.gate)
+
+
 def _require_cuda() -> torch.device:
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required (GPU-only). torch.cuda.is_available() is False.")
@@ -235,7 +326,96 @@ def _require_cuda() -> torch.device:
     return torch.device("cuda")
 
 
-def load_whisper_model() -> WhisperState:
+def _json_from_env(env_value: str, file_path: str) -> Optional[Any]:
+    """
+    Helper: load JSON from an env string or a file path. Returns None on failure.
+    """
+    if env_value:
+        try:
+            return json.loads(env_value)
+        except Exception as e:
+            log.warning(f"[router] Failed to parse JSON from env: {e}")
+    if file_path:
+        p = Path(file_path).expanduser()
+        if p.exists():
+            try:
+                return json.loads(p.read_text())
+            except Exception as e:
+                log.warning(f"[router] Failed to parse JSON from {p}: {e}")
+    return None
+
+
+def _build_model_catalog() -> Dict[str, ModelInfo]:
+    raw = _json_from_env(MODEL_CATALOG_JSON, MODEL_CATALOG_FILE) or {}
+    catalog: Dict[str, ModelInfo] = {}
+
+    # Always include default entry (env WHISPER_MODEL_DIR) so existing behavior works.
+    catalog["default"] = ModelInfo(
+        key="default",
+        path=MODEL_DIR,
+        compute_type=DEFAULT_COMPUTE_TYPE,
+    )
+
+    # Merge user-defined catalog entries
+    if isinstance(raw, dict):
+        for key, val in raw.items():
+            if not isinstance(val, dict):
+                continue
+            path = val.get("path") or val.get("model_path") or val.get("dir")
+            if not path:
+                continue
+            compute_type = val.get("compute_type", DEFAULT_COMPUTE_TYPE)
+            catalog[key] = ModelInfo(key=key, path=Path(path).expanduser(), compute_type=compute_type)
+
+    return catalog
+
+
+def _build_routing_rules() -> List[RoutingRule]:
+    raw = _json_from_env(MODEL_ROUTING_RULES, MODEL_ROUTING_FILE) or []
+    rules: List[RoutingRule] = []
+    if not isinstance(raw, list):
+        return rules
+
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        model_key = item.get("model") or item.get("model_key")
+        if not model_key:
+            continue
+        match = item.get("match", item)
+        feed_re = match.get("feed_regex") if isinstance(match, dict) else None
+        path_re = match.get("path_regex") if isinstance(match, dict) else None
+        min_dur = match.get("min_duration") if isinstance(match, dict) else None
+        max_dur = match.get("max_duration") if isinstance(match, dict) else None
+
+        try:
+            feed_regex = re.compile(feed_re, re.IGNORECASE) if feed_re else None
+        except re.error:
+            feed_regex = None
+        try:
+            path_regex = re.compile(path_re, re.IGNORECASE) if path_re else None
+        except re.error:
+            path_regex = None
+
+        rule = RoutingRule(
+            model_key=model_key,
+            feed_regex=feed_regex,
+            path_regex=path_regex,
+            min_duration=float(min_dur) if min_dur is not None else None,
+            max_duration=float(max_dur) if max_dur is not None else None,
+        )
+        rules.append(rule)
+    return rules
+
+
+def _build_router() -> ModelRouter:
+    catalog = _build_model_catalog()
+    rules = _build_routing_rules()
+    default_key = DEFAULT_MODEL_KEY if DEFAULT_MODEL_KEY in catalog else "default"
+    return ModelRouter(catalog=catalog, rules=rules, default_key=default_key)
+
+
+def load_whisper_model(model_dir: Path = MODEL_DIR, compute_type: str = DEFAULT_COMPUTE_TYPE) -> WhisperState:
     # Keep allocator config (your env can override)
     os.environ["PYTORCH_CUDA_ALLOC_CONF"] = os.environ.get(
         "PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True"
@@ -243,15 +423,15 @@ def load_whisper_model() -> WhisperState:
 
     device = _require_cuda()
 
-    if not MODEL_DIR.exists():
-        raise FileNotFoundError(f"WHISPER_MODEL_DIR not found: {MODEL_DIR}")
+    if not model_dir.exists():
+        raise FileNotFoundError(f"WHISPER_MODEL_DIR not found: {model_dir}")
 
-    log.info(f"Loading faster-whisper model from: {MODEL_DIR}")
+    log.info(f"Loading faster-whisper model from: {model_dir}")
 
     model = WhisperModel(
-        str(MODEL_DIR),
+        str(model_dir),
         device="cuda",
-        compute_type="float16",
+        compute_type=compute_type,
     )
 
     free, total = torch.cuda.mem_get_info()
@@ -562,24 +742,39 @@ async def _wal_checkpoint_loop():
 async def lifespan(_: FastMCP):
     """
     Startup/shutdown hook:
-    - load Whisper model once (GPU-only)
+    - build model router and (optionally) warm default model
     - import DB module if available
     - start periodic WAL checkpoint task
     """
     import asyncio
-    state = load_whisper_model()
+    router = _build_router()
+    state: Optional[WhisperState] = None
+
+    if WARM_DEFAULT_MODEL:
+        log.info(f"[lifespan] Warming default model '{router.default_key}'")
+        state = router.get_state(router.default_key)
+    else:
+        log.info("[lifespan] WARM_DEFAULT_MODEL=0; deferring model load until first request")
+
     try_import_db()
 
     # Start background WAL checkpointer
     wal_task = asyncio.create_task(_wal_checkpoint_loop())
 
     try:
-        yield {"state": state}
+        ctx: Dict[str, Any] = {"router": router}
+        if state:
+            ctx["state"] = state
+        yield ctx
     finally:
         # shutdown cleanup
         wal_task.cancel()
         try:
             del state
+        except Exception:
+            pass
+        try:
+            router.cache.clear()
         except Exception:
             pass
         gc.collect()
@@ -594,7 +789,21 @@ mcp = FastMCP("scanner-transcriber", json_response=True, lifespan=lifespan)
 
 def _get_state(ctx: Context) -> WhisperState:
     data = ctx.request_context.lifespan_context
-    return data["state"]
+    state = data.get("state")
+    if state is None:
+        router: Optional[ModelRouter] = data.get("router")
+        if router:
+            log.info("[router] Lazy-loading default model for legacy transcribe_file path")
+            state = router.get_state(router.default_key)
+            data["state"] = state
+        else:
+            state = load_whisper_model()
+            data["state"] = state
+    return state
+
+
+def _get_router(ctx: Context) -> Optional[ModelRouter]:
+    return ctx.request_context.lifespan_context.get("router")
 
 
 # ==========================
@@ -631,31 +840,19 @@ def analyze_audio(ctx: Context, path: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
-def transcribe_file(
+def _transcribe_with_state(
     ctx: Context,
+    state: WhisperState,
+    *,
     path: str,
-    profile: str = "default",
-    language: str = "en",  # kept for API compatibility; WhisperTokenizerFast decoding is language-agnostic here
-    write_artifacts: bool = True,
-    insert_db: bool = True,
-    delete_source_raw: bool = False,
-    custom_output_dir: str = "",
-    skip_wav_copy: bool = False,
+    profile: str,
+    language: str,
+    write_artifacts: bool,
+    insert_db: bool,
+    delete_source_raw: bool,
+    custom_output_dir: str,
+    skip_wav_copy: bool,
 ) -> Dict[str, Any]:
-    """
-    Preprocess + transcribe a scanner WAV, then write artifacts under ARCHIVE_BASE/clean/<feed>/.
-
-    Args:
-      path: WAV path (must be under allowed roots)
-      profile: preprocessing profile (default|radio|static_fix|aggressive)
-      language: unused in this implementation (GPU-only fast tokenizer path)
-      write_artifacts: if True, writes .json/.txt/.wav to clean folder
-      insert_db: if True and scanner_db is available, insert into DB
-      delete_source_raw: if True, deletes the source raw WAV after success
-    """
-    state = _get_state(ctx)
-
     src = Path(path).expanduser()
     if not _is_under_allowed_roots(src):
         return {"ok": False, "error": "path_not_allowed", "path": str(src)}
@@ -863,6 +1060,109 @@ def transcribe_file(
             torch.cuda.empty_cache()
         except Exception:
             pass
+
+
+@mcp.tool()
+def transcribe_file(
+    ctx: Context,
+    path: str,
+    profile: str = "default",
+    language: str = "en",  # kept for API compatibility; WhisperTokenizerFast decoding is language-agnostic here
+    write_artifacts: bool = True,
+    insert_db: bool = True,
+    delete_source_raw: bool = False,
+    custom_output_dir: str = "",
+    skip_wav_copy: bool = False,
+) -> Dict[str, Any]:
+    """
+    Preprocess + transcribe a scanner WAV, then write artifacts under ARCHIVE_BASE/clean/<feed>/.
+
+    Args:
+      path: WAV path (must be under allowed roots)
+      profile: preprocessing profile (default|radio|static_fix|aggressive)
+      language: unused in this implementation (GPU-only fast tokenizer path)
+      write_artifacts: if True, writes .json/.txt/.wav to clean folder
+      insert_db: if True and scanner_db is available, insert into DB
+      delete_source_raw: if True, deletes the source raw WAV after success
+    """
+    state = _get_state(ctx)
+
+    return _transcribe_with_state(
+        ctx,
+        state,
+        path=path,
+        profile=profile,
+        language=language,
+        write_artifacts=write_artifacts,
+        insert_db=insert_db,
+        delete_source_raw=delete_source_raw,
+        custom_output_dir=custom_output_dir,
+        skip_wav_copy=skip_wav_copy,
+    )
+
+
+@mcp.tool()
+def route_and_transcribe(
+    ctx: Context,
+    path: str,
+    profile: str = "default",
+    language: str = "en",
+    auto_route: bool = True,
+    model_key: str = "",
+    write_artifacts: bool = True,
+    insert_db: bool = True,
+    delete_source_raw: bool = False,
+    custom_output_dir: str = "",
+    skip_wav_copy: bool = False,
+) -> Dict[str, Any]:
+    """
+    Route a call to the appropriate Whisper model based on routing rules or an explicit model_key.
+
+    Args:
+      path: WAV path (must be under allowed roots)
+      profile: preprocessing profile
+      language: decoding language hint (for API compatibility)
+      auto_route: when True, evaluate routing rules; otherwise use model_key or default
+      model_key: optional explicit model key from the catalog
+    """
+    router = _get_router(ctx)
+    if not router:
+        return {"ok": False, "error": "router_unavailable"}
+
+    src = Path(path).expanduser().resolve()
+    if not _is_under_allowed_roots(src):
+        return {"ok": False, "error": "path_not_allowed", "path": str(src)}
+    if not src.exists():
+        return {"ok": False, "error": "missing_file", "path": str(src)}
+
+    feed_hint, _ = detect_category(src)
+    duration = get_duration(src)
+
+    chosen_model = model_key.strip() or router.default_key
+    if auto_route:
+        chosen_model = router.choose_model(path=src, feed=feed_hint, duration=duration)
+
+    state = router.get_state(chosen_model)
+    result = _transcribe_with_state(
+        ctx,
+        state,
+        path=str(src),
+        profile=profile,
+        language=language,
+        write_artifacts=write_artifacts,
+        insert_db=insert_db,
+        delete_source_raw=delete_source_raw,
+        custom_output_dir=custom_output_dir,
+        skip_wav_copy=skip_wav_copy,
+    )
+
+    result["model_key"] = chosen_model
+    result["routing"] = {
+        "auto_route": auto_route,
+        "feed_hint": feed_hint,
+        "duration": duration,
+    }
+    return result
 
 
 @mcp.tool()
