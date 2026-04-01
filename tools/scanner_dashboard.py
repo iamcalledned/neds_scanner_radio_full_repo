@@ -134,6 +134,32 @@ def gpu_mem() -> str:
     return f"{parts[0]} MiB / {parts[1]} MiB"
 
 
+def gpu_processes(max_rows: int = 5) -> List[str]:
+    """
+    Return up to max_rows processes using GPU with their memory usage.
+    """
+    code, out = run(
+        [
+            "nvidia-smi",
+            "--query-compute-apps=pid,process_name,used_memory",
+            "--format=csv,noheader,nounits",
+        ]
+    )
+    if code != 0 or not out.strip():
+        return ["n/a"]
+
+    rows = []
+    for line in out.splitlines():
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) != 3:
+            continue
+        pid, name, mem = parts
+        rows.append(f"{pid} {name} ({mem} MiB)")
+        if len(rows) >= max_rows:
+            break
+    return rows or ["none"]
+
+
 def systemctl_show(unit: str) -> Dict[str, str]:
     props = [
         "ActiveState",
@@ -196,12 +222,15 @@ class HealthPanel(Static):
         redis_ok = redis_ping(redis_url)
         mcp_ok = tcp_check(host, port)
         gpu = gpu_mem()
+        gpu_procs = gpu_processes()
 
         lines = [
             "[b]Health[/b]",
             f"Redis: {'[green]OK[/green]' if redis_ok else '[red]DOWN[/red]'}",
             f"MCP TCP ({host}:{port}): {'[green]OK[/green]' if mcp_ok else '[red]DOWN[/red]'}",
             f"GPU Mem: {gpu}",
+            "GPU Procs:",
+            *[f"  {p}" for p in gpu_procs],
             "",
             "[b]Env[/b]",
             f"REDIS_URL={redis_url}",
