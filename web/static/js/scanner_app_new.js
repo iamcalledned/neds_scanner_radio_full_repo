@@ -532,7 +532,12 @@ async function refreshCallBoard(force = false) {
     const renderEntries = (data) => {
         const entries = Object.entries(data || {})
             .filter(([_, value]) => value?.file)
-            .map(([key, value]) => ({ feed: key, transcript: value?.transcript, file: value.file }))
+            .map(([key, value]) => ({
+                feed: key,
+                transcript: value?.transcript,
+                file: value.file,
+                duration: value?.duration || 0,
+            }))
             .sort((a, b) => b.file.localeCompare(a.file))
             .slice(0, CALL_CARD_LIMIT);
 
