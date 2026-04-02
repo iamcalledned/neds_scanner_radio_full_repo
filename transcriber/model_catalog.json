@@ -3,6 +3,10 @@
     "path": "trained_whisper_medium_april_2026_ct2",
     "compute_type": "float16"
   },
+  "medium_heavy": {
+    "path": "trained_whisper_medium_april_2026_meaningful_ct2",
+    "compute_type": "float16"
+  },
   "large": {
     "path": "trained_whisper_large_d040126_ct2",
     "compute_type": "float16"

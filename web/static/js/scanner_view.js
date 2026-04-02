@@ -145,10 +145,8 @@ function renderCall(call, index) {
   if (enhancedTranscript) {
     transcriptHTML += `<div><div class="transcript-label text-purple-400">✨ Enhanced</div><div class="transcript-block text-purple-100/90">${_escHtml(enhancedTranscript)}</div></div>`;
   }
-  if (editPending && editedTranscript) {
-    transcriptHTML += `<div><div class="transcript-label text-yellow-400">✏️ Edit Pending</div><div class="transcript-block text-yellow-100/90">${_escHtml(editedTranscript)}</div></div>`;
-  } else if (editedTranscript && !editPending) {
-    transcriptHTML += `<div><div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90">${_escHtml(editedTranscript)}</div></div>`;
+  if (editedTranscript) {
+    transcriptHTML += `<div class="edited-block"><div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90">${_escHtml(editedTranscript)}</div></div>`;
   }
 
   const el = document.createElement('div');
@@ -183,13 +181,15 @@ function renderCall(call, index) {
     <div class="space-y-3 mt-3">
       ${transcriptHTML}
       <div>
-        <div class="transcript-label text-slate-500">🎧 Original</div>
-        <pre id="pre-${index}" class="transcript-block text-slate-200">${_escHtml(originalTranscript)}</pre>
-        <textarea id="edit-${index}" class="w-full intent-input hidden mt-2" rows="4">${_escHtml(originalTranscript)}</textarea>
+        <div id="orig-label-${index}" class="transcript-label text-slate-500">🎧 Original${editedTranscript ? ` — <button class="orig-toggle" onclick="toggleOriginal(${index})">show ▾</button>` : ''}</div>
+        <pre id="pre-${index}" class="transcript-block text-slate-200${editedTranscript ? ' hidden' : ''}">${_escHtml(originalTranscript)}</pre>
+        <textarea id="edit-${index}" class="w-full intent-input hidden mt-2" rows="4">${_escHtml(editedTranscript || originalTranscript)}</textarea>
         <div class="call-actions">
           <button data-action="edit" data-index="${index}" class="call-action-btn">Edit</button>
-          <button data-action="save" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="save-${index}" class="call-action-btn hidden">Submit</button>
+          <button data-action="save" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="save-${index}" class="call-action-btn hidden">Save</button>
           <button data-action="cancel" data-index="${index}" id="cancel-${index}" class="call-action-btn hidden">Cancel</button>
+          <button data-action="mark-edited" data-index="${index}" id="edited-btn-${index}" class="call-action-btn${editedTranscript ? ' btn-edited-active' : ''}">Edited</button>
+          <button data-action="approve" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="approve-${index}" class="call-action-btn btn-approve${editedTranscript ? ' btn-approve-active' : ''}" title="Mark transcript as good training data">${editedTranscript ? '✅ Looks Good' : 'Looks Good'}</button>
           <button data-action="classify" data-index="${index}" class="call-action-btn">Classify</button>
           <button data-action="address-lookup" data-index="${index}" class="call-action-btn">Address</button>
           <button data-action="share" data-index="${index}" data-feed="${_escHtml(callFeed)}" class="call-action-btn btn-share">Share</button>
@@ -385,7 +385,9 @@ function handleCallAction(event) {
     case 'vote-best': submitVote(file, model, target); break;
     case 'edit': enableEdit(index); break;
     case 'save': submitEdit(file, feed, index); break;
+    case 'approve': toggleApprove(file, feed, index); break;
     case 'cancel': cancelEdit(index); break;
+    case 'mark-edited': /* read-only indicator, no action */ break;
     case 'classify': toggleIntentForm(index); break;
     case 'submit-intent': submitIntent(file, feed, index); break;
     case 'cancel-intent': toggleIntentForm(index); break;
@@ -553,20 +555,35 @@ function enableEdit(id) {
   document.getElementById(`save-${id}`)?.classList.remove("hidden");
   document.getElementById(`cancel-${id}`)?.classList.remove("hidden");
   document.getElementById(`msg-${id}`)?.classList.add("hidden");
+  // Dim Looks Good while editing is in progress
+  document.getElementById(`approve-${id}`)?.classList.add('btn-dimmed');
 }
 
 function cancelEdit(id) {
   const pre = document.getElementById(`pre-${id}`);
   const edit = document.getElementById(`edit-${id}`);
-  if (pre && edit) { edit.value = pre.innerText.trim(); edit.classList.add("hidden"); pre.classList.remove("hidden"); }
+  const hasEdited = document.getElementById(`edited-btn-${id}`)?.classList.contains('btn-edited-active');
+  // Only show original if there's no edit or user previously expanded it
+  if (edit) edit.classList.add('hidden');
+  if (pre && !hasEdited) pre.classList.remove('hidden');
   document.getElementById(`save-${id}`)?.classList.add("hidden");
   document.getElementById(`cancel-${id}`)?.classList.add("hidden");
+  document.getElementById(`approve-${id}`)?.classList.remove('btn-dimmed');
+}
+
+function toggleOriginal(id) {
+  const pre = document.getElementById(`pre-${id}`);
+  const btn = document.querySelector(`#orig-label-${id} .orig-toggle`);
+  if (!pre) return;
+  const hidden = pre.classList.toggle('hidden');
+  if (btn) btn.textContent = hidden ? 'show ▾' : 'hide ▴';
 }
 
 async function submitEdit(filename, feed, id) {
   const editArea = document.getElementById(`edit-${id}`);
   if (!editArea) return;
-  const edited = editArea.value;
+  const edited = editArea.value.trim();
+  if (!edited) return;
   const msgEl = document.getElementById(`msg-${id}`);
   const showMsg = (msg, isErr) => {
     if (!msgEl) return;
@@ -579,21 +596,78 @@ async function submitEdit(filename, feed, id) {
       body: JSON.stringify({ filename, feed, transcript: edited })
     });
     if (resp.ok) {
-      const container = document.getElementById(`pre-${id}`)?.parentElement;
-      if (container) {
-        const old = container.parentNode?.querySelector('.text-green-400')?.closest('div:has(.transcript-block)');
-        if (old) old.remove();
-        const block = document.createElement('div');
-        block.innerHTML = `<div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90">${_escHtml(edited)}</div>`;
-        container.parentNode?.insertBefore(block, container);
+      // Update or create the ✅ Edited block above the Original section
+      const origContainer = document.getElementById(`pre-${id}`)?.closest('div')?.parentElement;
+      if (origContainer) {
+        let editedBlock = origContainer.querySelector('.edited-block');
+        if (!editedBlock) {
+          editedBlock = document.createElement('div');
+          editedBlock.className = 'edited-block';
+          origContainer.insertBefore(editedBlock, origContainer.querySelector('div:has(#pre-' + id + ')') || origContainer.firstChild);
+        }
+        editedBlock.innerHTML = `<div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90">${_escHtml(edited)}</div>`;
       }
-      showMsg('✔️ Edit submitted!');
+      // Activate Edited button
+      const editedBtn = document.getElementById(`edited-btn-${id}`);
+      if (editedBtn) editedBtn.classList.add('btn-edited-active');
+      // Restore Looks Good (no longer dimmed)
+      document.getElementById(`approve-${id}`)?.classList.remove('btn-dimmed');
+      // Update orig label to show collapse toggle
+      const origLabel = document.getElementById(`orig-label-${id}`);
+      if (origLabel) origLabel.innerHTML = `🎧 Original — <button class="orig-toggle" onclick="toggleOriginal(${id})">show ▾</button>`;
+      // Hide original pre (collapsed by default after edit)
+      document.getElementById(`pre-${id}`)?.classList.add('hidden');
+      // Seed textarea for future re-edits
+      editArea.value = edited;
+      showMsg('✔️ Edit saved!');
       document.getElementById(`save-${id}`)?.classList.add("hidden");
       document.getElementById(`cancel-${id}`)?.classList.add("hidden");
       document.getElementById(`edit-${id}`)?.classList.add("hidden");
-      document.getElementById(`pre-${id}`)?.classList.remove("hidden");
     } else { showMsg('❌ Submission failed.', true); }
   } catch (e) { console.error(e); showMsg('❌ Network error.', true); }
+}
+
+// --- APPROVE (Looks Good) ---
+async function toggleApprove(filename, feed, id) {
+  const btn = document.getElementById(`approve-${id}`);
+  const msgEl = document.getElementById(`msg-${id}`);
+  const showMsg = (msg, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = msg;
+    msgEl.className = isErr ? 'text-red-400 text-sm' : 'text-green-400 text-sm';
+    msgEl.classList.remove('hidden');
+    setTimeout(() => msgEl.classList.add('hidden'), 3000);
+  };
+
+  const isCurrentlyApproved = btn && btn.classList.contains('btn-approve-active');
+  const approve = !isCurrentlyApproved;
+
+  try {
+    const resp = await fetch('/scanner/approve_transcript', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, feed, approve }),
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      if (btn) {
+        if (approve) {
+          btn.classList.add('btn-approve-active');
+          btn.textContent = '✅ Looks Good';
+          showMsg('✔️ Marked as good training data!');
+        } else {
+          btn.classList.remove('btn-approve-active');
+          btn.textContent = 'Looks Good';
+          showMsg('↩️ Approval removed.');
+        }
+      }
+    } else {
+      showMsg('❌ ' + (result.error || 'Failed to update.'), true);
+    }
+  } catch (e) {
+    console.error(e);
+    showMsg('❌ Network error.', true);
+  }
 }
 
 // --- INTENT CLASSIFICATION ---
