@@ -372,14 +372,17 @@ function scrollToFirstHook() {
 
 // --- EVENT DELEGATION ---
 function handleCallAction(event) {
-  const target = event.target;
+  const target = event.target.closest('[data-action]') || event.target;
   const action = target.dataset.action;
   const index = target.dataset.index;
   const file = target.dataset.file;
   const feed = target.dataset.feed;
+  const model = target.dataset.model;
+  
   if (!action) return;
 
   switch (action) {
+    case 'vote-best': submitVote(file, model, target); break;
     case 'edit': enableEdit(index); break;
     case 'save': submitEdit(file, feed, index); break;
     case 'cancel': cancelEdit(index); break;
@@ -398,6 +401,35 @@ function handleCallAction(event) {
         document.getElementById("number-input")?.focus();
       }
       break;
+  }
+}
+
+// --- VOTE BEST ---
+async function submitVote(filename, model, btn) {
+  if (!filename || !model) return;
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = `<span class="animate-pulse">Saving...</span>`;
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/scanner/submit_vote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename, model })
+    });
+    const data = await res.json();
+    if (data.success) {
+      btn.innerHTML = `✅ Voted`;
+      btn.classList.add('bg-emerald-900/60', 'text-emerald-400', 'border-emerald-700/50');
+      btn.classList.remove('bg-slate-800/50', 'bg-indigo-950/40', 'hover:bg-emerald-900/60');
+    } else {
+      btn.innerHTML = `❌ Error`;
+      setTimeout(() => { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
+    }
+  } catch (err) {
+    console.error("Vote failed", err);
+    btn.innerHTML = `❌ Error`;
+    setTimeout(() => { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
   }
 }
 

@@ -778,6 +778,45 @@ def submit_edit():
     else:
         return jsonify({"success": False, "error": result['error']}), 500
 
+
+@scanner_bp.route("/scanner/submit_vote", methods=["POST"])
+def submit_vote():
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
+    filename = data.get("filename")
+    model_name = data.get("model")
+    
+    if not filename or not model_name:
+        return jsonify({"success": False, "error": "Filename and model required"}), 400
+
+    try:
+        with get_conn() as conn:
+            row = conn.execute("SELECT extra FROM calls WHERE filename = ?", (filename,)).fetchone()
+            if not row:
+                return jsonify({"success": False, "error": "Call not found"}), 404
+                
+            extra = row["extra"]
+            if isinstance(extra, str):
+                try:
+                    extra_data = json.loads(extra)
+                except json.JSONDecodeError:
+                    extra_data = {}
+            else:
+                extra_data = extra or {}
+                
+            extra_data["best_transcript_vote"] = model_name
+            
+            conn.execute("UPDATE calls SET extra = ? WHERE filename = ?", (json.dumps(extra_data), filename))
+            conn.commit()
+            
+        log_activity("transcript_vote", {"filename": filename, "model": model_name})
+        return jsonify({"success": True})
+    except Exception as e:
+        logger.error(f"Failed to submit vote for {filename}: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @scanner_bp.route('/scanner/_heartbeat', methods=['POST'])
 def scanner_heartbeat():
     """Receive periodic heartbeats from clients to mark them active."""
