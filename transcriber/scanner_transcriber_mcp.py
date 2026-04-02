@@ -121,8 +121,28 @@ MODEL_CATALOG_FILE = os.environ.get("MODEL_CATALOG_FILE", "")
 MODEL_ROUTING_RULES = os.environ.get("MODEL_ROUTING_RULES", "")
 MODEL_ROUTING_FILE = os.environ.get("MODEL_ROUTING_FILE", "")
 DEFAULT_MODEL_KEY = os.environ.get("DEFAULT_MODEL_KEY", "default")
+DEFAULT_MODEL_KEY_ENV = os.environ.get("DEFAULT_MODEL_KEY")
 MODEL_CACHE_LIMIT = int(os.environ.get("MODEL_CACHE_LIMIT", "1"))
 WARM_DEFAULT_MODEL = os.environ.get("WARM_DEFAULT_MODEL", "1").strip().lower() not in ("0", "false", "no")
+
+
+TRANSCRIBE_DEFAULTS: Dict[str, Any] = {
+    "task": "transcribe",
+    "language": "en",
+    "beam_size": 3,
+    "word_timestamps": False,
+    "condition_on_previous_text": False,
+    "vad_filter": False,
+    "initial_prompt": None,
+    "temperature": 0.0,
+    "best_of": None,
+    "patience": None,
+    "compression_ratio_threshold": None,
+    "log_prob_threshold": None,
+    "no_speech_threshold": None,
+}
+
+TRANSCRIBE_KEYS = tuple(TRANSCRIBE_DEFAULTS.keys())
 
 
 # ==========================
@@ -189,8 +209,10 @@ class WhisperState:
 @dataclass
 class ModelInfo:
     key: str
-    path: Path
+    model: str
     compute_type: str = DEFAULT_COMPUTE_TYPE
+    device: str = "cuda"
+    transcribe: Dict[str, Any] = None
 
 
 @dataclass
@@ -247,12 +269,21 @@ class ModelRouter:
             return self.cache[key]
 
         info = self.catalog[key]
-        log.info(f"[router] Loading model '{key}' from {info.path}")
+        if info.device != "cuda":
+            log.warning(f"[router] Model '{key}' requested device='{info.device}', but this service is GPU-only. Using cuda.")
+        log.info(f"[router] Loading model '{key}' from {info.model}")
         _require_cuda()
-        model = WhisperModel(str(info.path), device="cuda", compute_type=info.compute_type)
+        model = WhisperModel(str(info.model), device="cuda", compute_type=info.compute_type)
         self.cache[key] = model
         self._trim_cache()
         return model
+
+    def resolve_profile(self, key: Optional[str] = None) -> Tuple[str, ModelInfo]:
+        resolved = (key or "").strip() or self.default_key
+        if resolved not in self.catalog:
+            log.warning(f"[router] Requested profile '{resolved}' not in catalog; falling back to default '{self.default_key}'")
+            resolved = self.default_key
+        return resolved, self.catalog[resolved]
 
     def choose_model(self, *, path: Path, feed: str, duration: float) -> str:
         for rule in self.rules:
@@ -297,34 +328,171 @@ def _json_from_env(env_value: str, file_path: str) -> Optional[Any]:
     return None
 
 
-def _build_model_catalog() -> Dict[str, ModelInfo]:
+def _resolve_model_ref(model_ref: str) -> str:
+    raw = (model_ref or "").strip()
+    if not raw:
+        return str(MODEL_DIR)
+
+    p = Path(raw).expanduser()
+    if p.is_absolute() or raw.startswith(".") or raw.startswith("~"):
+        return str(p.resolve())
+
+    # Backward compatible behavior: bare local model folders resolve under MODEL_BASE_DIR.
+    if "/" not in raw and "\\" not in raw:
+        return str((MODEL_BASE_DIR / p).resolve())
+
+    candidate = (MODEL_BASE_DIR / p).expanduser()
+    if candidate.exists():
+        return str(candidate.resolve())
+
+    # Keep hub-style IDs (e.g., org/model-name) untouched.
+    return raw
+
+
+def _normalize_temperature(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, list):
+        out: List[float] = []
+        for item in value:
+            if isinstance(item, (int, float)):
+                out.append(float(item))
+        if not out:
+            return None
+        return out
+    return None
+
+
+def _merged_transcribe_settings(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    merged: Dict[str, Any] = dict(TRANSCRIBE_DEFAULTS)
+    if isinstance(raw, dict):
+        for key in TRANSCRIBE_KEYS:
+            if key in raw:
+                merged[key] = raw.get(key)
+
+    if not merged.get("task"):
+        merged["task"] = TRANSCRIBE_DEFAULTS["task"]
+    if not merged.get("language"):
+        merged["language"] = TRANSCRIBE_DEFAULTS["language"]
+
+    try:
+        merged["beam_size"] = int(merged.get("beam_size", TRANSCRIBE_DEFAULTS["beam_size"]))
+    except (TypeError, ValueError):
+        merged["beam_size"] = TRANSCRIBE_DEFAULTS["beam_size"]
+    if merged["beam_size"] < 1:
+        merged["beam_size"] = TRANSCRIBE_DEFAULTS["beam_size"]
+
+    for bool_key in ("word_timestamps", "condition_on_previous_text", "vad_filter"):
+        merged[bool_key] = bool(merged.get(bool_key, TRANSCRIBE_DEFAULTS[bool_key]))
+
+    prompt = merged.get("initial_prompt")
+    if isinstance(prompt, str):
+        prompt = prompt.strip()
+    merged["initial_prompt"] = prompt or None
+
+    temperature = _normalize_temperature(merged.get("temperature"))
+    merged["temperature"] = TRANSCRIBE_DEFAULTS["temperature"] if temperature is None else temperature
+
+    for optional_num_key in (
+        "best_of",
+        "patience",
+        "compression_ratio_threshold",
+        "log_prob_threshold",
+        "no_speech_threshold",
+    ):
+        value = merged.get(optional_num_key)
+        if value is None:
+            continue
+        try:
+            merged[optional_num_key] = float(value)
+        except (TypeError, ValueError):
+            merged[optional_num_key] = None
+
+    if merged.get("best_of") is not None:
+        merged["best_of"] = int(merged["best_of"])
+
+    return merged
+
+
+def _build_transcribe_kwargs(
+    *,
+    task: str,
+    language: str,
+    profile_settings: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    settings = _merged_transcribe_settings(profile_settings)
+    if task:
+        settings["task"] = task
+    if language:
+        settings["language"] = language
+
+    kwargs: Dict[str, Any] = {}
+    for key in TRANSCRIBE_KEYS:
+        value = settings.get(key)
+        if value is None:
+            continue
+        if key == "initial_prompt" and isinstance(value, str) and not value.strip():
+            continue
+        kwargs[key] = value
+    return kwargs
+
+
+def _resolve_active_model_profile(ctx: Context, requested_model_key: str = "") -> Tuple[str, Optional[ModelInfo]]:
+    router = _get_router(ctx)
+    if not router:
+        return "default", None
+    return router.resolve_profile(requested_model_key)
+
+
+def _build_model_catalog() -> Tuple[Dict[str, ModelInfo], str]:
     raw = _json_from_env(MODEL_CATALOG_JSON, MODEL_CATALOG_FILE) or {}
     catalog: Dict[str, ModelInfo] = {}
+    catalog_default_key = "default"
+
+    default_model_ref = str(MODEL_DIR)
+    default_transcribe = _merged_transcribe_settings(None)
 
     # Always include default entry (env WHISPER_MODEL_DIR) so existing behavior works.
     catalog["default"] = ModelInfo(
         key="default",
-        path=MODEL_DIR,
+        model=default_model_ref,
         compute_type=DEFAULT_COMPUTE_TYPE,
+        device="cuda",
+        transcribe=default_transcribe,
     )
 
     # Merge user-defined catalog entries
     if isinstance(raw, dict):
-        for key, val in raw.items():
+        entries = raw.get("models") if isinstance(raw.get("models"), dict) else raw
+        if isinstance(raw.get("default_model"), str) and raw.get("default_model"):
+            catalog_default_key = raw["default_model"]
+
+        for key, val in entries.items():
             if not isinstance(val, dict):
                 continue
-            path_str = val.get("path") or val.get("model_path") or val.get("dir")
-            if not path_str:
+            model_ref = val.get("model") or val.get("path") or val.get("model_path") or val.get("dir")
+            if not model_ref:
                 continue
-            
-            p = Path(path_str).expanduser()
-            if not p.is_absolute():
-                p = MODEL_BASE_DIR / p
-                
-            compute_type = val.get("compute_type", DEFAULT_COMPUTE_TYPE)
-            catalog[key] = ModelInfo(key=key, path=p, compute_type=compute_type)
 
-    return catalog
+            resolved_model = _resolve_model_ref(str(model_ref))
+            compute_type = val.get("compute_type", DEFAULT_COMPUTE_TYPE)
+            device = str(val.get("device", "cuda")).strip().lower() or "cuda"
+            transcribe_cfg = val.get("transcribe") if isinstance(val.get("transcribe"), dict) else val
+
+            catalog[key] = ModelInfo(
+                key=key,
+                model=resolved_model,
+                compute_type=compute_type,
+                device=device,
+                transcribe=_merged_transcribe_settings(transcribe_cfg),
+            )
+
+    if catalog_default_key not in catalog:
+        catalog_default_key = "default"
+
+    return catalog, catalog_default_key
 
 
 def _build_routing_rules() -> List[RoutingRule]:
@@ -366,9 +534,13 @@ def _build_routing_rules() -> List[RoutingRule]:
 
 
 def _build_router() -> ModelRouter:
-    catalog = _build_model_catalog()
+    catalog, catalog_default_key = _build_model_catalog()
     rules = _build_routing_rules()
-    default_key = DEFAULT_MODEL_KEY if DEFAULT_MODEL_KEY in catalog else "default"
+    if DEFAULT_MODEL_KEY_ENV:
+        env_default = DEFAULT_MODEL_KEY.strip()
+        default_key = env_default if env_default in catalog else "default"
+    else:
+        default_key = catalog_default_key
     return ModelRouter(catalog=catalog, rules=rules, default_key=default_key)
 
 
@@ -408,22 +580,30 @@ def transcribe_wavefile(
     *,
     task: str = "transcribe",
     language: str = "en",
+    transcribe_settings: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Transcribe a preprocessed WAV using the loaded faster-whisper model.
     Serialized with a GPU lock.
     """
+    kwargs = _build_transcribe_kwargs(
+        task=task,
+        language=language,
+        profile_settings=transcribe_settings,
+    )
+    log.info(
+        "[transcribe_wavefile] decode settings: "
+        f"beam_size={kwargs.get('beam_size')} "
+        f"vad_filter={kwargs.get('vad_filter')} "
+        f"language={kwargs.get('language')} "
+        f"task={kwargs.get('task')} "
+        f"initial_prompt_set={bool(kwargs.get('initial_prompt'))}"
+    )
+
     log.info("[transcribe_wavefile] Acquiring GPU gate…")
     with state.gate.acquire("whisper", timeout_s=120):
         log.info("[transcribe_wavefile] GPU gate acquired, running model.transcribe()…")
-        segments, _ = state.model.transcribe(
-            str(wav_path),
-            task=task,
-            language=language,
-            beam_size=1,
-            word_timestamps=False,
-            condition_on_previous_text=False
-        )
+        segments, _ = state.model.transcribe(str(wav_path), **kwargs)
         
         text = " ".join([segment.text for segment in segments]).strip()
         snippet = (text[:140] + "…") if len(text) > 140 else text
@@ -605,6 +785,7 @@ def _transcribe_with_state(
     state: WhisperState,
     *,
     path: str,
+    model_key: str,
     profile: str,
     language: str,
     write_artifacts: bool,
@@ -648,10 +829,16 @@ def _transcribe_with_state(
 
     t0 = time.time()
     try:
+        resolved_model_key, model_info = _resolve_active_model_profile(ctx, model_key)
         log.info(f"[PRE-PROCESS AUDIO] Preprocessing {src.name} profile={profile}")
         preprocess_audio(src, tmp, profile=profile)
         log.info(f"[PRE-PROCESS AUDIO] Preprocessing done, starting Whisper inference…")
-        text = transcribe_wavefile(state, tmp)
+        text = transcribe_wavefile(
+            state,
+            tmp,
+            language=language,
+            transcribe_settings=model_info.transcribe if model_info else None,
+        )
         log.info(f"[PRE-PROCESS AUDIO] Whisper inference done in {time.time()-t0:.1f}s")
         # insert cool algo here to determine if they were towed
         
@@ -664,7 +851,7 @@ def _transcribe_with_state(
         state_name = "Massachusetts"
         dept = "fire" if "fd" in feed else "police" if "pd" in feed else ""
 
-        transcription_model = MODEL_DIR.name
+        transcription_model = model_info.model if model_info else MODEL_DIR.name
         hook_requested = detect_hook_request(text)
         log.info(f"hook_requested: {hook_requested}")
 
@@ -706,6 +893,7 @@ def _transcribe_with_state(
             "retry_profiles_tried": [profile],
             "transcription_engine": "faster-whisper",
             "transcription_model": transcription_model,
+            "transcription_model_key": resolved_model_key,
             "hook_request": hook_requested,
         }
 
@@ -793,6 +981,7 @@ def _transcribe_with_state(
             "rms": rms,
             "profile": profile,
             "language": language,
+            "model_key": resolved_model_key,
             "source_path": str(src),
             "clean_dir": str(clean_dir),
             "output_dir": str(target_dir),
@@ -827,7 +1016,7 @@ def transcribe_file(
     ctx: Context,
     path: str,
     profile: str = "default",
-    language: str = "en",  # kept for API compatibility; WhisperTokenizerFast decoding is language-agnostic here
+    language: str = "en",
     write_artifacts: bool = True,
     insert_db: bool = True,
     delete_source_raw: bool = False,
@@ -851,6 +1040,7 @@ def transcribe_file(
         ctx,
         state,
         path=path,
+        model_key="",
         profile=profile,
         language=language,
         write_artifacts=write_artifacts,
@@ -907,6 +1097,7 @@ def route_and_transcribe(
         ctx,
         state,
         path=str(src),
+        model_key=chosen_model,
         profile=profile,
         language=language,
         write_artifacts=write_artifacts,

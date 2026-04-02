@@ -1,22 +1,45 @@
 {
-  "medium_april": {
-    "path": "trained_whisper_medium_april_2026_ct2",
-    "compute_type": "float16"
-  },
-  "medium_heavy": {
-    "path": "trained_whisper_medium_april_2026_meaningful_ct2",
-    "compute_type": "float16"
-  },
-  "large": {
-    "path": "trained_whisper_large_d040126_ct2",
-    "compute_type": "float16"
-  },
-  "medium_feb": {
-    "path": "trained_whisper_medium_d022526_ct2_v2",
-    "compute_type": "float16"
-  },
-  "small_april": {
-    "path": "trained_whisper_small_april_2026_ct2",
-    "compute_type": "float16"
+  "default_model": "medium_april",
+  "models": {
+    "medium_april": {
+      "model": "trained_whisper_medium_april_2026_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 3,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "initial_prompt": "Police and fire radio traffic. Numbers, addresses, street names, 10-codes, license plates, call signs, dispatch terminology.",
+        "temperature": 0.0,
+        "best_of": null,
+        "patience": null,
+        "compression_ratio_threshold": null,
+        "log_prob_threshold": null,
+        "no_speech_threshold": null
+      }
+    },
+    "medium_heavy": {
+      "model": "trained_whisper_medium_april_2026_meaningful_ct2",
+      "compute_type": "float16",
+      "device": "cuda"
+    },
+    "large": {
+      "model": "trained_whisper_large_d040126_ct2",
+      "compute_type": "float16",
+      "device": "cuda"
+    },
+    "medium_feb": {
+      "model": "trained_whisper_medium_d022526_ct2_v2",
+      "compute_type": "float16",
+      "device": "cuda"
+    },
+    "small_april": {
+      "model": "trained_whisper_small_april_2026_ct2",
+      "compute_type": "float16",
+      "device": "cuda"
+    }
   }
 }
