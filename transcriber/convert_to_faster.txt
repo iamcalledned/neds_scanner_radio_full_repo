@@ -1,7 +1,7 @@
 pip install faster-whisper ctranslate2 transformers
 
 ct2-transformers-converter \
-  --model /home/ned/models/trained_whisper_medium_april_2026 \
-  --output_dir /home/ned/models/trained_whisper_medium_april_2026_ct2 \
-  --copy_files tokenizer.json preprocessor_config.json \
+  --model /home/ned/models/trained_whisper_small_april_2026 \
+  --output_dir /home/ned/models/trained_whisper_small_april_2026_ct2 \
+  --copy_files tokenizer.json processor_config.json \
   --quantization float16

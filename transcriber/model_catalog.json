@@ -1,0 +1,22 @@
+{
+  "medium_april": {
+    "path": "trained_whisper_medium_april_2026_ct2",
+    "compute_type": "float16"
+  },
+  "medium_heavy": {
+    "path": "trained_whisper_medium_april_2026_meaningful_ct2",
+    "compute_type": "float16"
+  },
+  "large": {
+    "path": "trained_whisper_large_d040126_ct2",
+    "compute_type": "float16"
+  },
+  "medium_feb": {
+    "path": "trained_whisper_medium_d022526_ct2_v2",
+    "compute_type": "float16"
+  },
+  "small_april": {
+    "path": "trained_whisper_small_april_2026_ct2",
+    "compute_type": "float16"
+  }
+}

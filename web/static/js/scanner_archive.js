@@ -204,11 +204,34 @@ function _renderCallCard(call, feed) {
     addressHTML = `<div class="call-card-address"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg><span>${_esc(address)}</span></div>`;
   }
 
+  const editedTranscript = call.edited_transcript || '';
+  // Build a stable card ID from the filename stem
+  const stem = (call.file || call.path || '').replace(/^.*[\\/]/, '').replace(/\.[^.]+$/, '');
+  const cardId = stem;
+
   let transcriptHTML = '';
+  if (editedTranscript) {
+    transcriptHTML += `<div class="arch-edited-block"><div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90" style="font-family:inherit">${_esc(editedTranscript)}</div></div>`;
+  }
   if (enhanced) {
     transcriptHTML += `<div><div class="transcript-label text-purple-400">✨ Enhanced</div><div class="transcript-block text-purple-100/90">${_esc(enhanced)}</div></div>`;
   }
-  transcriptHTML += `<div><div class="transcript-label text-slate-500">🎧 Original</div><pre class="transcript-block text-slate-200">${_esc(transcript)}</pre></div>`;
+  const origCollapseBtn = editedTranscript
+    ? ` — <button class="orig-toggle" onclick="archToggleOriginal('${_esc(cardId)}')">show ▾</button>`
+    : '';
+  transcriptHTML += `<div>
+    <div id="arch-orig-label-${_esc(cardId)}" class="transcript-label text-slate-500">🎧 Original${origCollapseBtn}</div>
+    <pre id="arch-pre-${_esc(cardId)}" class="transcript-block text-slate-200${editedTranscript ? ' hidden' : ''}">${_esc(transcript)}</pre>
+    <textarea id="arch-edit-${_esc(cardId)}" class="w-full intent-input hidden mt-2" rows="4">${_esc(editedTranscript || transcript)}</textarea>
+  </div>
+  <div class="arch-actions mt-2">
+    <button class="arch-action-btn" onclick="archStartEdit('${_esc(cardId)}')">Edit</button>
+    <button id="arch-save-${_esc(cardId)}" class="arch-action-btn hidden" onclick="archSubmitEdit('${_esc(call.file||call.path||'')}','${_esc(feed)}','${_esc(cardId)}')">Save</button>
+    <button id="arch-cancel-${_esc(cardId)}" class="arch-action-btn hidden" onclick="archCancelEdit('${_esc(cardId)}')">Cancel</button>
+    <button id="arch-edited-btn-${_esc(cardId)}" class="arch-action-btn${editedTranscript ? ' btn-edited-active' : ''}">Edited</button>
+    <button id="arch-approve-${_esc(cardId)}" class="arch-action-btn btn-approve${editedTranscript ? ' btn-approve-active' : ''}" onclick="archToggleApprove('${_esc(call.file||call.path||'')}','${_esc(feed)}','${_esc(cardId)}')" title="Mark as good training data">${editedTranscript ? '✅ Looks Good' : 'Looks Good'}</button>
+  </div>
+  <div id="arch-msg-${_esc(cardId)}" class="text-green-400 text-sm hidden mt-1"></div>`;
 
   const playCountHTML = playCount > 0 ? `<span class="play-count-badge">👂 ${playCount}</span>` : '';
 
@@ -240,6 +263,124 @@ function _renderCallCard(call, feed) {
   `;
   return div;
 }
+
+// ── Archive edit/approve helpers ──
+function archStartEdit(cardId) {
+  document.getElementById(`arch-pre-${cardId}`)?.classList.add('hidden');
+  document.getElementById(`arch-edit-${cardId}`)?.classList.remove('hidden');
+  document.getElementById(`arch-save-${cardId}`)?.classList.remove('hidden');
+  document.getElementById(`arch-cancel-${cardId}`)?.classList.remove('hidden');
+  // Dim Looks Good while editing
+  document.getElementById(`arch-approve-${cardId}`)?.classList.add('btn-dimmed');
+}
+
+function archCancelEdit(cardId) {
+  const hasEdited = document.getElementById(`arch-edited-btn-${cardId}`)?.classList.contains('btn-edited-active');
+  document.getElementById(`arch-edit-${cardId}`)?.classList.add('hidden');
+  document.getElementById(`arch-save-${cardId}`)?.classList.add('hidden');
+  document.getElementById(`arch-cancel-${cardId}`)?.classList.add('hidden');
+  if (!hasEdited) document.getElementById(`arch-pre-${cardId}`)?.classList.remove('hidden');
+  document.getElementById(`arch-approve-${cardId}`)?.classList.remove('btn-dimmed');
+}
+
+function archToggleOriginal(cardId) {
+  const pre = document.getElementById(`arch-pre-${cardId}`);
+  const btn = document.querySelector(`#arch-orig-label-${cardId} .orig-toggle`);
+  if (!pre) return;
+  const hidden = pre.classList.toggle('hidden');
+  if (btn) btn.textContent = hidden ? 'show ▾' : 'hide ▴';
+}
+
+async function archSubmitEdit(filename, feed, cardId) {
+  const editArea = document.getElementById(`arch-edit-${cardId}`);
+  if (!editArea) return;
+  const edited = editArea.value.trim();
+  if (!edited) return;
+  const msgEl = document.getElementById(`arch-msg-${cardId}`);
+  const showMsg = (msg, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = msg;
+    msgEl.style.color = isErr ? '#f87171' : '#4ade80';
+    msgEl.classList.remove('hidden');
+    setTimeout(() => msgEl.classList.add('hidden'), 3000);
+  };
+  try {
+    const resp = await fetch('/scanner/submit_edit', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, feed, transcript: edited }),
+    });
+    if (resp.ok) {
+      // Update or create the edited block
+      const origDiv = document.getElementById(`arch-pre-${cardId}`)?.closest('div')?.parentElement;
+      if (origDiv) {
+        let editedBlock = origDiv.querySelector('.arch-edited-block');
+        if (!editedBlock) {
+          editedBlock = document.createElement('div');
+          editedBlock.className = 'arch-edited-block';
+          origDiv.insertBefore(editedBlock, origDiv.firstChild);
+        }
+        editedBlock.innerHTML = `<div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90" style="font-family:inherit">${_esc(edited)}</div>`;
+      }
+      // Activate Edited button
+      document.getElementById(`arch-edited-btn-${cardId}`)?.classList.add('btn-edited-active');
+      // Restore Looks Good (no longer dimmed)
+      document.getElementById(`arch-approve-${cardId}`)?.classList.remove('btn-dimmed');
+      // Update orig label with collapse toggle
+      const origLabel = document.getElementById(`arch-orig-label-${cardId}`);
+      if (origLabel) origLabel.innerHTML = `🎧 Original — <button class="orig-toggle" onclick="archToggleOriginal('${cardId}')">show ▾</button>`;
+      // Hide original pre
+      document.getElementById(`arch-pre-${cardId}`)?.classList.add('hidden');
+      // Seed textarea for re-edits
+      editArea.value = edited;
+      archCancelEdit(cardId);
+      showMsg('✔️ Edit saved!');
+    } else {
+      showMsg('❌ Save failed.', true);
+    }
+  } catch (e) {
+    console.error(e);
+    showMsg('❌ Network error.', true);
+  }
+}
+
+async function archToggleApprove(filename, feed, cardId) {
+  const btn = document.getElementById(`arch-approve-${cardId}`);
+  const msgEl = document.getElementById(`arch-msg-${cardId}`);
+  const showMsg = (msg, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = msg;
+    msgEl.style.color = isErr ? '#f87171' : '#4ade80';
+    msgEl.classList.remove('hidden');
+    setTimeout(() => msgEl.classList.add('hidden'), 3000);
+  };
+  const approve = !(btn && btn.classList.contains('btn-approve-active'));
+  try {
+    const resp = await fetch('/scanner/approve_transcript', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, feed, approve }),
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      if (btn) {
+        if (approve) {
+          btn.classList.add('btn-approve-active');
+          btn.textContent = '✅ Looks Good';
+          showMsg('✔️ Marked as good training data!');
+        } else {
+          btn.classList.remove('btn-approve-active');
+          btn.textContent = 'Looks Good';
+          showMsg('↩️ Approval removed.');
+        }
+      }
+    } else {
+      showMsg('❌ ' + (result.error || 'Failed.'), true);
+    }
+  } catch (e) {
+    console.error(e);
+    showMsg('❌ Network error.', true);
+  }
+}
+
 
 // ── Build overview (no feed selected) ──
 function buildOverview() {

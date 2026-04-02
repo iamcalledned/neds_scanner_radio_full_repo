@@ -119,11 +119,7 @@ def _row_to_call_payload(row, feed_override=None, timestamp_format="%b %d, %I:%M
     metadata = _row_to_metadata(row)
     edited_transcript = row["edited_transcript"] or ""
     transcript = row["transcript"] or "(no transcript)"
-    edit_pending = False
-
-    if edited_transcript:
-        transcript = edited_transcript
-        edit_pending = not bool(metadata.get("edited"))
+    edit_pending = False  # no longer used; kept for schema compatibility
 
     ts = _safe_fromisoformat(row["timestamp"]) or _timestamp_from_filename(row["filename"])
     timestamp_human = ts.strftime(timestamp_format) if ts else row["filename"]
@@ -777,6 +773,108 @@ def submit_edit():
         return jsonify({"success": True})
     else:
         return jsonify({"success": False, "error": result['error']}), 500
+
+
+@scanner_bp.route("/scanner/approve_transcript", methods=["POST"])
+def approve_transcript():
+    """Mark a transcript as 'looks good' by copying transcript → edited_transcript.
+    Passing approve=false clears the edited_transcript (un-approve).
+    This is the primary way to flag calls as good training data.
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
+    raw_filename = data.get("filename")
+    if not raw_filename:
+        return jsonify({"success": False, "error": "Filename required"}), 400
+
+    filename = secure_filename(raw_filename)
+    if not filename.endswith(".wav"):
+        return jsonify({"success": False, "error": "Invalid file type"}), 400
+
+    approve = data.get("approve", True)
+    feed = data.get("feed", "pd")
+
+    if approve:
+        # Read the current transcript from DB and copy it to edited_transcript
+        with get_conn(readonly=True) as conn:
+            row = conn.execute(
+                "SELECT transcript FROM calls WHERE filename = ? LIMIT 1", (filename,)
+            ).fetchone()
+        if not row:
+            return jsonify({"success": False, "error": "Call not found"}), 404
+
+        transcript = (row["transcript"] or "").strip()
+        if not transcript:
+            return jsonify({"success": False, "error": "No transcript to approve"}), 400
+
+        result = submit_edit_to_sqlite(
+            filename=filename,
+            feed=feed,
+            new_transcript=transcript,
+            archive_base=ARCHIVE_DIR,
+            review_dir=str(REVIEW_DIR),
+        )
+        if result["success"]:
+            logger.info("approve_transcript.approved filename=%s feed=%s", filename, feed)
+            log_activity("transcript_approved", {"filename": filename, "feed": feed})
+            return jsonify({"success": True, "approved": True})
+        else:
+            return jsonify({"success": False, "error": result["error"]}), 500
+    else:
+        # Un-approve: clear edited_transcript
+        try:
+            with get_conn() as conn:
+                conn.execute(
+                    "UPDATE calls SET edited_transcript = NULL WHERE filename = ?",
+                    (filename,)
+                )
+            logger.info("approve_transcript.unapproved filename=%s feed=%s", filename, feed)
+            log_activity("transcript_unapproved", {"filename": filename, "feed": feed})
+            return jsonify({"success": True, "approved": False})
+        except Exception as e:
+            logger.error("approve_transcript.unapprove_error filename=%s error=%s", filename, e)
+            return jsonify({"success": False, "error": str(e)}), 500
+
+
+@scanner_bp.route("/scanner/submit_vote", methods=["POST"])
+def submit_vote():
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
+    filename = data.get("filename")
+    model_name = data.get("model")
+    
+    if not filename or not model_name:
+        return jsonify({"success": False, "error": "Filename and model required"}), 400
+
+    try:
+        with get_conn() as conn:
+            row = conn.execute("SELECT extra FROM calls WHERE filename = ?", (filename,)).fetchone()
+            if not row:
+                return jsonify({"success": False, "error": "Call not found"}), 404
+                
+            extra = row["extra"]
+            if isinstance(extra, str):
+                try:
+                    extra_data = json.loads(extra)
+                except json.JSONDecodeError:
+                    extra_data = {}
+            else:
+                extra_data = extra or {}
+                
+            extra_data["best_transcript_vote"] = model_name
+            
+            conn.execute("UPDATE calls SET extra = ? WHERE filename = ?", (json.dumps(extra_data), filename))
+            conn.commit()
+            
+        log_activity("transcript_vote", {"filename": filename, "model": model_name})
+        return jsonify({"success": True})
+    except Exception as e:
+        logger.error(f"Failed to submit vote for {filename}: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @scanner_bp.route('/scanner/_heartbeat', methods=['POST'])
 def scanner_heartbeat():
