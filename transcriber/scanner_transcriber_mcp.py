@@ -426,8 +426,9 @@ def transcribe_wavefile(
         )
         
         text = " ".join([segment.text for segment in segments]).strip()
+        snippet = (text[:140] + "…") if len(text) > 140 else text
 
-    log.info(f"[transcribe_wavefile] Decoded {len(text)} chars")
+    log.info(f"[transcribe_wavefile] {snippet} | duration={get_duration(wav_path):.1f}s | rms={get_rms(wav_path):.6f}")
     return text
 
 
