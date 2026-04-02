@@ -19,6 +19,8 @@ import logging
 import logging.handlers
 import redis
 import asyncio
+import json
+import sqlite3
 from pathlib import Path
 from datetime import datetime, UTC
 
@@ -62,7 +64,8 @@ DEFAULT_PROFILE = os.environ.get("DEFAULT_PROFILE", "default")
 DEFAULT_LANGUAGE = os.environ.get("DEFAULT_LANGUAGE", "en")
 
 LAST_ID_KEY = os.environ.get("LAST_ID_KEY", "scanner:transcriber:last_id")
-
+SCANNER_DB_PATH = os.environ.get("SCANNER_DB_PATH", "/home/ned/data/scanner_calls/scanner_calls.db")
+SECONDARY_MODELS = [m.strip() for m in os.environ.get("SECONDARY_MODELS", "").split(",") if m.strip()]
 
 # State
 processed = set()
@@ -115,6 +118,25 @@ async def call_transcribe(session: ClientSession, wav_path: Path):
             "language": DEFAULT_LANGUAGE,
             "write_artifacts": True,
             "insert_db": True,
+            "delete_source_raw": False,
+        },
+    )
+
+async def call_sec_transcribe(session: ClientSession, wav_path: Path, model_key: str):
+    """
+    Call MCP tool route_and_transcribe for secondary model test runs.
+    We don't want the server writing artifacts or overwriting the DB row natively.
+    """
+    return await session.call_tool(
+        "route_and_transcribe",
+        {
+            "path": str(wav_path),
+            "profile": DEFAULT_PROFILE,
+            "language": DEFAULT_LANGUAGE,
+            "auto_route": False,
+            "model_key": model_key,
+            "write_artifacts": False,
+            "insert_db": False,
             "delete_source_raw": False,
         },
     )
@@ -175,6 +197,56 @@ async def main():
                                         text = (payload.get("text") or "").strip()
                                         snippet = (text[:140] + "…") if len(text) > 140 else text
                                         log.info(f"Done: {file_path.name} | {snippet}")
+                                        
+                                        # -------------
+                                        # Secondary Models Logic
+                                        # -------------
+                                        if SECONDARY_MODELS and "artifacts" in payload and payload["artifacts"].get("json"):
+                                            json_path = Path(payload["artifacts"]["json"])
+                                            
+                                            try:
+                                                with open(json_path, "r") as f:
+                                                    meta = json.load(f)
+                                                    
+                                                if "secondary_transcripts" not in meta:
+                                                    meta["secondary_transcripts"] = []
+                                                    
+                                                for sec_model in SECONDARY_MODELS:
+                                                    log.info(f"Running secondary transcript using '{sec_model}'...")
+                                                    sec_res = await call_sec_transcribe(session, file_path, sec_model)
+                                                    sec_struct = getattr(sec_res, "structuredContent", None) or {}
+                                                    sec_payload = sec_struct.get("result") if isinstance(sec_struct, dict) else None
+                                                    
+                                                    if sec_payload and sec_payload.get("ok"):
+                                                        sec_text = sec_payload.get("text", "").strip()
+                                                        meta["secondary_transcripts"].append({
+                                                            "model": sec_model,
+                                                            "transcript": sec_text
+                                                        })
+                                                        log.info(f"Secondary ('{sec_model}') done: {sec_text[:60]}...")
+                                                    else:
+                                                        log.warning(f"Secondary model '{sec_model}' failed/skipped.")
+                                                        
+                                                # Save updated JSON 
+                                                with open(json_path, "w") as f:
+                                                    json.dump(meta, f, indent=2)
+                                                
+                                                # Update DB logic via direct SQLite update to exactly apply the JSON string
+                                                # to the "extra" JSON column natively.
+                                                if Path(SCANNER_DB_PATH).exists():
+                                                    try:
+                                                        with sqlite3.connect(SCANNER_DB_PATH) as conn:
+                                                            conn.execute(
+                                                                "UPDATE calls SET extra = ? WHERE filename = ?",
+                                                                (json.dumps(meta), file_path.name)
+                                                            )
+                                                        log.info(f"Appended secondary transcripts to DB config and JSON for {file_path.name}")
+                                                    except Exception as dbe:
+                                                        log.error(f"Failed to update secondary transcripts into DB: {dbe}")
+                                                        
+                                            except Exception as je:
+                                                log.error(f"Failed processing secondary transcripts JSON sidecar: {je}")
+
                                 except Exception as e:
                                     log.error(f"MCP error for {file_path.name}: {e}")
                                     failed_count += 1
