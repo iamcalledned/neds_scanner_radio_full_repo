@@ -8,23 +8,44 @@
       "transcribe": {
         "task": "transcribe",
         "language": "en",
+        "beam_size": 1,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+
+    "medium_april_tweaked": {
+      "model": "trained_whisper_medium_april_2026_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
         "beam_size": 3,
         "word_timestamps": false,
         "condition_on_previous_text": false,
         "vad_filter": false,
         "initial_prompt": "Police and fire radio traffic. Numbers, addresses, street names, 10-codes, license plates, call signs, dispatch terminology.",
-        "temperature": 0.0,
-        "best_of": null,
-        "patience": null,
-        "compression_ratio_threshold": null,
-        "log_prob_threshold": null,
-        "no_speech_threshold": null
+        "temperature": 0.0
       }
     },
+
     "medium_heavy": {
       "model": "trained_whisper_medium_april_2026_meaningful_ct2",
       "compute_type": "float16",
-      "device": "cuda"
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 3,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": true,
+        "initial_prompt": "Police and fire radio traffic. Numbers, addresses, street names, 10-codes, license plates, call signs, dispatch terminology.",
+        "temperature": 0.0
+      }
     },
     "large": {
       "model": "trained_whisper_large_d040126_ct2",
