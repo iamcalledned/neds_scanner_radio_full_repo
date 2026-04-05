@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0b0f19] text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Review Edited Calls — Scanner</title>
+
+  <meta name="description" content="Review and approve edited scanner radio call transcripts.">
+  <meta name="theme-color" content="#0b0f19">
+
+  <link rel="manifest" href="/scanner/manifest.json?v={{ asset_version('manifest.json') }}">
+  <link rel="icon" type="image/x-icon" href="/scanner/static/icons/favicon.ico">
+  <link rel="apple-touch-icon" href="/scanner/static/icons/icon-192x192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Scanner">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter','sans-serif'], mono: ['Roboto Mono','monospace'] },
+          colors: { pd: '#1e3a8a', fd: '#7f1d1d', bg: '#0b0f19', scannerBlue: '#38bdf8' }
+        }
+      }
+    };
+  </script>
+
+  <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
+  <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
+  <script src="/scanner/static/js/scanner_review.js?v={{ asset_version('js/scanner_review.js') }}" defer></script>
+
+  <style>
+    /* === Scrollbar === */
+    .main-content-area::-webkit-scrollbar { width: 6px; }
+    .main-content-area::-webkit-scrollbar-track { background: #1e293b; }
+    .main-content-area::-webkit-scrollbar-thumb { background: #475569; }
+    .main-content-area::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+    /* === Menu === */
+    .menu-item {
+      display:block; padding:0.5rem 1rem;
+      color:#cbd5e1; font-size:0.875rem;
+      transition:background .15s,color .15s;
+    }
+    .menu-item:hover { background:#1e293b; color:#38bdf8; }
+
+    /* === Call Card === */
+    .review-call-card {
+      background: rgba(30,41,59,0.45);
+      border: 1px solid rgba(148,163,184,0.1);
+      border-radius: 1rem; padding: 1.15rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: fadeUp 0.35s ease both;
+    }
+    .review-call-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    /* === Pills === */
+    .call-card-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.2rem 0.7rem; border-radius: 999px;
+      font-size: 0.6rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.15em;
+    }
+    .pill-police { background: rgba(30,58,138,0.35); color: #93c5fd; border: 1px solid rgba(59,130,246,0.25); }
+    .pill-fire   { background: rgba(127,29,29,0.35); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+    .pill-hook   { background: rgba(180,83,9,0.3); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .call-card-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #38bdf8; box-shadow: 0 0 6px rgba(56,189,248,0.6);
+    }
+    .dot-fire { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.6); }
+    .dot-hook { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,0.6); }
+
+    /* === Address badge === */
+    .call-card-address {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      margin-top: 0.4rem; padding: 0.25rem 0.6rem;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.15);
+      border-radius: 0.75rem; font-size: 0.7rem; color: #6ee7b7;
+    }
+    .call-card-address svg { width: 11px; height: 11px; flex-shrink: 0; }
+
+    /* === Transcript === */
+    .transcript-block {
+      background: rgba(30,41,59,0.55);
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 0.75rem;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.82rem; line-height: 1.55;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .transcript-label {
+      font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    /* === Waveform player === */
+    .wave-player-row {
+      display: flex; align-items: center; gap: 0.65rem;
+      background: rgba(15,23,42,0.5);
+      border: 1px solid rgba(148,163,184,0.06);
+      border-radius: 0.85rem;
+      padding: 0.5rem 0.75rem;
+    }
+
+    /* === Action buttons === */
+    .rev-actions {
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+      margin-top: 0.6rem; align-items: center;
+    }
+    .rev-action-btn {
+      font-size: 0.62rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.3rem 0.65rem; border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.15);
+      background: rgba(148,163,184,0.06);
+      color: #94a3b8; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .rev-action-btn:hover {
+      background: rgba(56,189,248,0.12);
+      border-color: rgba(56,189,248,0.3);
+      color: #7dd3fc;
+    }
+    .rev-action-btn.btn-approve-active {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(34,197,94,0.5);
+      color: #4ade80;
+    }
+    .rev-action-btn.btn-edited-active {
+      background: rgba(56,189,248,0.15);
+      border-color: rgba(56,189,248,0.45);
+      color: #38bdf8;
+    }
+    .rev-action-btn.btn-dimmed {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .rev-action-btn.btn-save-eval-active {
+      background: rgba(168,85,247,0.15);
+      border-color: rgba(168,85,247,0.45);
+      color: #c084fc;
+    }
+    .rev-action-btn.btn-approve:hover {
+      background: rgba(34,197,94,0.10);
+      border-color: rgba(34,197,94,0.3);
+      color: #86efac;
+    }
+    .orig-toggle {
+      font-size: 0.58rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #475569;
+      cursor: pointer; background: none; border: none; padding: 0;
+      transition: color 0.15s;
+    }
+    .orig-toggle:hover { color: #94a3b8; }
+
+    /* === Animations === */
+    @keyframes fadeUp {
+      0%   { opacity: 0; transform: translate3d(0, 20px, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    .loading-spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body class="flex flex-col h-full overflow-hidden text-slate-100 font-sans selection:bg-blue-600 selection:text-white">
+
+<!-- ===== Header ===== -->
+{% set active_page = 'review' %}
+{% set show_listener_count = false %}
+{% include "_scanner_header.html" %}
+
+<main class="flex-1 overflow-y-auto main-content-area pb-16"
+      style="background: radial-gradient(circle at 20% 15%, rgba(30,58,138,0.10) 0%, transparent 50%),
+             radial-gradient(circle at 80% 80%, rgba(127,29,29,0.07) 0%, transparent 50%),
+             #0b0f19;">
+
+  <div class="max-w-3xl mx-auto p-4 space-y-6">
+
+    <!-- === Page Header === -->
+    <div class="pt-2">
+      <h1 class="text-2xl font-bold text-white tracking-tight">Review Edited Calls</h1>
+      <p class="text-slate-400 text-sm mt-1">All calls with edited transcripts since January 2026. Approve or re-edit.</p>
+    </div>
+
+    <!-- === Count badge (JS fills) === -->
+    <div id="review-count-row" class="hidden flex items-center gap-2 text-slate-500 text-xs">
+      <span id="review-count-label"></span>
+    </div>
+
+    <!-- === Call list === -->
+    <div id="review-container" class="space-y-4">
+      <!-- initial spinner -->
+      <div id="review-initial-spinner" class="py-10 text-center">
+        <svg class="loading-spinner w-6 h-6 inline-block text-scannerBlue mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+        </svg>
+        <p class="text-slate-500 text-sm">Loading edited calls…</p>
+      </div>
+    </div>
+
+    <!-- === Infinite scroll load-more spinner (shown during fetch) === -->
+    <div id="review-sentinel" class="py-4 text-center hidden">
+      <svg class="loading-spinner w-5 h-5 inline-block text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+      </svg>
+    </div>
+
+    <!-- === Always-visible trigger div observed for infinite scroll === -->
+    <div id="review-trigger" style="height:1px;"></div>
+
+    <!-- === End of list message === -->
+    <div id="review-end" class="hidden text-center text-slate-600 text-xs pb-4">— end of edited calls —</div>
+
+  </div>
+</main>
+
+</body>
+</html>

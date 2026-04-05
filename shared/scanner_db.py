@@ -597,6 +597,26 @@ def avg_rms_by_feed():
         return [dict(r) for r in rows]
 
 
+def fetch_reviewed_edited_calls(offset: int = 0, limit: int = 20, since: str = "2026-01-01") -> list:
+    """
+    Return calls with a non-blank edited_transcript whose call timestamp >= since.
+    Ordered newest first, paginated by offset/limit for infinite scroll.
+    """
+    with closing(get_conn(readonly=True)) as conn:
+        rows = conn.execute("""
+            SELECT filename, category, duration, transcript, edited_transcript,
+                   timestamp, save_for_eval, derived_address, address_confidence,
+                   transcription_model, extra
+            FROM calls
+            WHERE edited_transcript IS NOT NULL
+              AND length(trim(edited_transcript)) > 0
+              AND timestamp >= ?
+            ORDER BY timestamp DESC
+            LIMIT ? OFFSET ?
+        """, (since, limit, offset)).fetchall()
+        return [dict(r) for r in rows]
+
+
 def fetch_edited_calls(limit=5000, include_empty=False):
     """Return calls that have an edited transcript."""
     with closing(get_conn(readonly=True)) as conn:

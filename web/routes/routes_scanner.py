@@ -18,6 +18,7 @@ from shared.scanner_db import (
     submit_edit_to_sqlite,
     set_save_for_eval,
     ensure_columns,
+    fetch_reviewed_edited_calls,
 )
 from user_logger import log_activity
 
@@ -867,6 +868,64 @@ def save_for_eval_route():
         logger.info("save_for_eval filename=%s feed=%s value=%s", filename, feed, save)
         log_activity("save_for_eval", {"filename": filename, "feed": feed, "save": save})
     return jsonify(result), 200 if result["success"] else 500
+
+
+# ── Review Edited Calls page ──────────────────────────────────────────────────
+
+@scanner_bp.route("/scanner/review")
+def review_edited_calls():
+    return render_template("scanner_review.html")
+
+
+@scanner_bp.route("/scanner/api/reviewed_calls")
+def reviewed_calls_api():
+    try:
+        offset = int(request.args.get("offset", 0))
+        limit = int(request.args.get("limit", 20))
+        since = request.args.get("since", "2026-01-01")
+        limit = min(limit, 50)  # cap at 50
+    except ValueError:
+        return jsonify({"error": "Invalid parameters"}), 400
+
+    rows = fetch_reviewed_edited_calls(offset=offset, limit=limit, since=since)
+
+    calls = []
+    for row in rows:
+        extra = {}
+        if row.get("extra"):
+            try:
+                extra = json.loads(row["extra"])
+            except Exception:
+                extra = {}
+
+        feed = row.get("category") or ""
+        ts_raw = row.get("timestamp") or ""
+        ts = _safe_fromisoformat(ts_raw)
+        timestamp_human = ts.strftime("%b %d, %I:%M %p") if ts else ts_raw
+
+        calls.append({
+            "file": row["filename"],
+            "path": f"/scanner/audio/{row['filename']}",
+            "feed": feed,
+            "transcript": row.get("transcript") or "",
+            "edited_transcript": row.get("edited_transcript") or "",
+            "save_for_eval": bool(row.get("save_for_eval")),
+            "duration": row.get("duration") or 0,
+            "timestamp": ts_raw,
+            "timestamp_human": timestamp_human,
+            "derived_address": row.get("derived_address") or "",
+            "address_confidence": row.get("address_confidence") or "none",
+            "transcription_model": row.get("transcription_model") or "",
+            "enhanced_transcript": extra.get("enhanced_transcript", ""),
+        })
+
+    return jsonify({
+        "calls": calls,
+        "offset": offset,
+        "limit": limit,
+        "returned": len(calls),
+        "has_more": len(calls) == limit,
+    })
 
 
 @scanner_bp.route("/scanner/submit_vote", methods=["POST"])
