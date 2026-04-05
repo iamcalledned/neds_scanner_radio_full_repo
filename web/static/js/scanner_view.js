@@ -113,6 +113,7 @@ function renderCall(call, index) {
   const enhancedTranscript = (call.metadata && call.metadata.enhanced_transcript) || '';
   const editedTranscript = (call.metadata && call.metadata.edited_transcript) || '';
   const editPending = call.edit_pending || false;
+  const saveForEval = call.save_for_eval || false;
   const originalTranscript = call.transcript || 'Transcript not available';
 
   // Build pill
@@ -192,6 +193,7 @@ function renderCall(call, index) {
           <button data-action="approve" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="approve-${index}" class="call-action-btn btn-approve${editedTranscript ? ' btn-approve-active' : ''}" title="Mark transcript as good training data">${editedTranscript ? '✅ Looks Good' : 'Looks Good'}</button>
           <button data-action="classify" data-index="${index}" class="call-action-btn">Classify</button>
           <button data-action="address-lookup" data-index="${index}" class="call-action-btn">Address</button>
+          <button data-action="save-eval" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="save-eval-${index}" class="call-action-btn btn-save-eval${saveForEval ? ' btn-save-eval-active' : ''}" title="Save this call as an evaluation sample">${saveForEval ? '📋 Save for Eval' : 'Save for Eval'}</button>
           <button data-action="share" data-index="${index}" data-feed="${_escHtml(callFeed)}" class="call-action-btn btn-share">Share</button>
         </div>
         <div id="msg-${index}" class="text-green-400 text-sm hidden mt-2">✔️ Thank you for your submission!</div>
@@ -388,6 +390,7 @@ function handleCallAction(event) {
     case 'approve': toggleApprove(file, feed, index); break;
     case 'cancel': cancelEdit(index); break;
     case 'mark-edited': /* read-only indicator, no action */ break;
+    case 'save-eval': toggleSaveForEval(file, feed, index); break;
     case 'classify': toggleIntentForm(index); break;
     case 'submit-intent': submitIntent(file, feed, index); break;
     case 'cancel-intent': toggleIntentForm(index); break;
@@ -577,6 +580,44 @@ function toggleOriginal(id) {
   if (!pre) return;
   const hidden = pre.classList.toggle('hidden');
   if (btn) btn.textContent = hidden ? 'show ▾' : 'hide ▴';
+}
+
+async function toggleSaveForEval(filename, feed, id) {
+  const btn = document.getElementById(`save-eval-${id}`);
+  const msgEl = document.getElementById(`msg-${id}`);
+  const showMsg = (msg, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = msg;
+    msgEl.className = isErr ? 'text-red-400 text-sm' : 'text-green-400 text-sm';
+    msgEl.classList.remove('hidden');
+    setTimeout(() => msgEl.classList.add('hidden'), 3000);
+  };
+  const save = !(btn && btn.classList.contains('btn-save-eval-active'));
+  try {
+    const resp = await fetch('/scanner/save_for_eval', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, feed, save }),
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      if (btn) {
+        if (save) {
+          btn.classList.add('btn-save-eval-active');
+          btn.textContent = '📋 Save for Eval';
+          showMsg('📋 Saved for evaluation set!');
+        } else {
+          btn.classList.remove('btn-save-eval-active');
+          btn.textContent = 'Save for Eval';
+          showMsg('↩️ Removed from eval set.');
+        }
+      }
+    } else {
+      showMsg('❌ ' + (result.error || 'Failed.'), true);
+    }
+  } catch (e) {
+    console.error(e);
+    showMsg('❌ Network error.', true);
+  }
 }
 
 async function submitEdit(filename, feed, id) {

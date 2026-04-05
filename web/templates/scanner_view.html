@@ -204,6 +204,11 @@
       opacity: 0.35;
       pointer-events: none;
     }
+    .call-action-btn.btn-save-eval-active {
+      background: rgba(168,85,247,0.15);
+      border-color: rgba(168,85,247,0.45);
+      color: #c084fc;
+    }
     .orig-toggle {
       font-size: 0.58rem; font-weight: 600; letter-spacing: 0.1em;
       text-transform: uppercase; color: #475569;
@@ -462,6 +467,7 @@
                 <button data-action="approve" data-file="{{ call.file }}" data-feed="{{ call.feed }}" data-index="{{ loop.index }}" id="approve-{{ loop.index }}" class="call-action-btn btn-approve{% if call.edited_transcript %} btn-approve-active{% endif %}" title="Mark transcript as good training data">{% if call.edited_transcript %}✅ Looks Good{% else %}Looks Good{% endif %}</button>
                 <button data-action="classify" data-index="{{ loop.index }}" class="call-action-btn">Classify</button>
                 <button data-action="address-lookup" data-index="{{ loop.index }}" class="call-action-btn">Address</button>
+                <button data-action="save-eval" data-file="{{ call.file }}" data-feed="{{ call.feed }}" data-index="{{ loop.index }}" id="save-eval-{{ loop.index }}" class="call-action-btn btn-save-eval{% if call.save_for_eval %} btn-save-eval-active{% endif %}" title="Save this call as an evaluation sample">{% if call.save_for_eval %}📋 Save for Eval{% else %}Save for Eval{% endif %}</button>
                 <button data-action="share" data-index="{{ loop.index }}" data-feed="{{ call.feed }}" class="call-action-btn btn-share">Share</button>
               </div>
               <div id="msg-{{ loop.index }}" class="text-green-400 text-sm hidden mt-2">✔️ Thank you for your submission!</div>

@@ -16,8 +16,13 @@ from shared.scanner_db import (
     get_conn,
     increment_play_count,
     submit_edit_to_sqlite,
+    set_save_for_eval,
+    ensure_columns,
 )
 from user_logger import log_activity
+
+# Run column migrations on import (safe to call multiple times)
+ensure_columns()
 
 
 
@@ -131,6 +136,7 @@ def _row_to_call_payload(row, feed_override=None, timestamp_format="%b %d, %I:%M
         "edited_transcript": edited_transcript,
         "enhanced_transcript": metadata.get("enhanced_transcript", ""),
         "edit_pending": edit_pending,
+        "save_for_eval": bool(row["save_for_eval"]) if "save_for_eval" in row.keys() else False,
         "timestamp": row["timestamp"] or "",
         "timestamp_human": timestamp_human,
         "feed": feed_override or row["category"] or "",
@@ -836,6 +842,31 @@ def approve_transcript():
         except Exception as e:
             logger.error("approve_transcript.unapprove_error filename=%s error=%s", filename, e)
             return jsonify({"success": False, "error": str(e)}), 500
+
+
+@scanner_bp.route("/scanner/save_for_eval", methods=["POST"])
+def save_for_eval_route():
+    """Toggle save_for_eval flag on a call. Body: {filename, feed, save: bool}"""
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
+    raw_filename = data.get("filename")
+    if not raw_filename:
+        return jsonify({"success": False, "error": "Filename required"}), 400
+
+    filename = secure_filename(raw_filename)
+    if not filename.endswith(".wav"):
+        return jsonify({"success": False, "error": "Invalid file type"}), 400
+
+    save = bool(data.get("save", True))
+    feed = data.get("feed", "pd")
+
+    result = set_save_for_eval(filename, save)
+    if result["success"]:
+        logger.info("save_for_eval filename=%s feed=%s value=%s", filename, feed, save)
+        log_activity("save_for_eval", {"filename": filename, "feed": feed, "save": save})
+    return jsonify(result), 200 if result["success"] else 500
 
 
 @scanner_bp.route("/scanner/submit_vote", methods=["POST"])

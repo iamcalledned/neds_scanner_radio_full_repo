@@ -230,6 +230,7 @@ function _renderCallCard(call, feed) {
     <button id="arch-cancel-${_esc(cardId)}" class="arch-action-btn hidden" onclick="archCancelEdit('${_esc(cardId)}')">Cancel</button>
     <button id="arch-edited-btn-${_esc(cardId)}" class="arch-action-btn${editedTranscript ? ' btn-edited-active' : ''}">Edited</button>
     <button id="arch-approve-${_esc(cardId)}" class="arch-action-btn btn-approve${editedTranscript ? ' btn-approve-active' : ''}" onclick="archToggleApprove('${_esc(call.file||call.path||'')}','${_esc(feed)}','${_esc(cardId)}')" title="Mark as good training data">${editedTranscript ? '✅ Looks Good' : 'Looks Good'}</button>
+    <button id="arch-save-eval-${_esc(cardId)}" class="arch-action-btn btn-save-eval${call.save_for_eval ? ' btn-save-eval-active' : ''}" onclick="archToggleSaveForEval('${_esc(call.file||call.path||'')}','${_esc(feed)}','${_esc(cardId)}')" title="Save as evaluation sample">${call.save_for_eval ? '📋 Save for Eval' : 'Save for Eval'}</button>
   </div>
   <div id="arch-msg-${_esc(cardId)}" class="text-green-400 text-sm hidden mt-1"></div>`;
 
@@ -370,6 +371,44 @@ async function archToggleApprove(filename, feed, cardId) {
           btn.classList.remove('btn-approve-active');
           btn.textContent = 'Looks Good';
           showMsg('↩️ Approval removed.');
+        }
+      }
+    } else {
+      showMsg('❌ ' + (result.error || 'Failed.'), true);
+    }
+  } catch (e) {
+    console.error(e);
+    showMsg('❌ Network error.', true);
+  }
+}
+
+async function archToggleSaveForEval(filename, feed, cardId) {
+  const btn = document.getElementById(`arch-save-eval-${cardId}`);
+  const msgEl = document.getElementById(`arch-msg-${cardId}`);
+  const showMsg = (msg, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = msg;
+    msgEl.style.color = isErr ? '#f87171' : '#4ade80';
+    msgEl.classList.remove('hidden');
+    setTimeout(() => msgEl.classList.add('hidden'), 3000);
+  };
+  const save = !(btn && btn.classList.contains('btn-save-eval-active'));
+  try {
+    const resp = await fetch('/scanner/save_for_eval', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, feed, save }),
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      if (btn) {
+        if (save) {
+          btn.classList.add('btn-save-eval-active');
+          btn.textContent = '📋 Save for Eval';
+          showMsg('📋 Saved for evaluation set!');
+        } else {
+          btn.classList.remove('btn-save-eval-active');
+          btn.textContent = 'Save for Eval';
+          showMsg('↩️ Removed from eval set.');
         }
       }
     } else {

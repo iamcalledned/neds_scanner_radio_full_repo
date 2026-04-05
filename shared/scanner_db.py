@@ -183,6 +183,7 @@ def create_tables():
             transcription_engine TEXT,
             transcription_model TEXT,
             hook_request BOOLEAN DEFAULT FALSE,
+            save_for_eval INTEGER DEFAULT 0,
             derived_address TEXT,
             derived_street TEXT,
             derived_addr_num TEXT,
@@ -471,6 +472,33 @@ def update_hook_request(filename: str, value: bool):
 def update_review_status(filename: str, reviewed: bool):
     with get_conn() as conn:
         conn.execute("UPDATE calls SET reviewed = ? WHERE filename = ?", (int(reviewed), filename))
+
+
+def ensure_columns():
+    """Run lightweight ALTER TABLE migrations for columns added after initial deploy."""
+    migrations = [
+        ("calls", "save_for_eval", "INTEGER DEFAULT 0"),
+    ]
+    with get_conn() as conn:
+        for table, col, col_def in migrations:
+            existing = [r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()]
+            if col not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
+                log.info("[DB] Migration: added column %s.%s", table, col)
+
+
+def set_save_for_eval(filename: str, value: bool) -> dict:
+    """Toggle the save_for_eval flag on a call row."""
+    try:
+        with get_conn() as conn:
+            conn.execute(
+                "UPDATE calls SET save_for_eval = ? WHERE filename = ?",
+                (1 if value else 0, filename),
+            )
+        return {"success": True, "save_for_eval": value}
+    except Exception as e:
+        log.error("set_save_for_eval error filename=%s: %s", filename, e)
+        return {"success": False, "error": str(e)}
 
 
 def submit_edit_to_sqlite(filename: str, feed: str, new_transcript: str,

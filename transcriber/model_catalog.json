@@ -8,7 +8,7 @@
       "transcribe": {
         "task": "transcribe",
         "language": "en",
-        "beam_size": 1,
+        "beam_size": 2,
         "word_timestamps": false,
         "condition_on_previous_text": false,
         "vad_filter": false,
