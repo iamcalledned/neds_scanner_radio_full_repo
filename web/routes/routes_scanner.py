@@ -17,6 +17,7 @@ from shared.scanner_db import (
     increment_play_count,
     submit_edit_to_sqlite,
     set_save_for_eval,
+    set_freeze_for_testing,
     ensure_columns,
     fetch_reviewed_edited_calls,
 )
@@ -138,6 +139,7 @@ def _row_to_call_payload(row, feed_override=None, timestamp_format="%b %d, %I:%M
         "enhanced_transcript": metadata.get("enhanced_transcript", ""),
         "edit_pending": edit_pending,
         "save_for_eval": bool(row["save_for_eval"]) if "save_for_eval" in row.keys() else False,
+        "freeze_for_testing": bool(row["freeze_for_testing"]) if "freeze_for_testing" in row.keys() else False,
         "timestamp": row["timestamp"] or "",
         "timestamp_human": timestamp_human,
         "feed": feed_override or row["category"] or "",
@@ -870,6 +872,31 @@ def save_for_eval_route():
     return jsonify(result), 200 if result["success"] else 500
 
 
+@scanner_bp.route("/scanner/freeze_for_testing", methods=["POST"])
+def freeze_for_testing_route():
+    """Toggle freeze_for_testing flag on a call. Body: {filename, feed, freeze: bool}"""
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
+    raw_filename = data.get("filename")
+    if not raw_filename:
+        return jsonify({"success": False, "error": "Filename required"}), 400
+
+    filename = secure_filename(raw_filename)
+    if not filename.endswith(".wav"):
+        return jsonify({"success": False, "error": "Invalid file type"}), 400
+
+    freeze = bool(data.get("freeze", True))
+    feed = data.get("feed", "pd")
+
+    result = set_freeze_for_testing(filename, freeze)
+    if result["success"]:
+        logger.info("freeze_for_testing filename=%s feed=%s value=%s", filename, feed, freeze)
+        log_activity("freeze_for_testing", {"filename": filename, "feed": feed, "freeze": freeze})
+    return jsonify(result), 200 if result["success"] else 500
+
+
 # ── Review Edited Calls page ──────────────────────────────────────────────────
 
 @scanner_bp.route("/scanner/review")
@@ -910,6 +937,7 @@ def reviewed_calls_api():
             "transcript": row.get("transcript") or "",
             "edited_transcript": row.get("edited_transcript") or "",
             "save_for_eval": bool(row.get("save_for_eval")),
+            "freeze_for_testing": bool(row.get("freeze_for_testing")),
             "duration": row.get("duration") or 0,
             "timestamp": ts_raw,
             "timestamp_human": timestamp_human,

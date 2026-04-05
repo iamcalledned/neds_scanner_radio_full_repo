@@ -184,6 +184,7 @@ def create_tables():
             transcription_model TEXT,
             hook_request BOOLEAN DEFAULT FALSE,
             save_for_eval INTEGER DEFAULT 0,
+            freeze_for_testing INTEGER DEFAULT 0,
             derived_address TEXT,
             derived_street TEXT,
             derived_addr_num TEXT,
@@ -478,6 +479,7 @@ def ensure_columns():
     """Run lightweight ALTER TABLE migrations for columns added after initial deploy."""
     migrations = [
         ("calls", "save_for_eval", "INTEGER DEFAULT 0"),
+        ("calls", "freeze_for_testing", "INTEGER DEFAULT 0"),
     ]
     with get_conn() as conn:
         for table, col, col_def in migrations:
@@ -498,6 +500,20 @@ def set_save_for_eval(filename: str, value: bool) -> dict:
         return {"success": True, "save_for_eval": value}
     except Exception as e:
         log.error("set_save_for_eval error filename=%s: %s", filename, e)
+        return {"success": False, "error": str(e)}
+
+
+def set_freeze_for_testing(filename: str, value: bool) -> dict:
+    """Toggle the freeze_for_testing flag on a call row."""
+    try:
+        with get_conn() as conn:
+            conn.execute(
+                "UPDATE calls SET freeze_for_testing = ? WHERE filename = ?",
+                (1 if value else 0, filename),
+            )
+        return {"success": True, "freeze_for_testing": value}
+    except Exception as e:
+        log.error("set_freeze_for_testing error filename=%s: %s", filename, e)
         return {"success": False, "error": str(e)}
 
 
@@ -605,8 +621,8 @@ def fetch_reviewed_edited_calls(offset: int = 0, limit: int = 20, since: str = "
     with closing(get_conn(readonly=True)) as conn:
         rows = conn.execute("""
             SELECT filename, category, duration, transcript, edited_transcript,
-                   timestamp, save_for_eval, derived_address, address_confidence,
-                   transcription_model, extra
+                   timestamp, save_for_eval, freeze_for_testing, derived_address,
+                   address_confidence, transcription_model, extra
             FROM calls
             WHERE edited_transcript IS NOT NULL
               AND length(trim(edited_transcript)) > 0

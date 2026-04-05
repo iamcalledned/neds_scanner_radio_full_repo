@@ -213,6 +213,7 @@ function renderReviewCard(call) {
       <button id="rev-edited-btn-${_revEsc(cardId)}" class="rev-action-btn${editedTranscript ? ' btn-edited-active' : ''}">Edited</button>
       <button id="rev-approve-${_revEsc(cardId)}" class="rev-action-btn btn-approve${editedTranscript ? ' btn-approve-active' : ''}" onclick="revToggleApprove('${_revEsc(call.file || '')}','${_revEsc(feed)}','${_revEsc(cardId)}')" title="Mark as good training data">${editedTranscript ? '✅ Looks Good' : 'Looks Good'}</button>
       <button id="rev-save-eval-${_revEsc(cardId)}" class="rev-action-btn${call.save_for_eval ? ' btn-save-eval-active' : ''}" onclick="revToggleSaveForEval('${_revEsc(call.file || '')}','${_revEsc(feed)}','${_revEsc(cardId)}')" title="Save as evaluation sample">${call.save_for_eval ? '📋 Save for Eval' : 'Save for Eval'}</button>
+      <button id="rev-freeze-${_revEsc(cardId)}" class="rev-action-btn${call.freeze_for_testing ? ' btn-freeze-active' : ''}" onclick="revToggleFreezeForTesting('${_revEsc(call.file || '')}','${_revEsc(feed)}','${_revEsc(cardId)}')" title="Freeze for testing">${call.freeze_for_testing ? '🧊 Frozen' : 'Freeze for Testing'}</button>
     </div>
     <div id="rev-msg-${_revEsc(cardId)}" class="text-green-400 text-sm hidden mt-1"></div>`;
 
@@ -472,6 +473,44 @@ async function revToggleSaveForEval(filename, feed, cardId) {
           btn.classList.remove('btn-save-eval-active');
           btn.textContent = 'Save for Eval';
           showMsg('↩️ Removed from eval set.');
+        }
+      }
+    } else {
+      showMsg('❌ ' + (result.error || 'Failed.'), true);
+    }
+  } catch (e) {
+    console.error(e);
+    showMsg('❌ Network error.', true);
+  }
+}
+
+async function revToggleFreezeForTesting(filename, feed, cardId) {
+  const btn = document.getElementById(`rev-freeze-${cardId}`);
+  const msgEl = document.getElementById(`rev-msg-${cardId}`);
+  const showMsg = (msg, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = msg;
+    msgEl.style.color = isErr ? '#f87171' : '#4ade80';
+    msgEl.classList.remove('hidden');
+    setTimeout(() => msgEl.classList.add('hidden'), 3000);
+  };
+  const freeze = !(btn && btn.classList.contains('btn-freeze-active'));
+  try {
+    const resp = await fetch('/scanner/freeze_for_testing', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, feed, freeze }),
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      if (btn) {
+        if (freeze) {
+          btn.classList.add('btn-freeze-active');
+          btn.textContent = '🧊 Frozen';
+          showMsg('🧊 Frozen for testing!');
+        } else {
+          btn.classList.remove('btn-freeze-active');
+          btn.textContent = 'Freeze for Testing';
+          showMsg('↩️ Removed from frozen set.');
         }
       }
     } else {

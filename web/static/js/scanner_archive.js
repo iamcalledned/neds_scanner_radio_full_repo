@@ -231,6 +231,7 @@ function _renderCallCard(call, feed) {
     <button id="arch-edited-btn-${_esc(cardId)}" class="arch-action-btn${editedTranscript ? ' btn-edited-active' : ''}">Edited</button>
     <button id="arch-approve-${_esc(cardId)}" class="arch-action-btn btn-approve${editedTranscript ? ' btn-approve-active' : ''}" onclick="archToggleApprove('${_esc(call.file||call.path||'')}','${_esc(feed)}','${_esc(cardId)}')" title="Mark as good training data">${editedTranscript ? '✅ Looks Good' : 'Looks Good'}</button>
     <button id="arch-save-eval-${_esc(cardId)}" class="arch-action-btn btn-save-eval${call.save_for_eval ? ' btn-save-eval-active' : ''}" onclick="archToggleSaveForEval('${_esc(call.file||call.path||'')}','${_esc(feed)}','${_esc(cardId)}')" title="Save as evaluation sample">${call.save_for_eval ? '📋 Save for Eval' : 'Save for Eval'}</button>
+    <button id="arch-freeze-${_esc(cardId)}" class="arch-action-btn${call.freeze_for_testing ? ' btn-freeze-active' : ''}" onclick="archToggleFreezeForTesting('${_esc(call.file||call.path||'')}','${_esc(feed)}','${_esc(cardId)}')" title="Freeze for testing">${call.freeze_for_testing ? '🧊 Frozen' : 'Freeze for Testing'}</button>
   </div>
   <div id="arch-msg-${_esc(cardId)}" class="text-green-400 text-sm hidden mt-1"></div>`;
 
@@ -409,6 +410,44 @@ async function archToggleSaveForEval(filename, feed, cardId) {
           btn.classList.remove('btn-save-eval-active');
           btn.textContent = 'Save for Eval';
           showMsg('↩️ Removed from eval set.');
+        }
+      }
+    } else {
+      showMsg('❌ ' + (result.error || 'Failed.'), true);
+    }
+  } catch (e) {
+    console.error(e);
+    showMsg('❌ Network error.', true);
+  }
+}
+
+async function archToggleFreezeForTesting(filename, feed, cardId) {
+  const btn = document.getElementById(`arch-freeze-${cardId}`);
+  const msgEl = document.getElementById(`arch-msg-${cardId}`);
+  const showMsg = (msg, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = msg;
+    msgEl.style.color = isErr ? '#f87171' : '#4ade80';
+    msgEl.classList.remove('hidden');
+    setTimeout(() => msgEl.classList.add('hidden'), 3000);
+  };
+  const freeze = !(btn && btn.classList.contains('btn-freeze-active'));
+  try {
+    const resp = await fetch('/scanner/freeze_for_testing', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, feed, freeze }),
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      if (btn) {
+        if (freeze) {
+          btn.classList.add('btn-freeze-active');
+          btn.textContent = '🧊 Frozen';
+          showMsg('🧊 Frozen for testing!');
+        } else {
+          btn.classList.remove('btn-freeze-active');
+          btn.textContent = 'Freeze for Testing';
+          showMsg('↩️ Removed from frozen set.');
         }
       }
     } else {

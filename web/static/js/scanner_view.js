@@ -114,6 +114,7 @@ function renderCall(call, index) {
   const editedTranscript = (call.metadata && call.metadata.edited_transcript) || '';
   const editPending = call.edit_pending || false;
   const saveForEval = call.save_for_eval || false;
+  const freezeForTesting = call.freeze_for_testing || false;
   const originalTranscript = call.transcript || 'Transcript not available';
 
   // Build pill
@@ -194,6 +195,7 @@ function renderCall(call, index) {
           <button data-action="classify" data-index="${index}" class="call-action-btn">Classify</button>
           <button data-action="address-lookup" data-index="${index}" class="call-action-btn">Address</button>
           <button data-action="save-eval" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="save-eval-${index}" class="call-action-btn btn-save-eval${saveForEval ? ' btn-save-eval-active' : ''}" title="Save this call as an evaluation sample">${saveForEval ? '📋 Save for Eval' : 'Save for Eval'}</button>
+          <button data-action="freeze" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="freeze-${index}" class="call-action-btn${freezeForTesting ? ' btn-freeze-active' : ''}" title="Freeze this call for testing">${freezeForTesting ? '🧊 Frozen' : 'Freeze for Testing'}</button>
           <button data-action="share" data-index="${index}" data-feed="${_escHtml(callFeed)}" class="call-action-btn btn-share">Share</button>
         </div>
         <div id="msg-${index}" class="text-green-400 text-sm hidden mt-2">✔️ Thank you for your submission!</div>
@@ -391,6 +393,7 @@ function handleCallAction(event) {
     case 'cancel': cancelEdit(index); break;
     case 'mark-edited': /* read-only indicator, no action */ break;
     case 'save-eval': toggleSaveForEval(file, feed, index); break;
+    case 'freeze': toggleFreezeForTesting(file, feed, index); break;
     case 'classify': toggleIntentForm(index); break;
     case 'submit-intent': submitIntent(file, feed, index); break;
     case 'cancel-intent': toggleIntentForm(index); break;
@@ -609,6 +612,44 @@ async function toggleSaveForEval(filename, feed, id) {
           btn.classList.remove('btn-save-eval-active');
           btn.textContent = 'Save for Eval';
           showMsg('↩️ Removed from eval set.');
+        }
+      }
+    } else {
+      showMsg('❌ ' + (result.error || 'Failed.'), true);
+    }
+  } catch (e) {
+    console.error(e);
+    showMsg('❌ Network error.', true);
+  }
+}
+
+async function toggleFreezeForTesting(filename, feed, id) {
+  const btn = document.getElementById(`freeze-${id}`);
+  const msgEl = document.getElementById(`msg-${id}`);
+  const showMsg = (msg, isErr) => {
+    if (!msgEl) return;
+    msgEl.textContent = msg;
+    msgEl.className = isErr ? 'text-red-400 text-sm' : 'text-green-400 text-sm';
+    msgEl.classList.remove('hidden');
+    setTimeout(() => msgEl.classList.add('hidden'), 3000);
+  };
+  const freeze = !(btn && btn.classList.contains('btn-freeze-active'));
+  try {
+    const resp = await fetch('/scanner/freeze_for_testing', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, feed, freeze }),
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      if (btn) {
+        if (freeze) {
+          btn.classList.add('btn-freeze-active');
+          btn.textContent = '🧊 Frozen';
+          showMsg('🧊 Frozen for testing!');
+        } else {
+          btn.classList.remove('btn-freeze-active');
+          btn.textContent = 'Freeze for Testing';
+          showMsg('↩️ Removed from frozen set.');
         }
       }
     } else {
