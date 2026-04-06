@@ -252,7 +252,8 @@ async function fetchMoreCalls() {
 
     if (data.calls && data.calls.length > 0) {
       data.calls.forEach((call, i) => {
-        const newIndex = offset + i;
+        // Use 10000+ range to guarantee no collision with server-rendered loop.index (1-based, 1..CALLS_PER_PAGE)
+        const newIndex = 10000 + offset + i;
         callMetadata[newIndex] = call.metadata || {};
         const el = renderCall(call, newIndex);
         document.getElementById('calls-container')?.appendChild(el);

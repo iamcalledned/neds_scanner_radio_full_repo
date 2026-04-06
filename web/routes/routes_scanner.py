@@ -514,11 +514,6 @@ def scanner_view():
                            )
 
 @scanner_bp.route("/scanner/api/archive_calls")
-
-
-
-
-@scanner_bp.route("/scanner/api/archive_calls")
 def archive_calls_api():
     """
     API endpoint for lazy-loading calls on the scanner_view page.
