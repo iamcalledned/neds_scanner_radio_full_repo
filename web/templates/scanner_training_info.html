@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0b0f19] text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Training Info | Ned's Scanner Network</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: radial-gradient(circle at 20% 15%, rgba(30,41,59,0.55) 0%, rgba(11,15,25,0.92) 55%),
+                  linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(2,6,23,0.98) 100%);
+    }
+    .panel {
+      background: rgba(15,23,42,0.74);
+      border: 1px solid rgba(148,163,184,0.15);
+      box-shadow: 0 14px 36px rgba(2,6,23,0.45);
+      border-radius: 20px;
+    }
+    .chip {
+      border: 1px solid rgba(125, 211, 252, 0.28);
+      background: rgba(14, 116, 144, 0.2);
+      color: #bae6fd;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.7rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .term-card {
+      border: 1px solid rgba(148,163,184,0.14);
+      background: rgba(2,6,23,0.5);
+      border-radius: 14px;
+      padding: 0.9rem;
+    }
+    .term-card h3 {
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #7dd3fc;
+      margin-bottom: 0.38rem;
+    }
+    .term-card p {
+      color: #cbd5e1;
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+    .report-viewport {
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(2,6,23,0.55);
+      min-height: 600px;
+    }
+    .report-frame {
+      width: 100%;
+      height: min(82vh, 1100px);
+      border: none;
+      background: transparent;
+      display: block;
+    }
+    .menu-item {
+      display: block;
+      padding: 0.5rem 1rem;
+      color: #cbd5e1;
+      font-size: 0.875rem;
+      transition: background .15s,color .15s;
+    }
+    .menu-item:hover {
+      background: #1e293b;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body class="h-full font-sans">
+{% set active_page = 'training' %}
+{% include "_scanner_header.html" %}
+
+<main class="max-w-[1600px] mx-auto px-4 py-6 space-y-6">
+  <section class="panel p-5 sm:p-7">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div>
+        <p class="text-[0.65rem] tracking-[0.32em] uppercase text-sky-300/80">Model Evaluation</p>
+        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-white mt-1">Training Info</h1>
+        <p class="text-slate-300 text-sm sm:text-base mt-2 max-w-3xl">
+          This page is the hub for model-vs-model comparison reports. Use it to evaluate whether a new training run
+          actually improves scanner transcription quality before promoting it.
+        </p>
+      </div>
+      <span class="chip">Validation Set Only</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+      <article class="term-card">
+        <h3>WER</h3>
+        <p>Word Error Rate. Percentage of words that are wrong compared to edited ground truth. Lower is better.</p>
+      </article>
+      <article class="term-card">
+        <h3>CER</h3>
+        <p>Character Error Rate. Useful when numbers, unit IDs, and short tokens matter. Lower is better.</p>
+      </article>
+      <article class="term-card">
+        <h3>Delta</h3>
+        <p>Difference between model metrics. Negative delta for Model B means B improved over A.</p>
+      </article>
+      <article class="term-card">
+        <h3>Per-Call Wins</h3>
+        <p>Shows where a model performs better call-by-call, not just in aggregate averages.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel p-5 sm:p-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+      <div>
+        <h2 class="text-lg sm:text-xl font-semibold text-white">Training Output Reports</h2>
+        <p class="text-slate-400 text-sm">Select a report to view its summary and call grid below.</p>
+      </div>
+
+      <form method="get" action="/scanner/training" class="flex items-center gap-2">
+        <label for="report" class="text-xs uppercase tracking-[0.2em] text-slate-400">Report</label>
+        <select id="report" name="report" onchange="this.form.submit()"
+                class="bg-slate-900/80 border border-slate-700 text-slate-100 rounded-md px-3 py-2 text-sm min-w-[260px]">
+          {% for r in reports %}
+            <option value="{{ r.template }}" {{ 'selected' if r.template == selected_report else '' }}>
+              {{ r.label }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+
+    {% if selected_report %}
+      <div class="report-viewport">
+        <iframe id="training-report-frame" class="report-frame"
+                src="/scanner/training/result/{{ selected_report }}"
+                title="Training model comparison report"
+                scrolling="yes"></iframe>
+      </div>
+      <div class="flex items-center justify-between mt-3">
+        <p class="text-xs text-slate-500">Report: {{ selected_report }}</p>
+        <p class="text-xs text-slate-500 italic">← Scroll horizontally inside the report to see all model columns →</p>
+      </div>
+    {% else %}
+      <div class="border border-slate-700 rounded-xl p-6 text-slate-400">
+        No training report templates were found yet. Add a file matching *_training_result_set.html under web/templates.
+      </div>
+    {% endif %}
+  </section>
+</main>
+
+<script>
+  (function () {
+    const iframe = document.getElementById('training-report-frame');
+    if (!iframe) return;
+
+    iframe.addEventListener('load', function () {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (!doc) return;
+
+        const style = doc.createElement('style');
+        style.textContent = `
+          html, body {
+            background: #020617 !important;
+            overflow-x: auto !important;
+          }
+          body { padding: 16px !important; }
+          .summary-grid {
+            display: grid !important;
+            grid-template-columns: minmax(300px, 420px) minmax(380px, 1fr) !important;
+            gap: 14px !important;
+          }
+          .summary {
+            border-radius: 12px !important;
+            border-color: rgba(148,163,184,.25) !important;
+          }
+          .table-wrap {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+          }
+          table.main {
+            table-layout: fixed !important;
+            min-width: 1600px !important;
+          }
+          col.c-num  { width: 52px !important; }
+          col.c-meta { width: 200px !important; }
+          col.c-ref  { width: 320px !important; }
+          col.c-hyp  { width: 280px !important; }
+          table.main th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            white-space: nowrap;
+          }
+          table.main td {
+            border-bottom-color: rgba(148,163,184,.14) !important;
+            font-size: 0.82em !important;
+          }
+          .scores { font-size: 0.75em !important; }
+          .stem   { font-size: 0.8em  !important; }
+        `;
+        doc.head.appendChild(style);
+      } catch (e) {
+        // Same-origin expected. If blocked, keep default report styles.
+      }
+    });
+  })();
+</script>
+</body>
+</html>

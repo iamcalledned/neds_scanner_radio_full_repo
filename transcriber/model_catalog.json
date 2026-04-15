@@ -1,7 +1,7 @@
 {
-  "default_model": "medium_april",
+  "default_model": "baseline_model_april",
   "models": {
-    "medium_april": {
+    "baseline_model_april": {
       "model": "trained_whisper_medium_april_2026_ct2",
       "compute_type": "float16",
       "device": "cuda",
@@ -15,47 +15,343 @@
         "temperature": 0.0
       }
     },
-
-    "medium_april_tweaked": {
-      "model": "trained_whisper_medium_april_2026_ct2",
+    "stage_3_ct2": {
+      "model": "stage_3_ct2",
       "compute_type": "float16",
       "device": "cuda",
       "transcribe": {
         "task": "transcribe",
         "language": "en",
-        "beam_size": 3,
+        "beam_size": 2,
         "word_timestamps": false,
         "condition_on_previous_text": false,
-        "vad_filter": true,
-        "initial_prompt": "Police and fire radio traffic. Numbers, addresses, street names, 10-codes, license plates, call signs, dispatch terminology.",
+        "vad_filter": false,
         "temperature": 0.0
       }
     },
-
-    "small_april": {
-      "model": "/home/ned/models/trained_whisper_small_lora_merged_ct2",
+    "new_trained_whisper_v1": {
+      "model": "trained_whisper_medium_v1_ct2",
       "compute_type": "float16",
       "device": "cuda",
       "transcribe": {
         "task": "transcribe",
         "language": "en",
-        "beam_size": 4,
+        "beam_size": 2,
         "word_timestamps": false,
         "condition_on_previous_text": false,
-        "vad_filter": true,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "trained_whisper_medium_v3_ct2": {
+      "model": "trained_whisper_medium_v3_ct2 ",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "trained_whisper_medium_v4_ct2": {
+      "model": "trained_whisper_medium_v4_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    
+    "final_model_ct2": {
+      "model": "final_model_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
         "initial_prompt": "Police and fire radio traffic. Numbers, addresses, street names, 10-codes, license plates, call signs, dispatch terminology.",
         "temperature": 0.0
       }
     },
-    "large": {
-      "model": "trained_whisper_large_d040126_ct2",
+    "d041026_run_small_r01_whisper_small_ct2": {
+      "model": "d041026_run_small_r01_whisper_small_stage3_ct2",
       "compute_type": "float16",
-      "device": "cuda"
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
     },
-    "medium_feb": {
-      "model": "trained_whisper_medium_d022526_ct2_v2",
+    "d041026_run_small_r02_whisper_small_ct2": {
+      "model": "d041026_run_small_r02_whisper_small_stage3_ct2",
       "compute_type": "float16",
-      "device": "cuda"
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_small_r03_whisper_medium_ct2": {
+      "model": "d041026_run_small_r03_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_small_r04_whisper_small_ct2": {
+      "model": "d041026_run_small_r04_whisper_small_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_small_r05_whisper_small_ct2": {
+      "model": "d041026_run_small_r05_whisper_small_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_small_r06_whisper_small_ct2": {
+      "model": "d041026_run_small_r06_whisper_small_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_small_r07_whisper_small_ct2": {
+      "model": "d041026_run_small_r07_whisper_small_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_small_r08_whisper_small_ct2": {
+      "model": "d041026_run_small_r08_whisper_small_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_small_r09_whisper_small_ct2": {
+      "model": "d041026_run_small_r09_whisper_small_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_small_r10_whisper_medium_ct2": {
+      "model": "d041026_run_small_r10_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r01_whisper_medium_ct2": {
+      "model": "d041026_run_medium_r01_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r02_whisper_medium_ct2": {
+      "model": "d041026_run_medium_r02_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r03_whisper_small_ct2": {
+      "model": "d041026_run_medium_r03_whisper_small_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r04_whisper_medium_ct2": {
+      "model": "d041026_run_medium_r04_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r05_whisper_medium_ct2": {
+      "model": "d041026_run_medium_r05_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r06_whisper_medium_ct2": {
+      "model": "d041026_run_medium_r06_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r07_whisper_medium_ct2": {
+      "model": "d041026_run_medium_r07_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r09_whisper_medium_ct2": {
+      "model": "d041026_run_medium_r09_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "d041026_run_medium_r10_whisper_medium_ct2": {
+      "model": "d041026_run_medium_r10_whisper_medium_stage3_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
     }
   }
 }

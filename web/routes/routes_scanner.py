@@ -47,6 +47,22 @@ VALID_FEEDS = {
 }
 
 
+def _discover_training_reports():
+    """Return available training result templates in web/templates."""
+    templates_dir = Path(__file__).resolve().parent.parent / "templates"
+    reports = []
+    for p in sorted(templates_dir.glob("*_training_result_set.html"), reverse=True):
+        label = p.stem.replace("_", " ").title()
+        reports.append(
+            {
+                "template": p.name,
+                "label": label,
+                "updated_ts": p.stat().st_mtime,
+            }
+        )
+    return reports
+
+
 
 # Simple in-memory active user registry. Key: client_id -> {last_seen, ip, ua, page}
 ACTIVE_USERS = {}
@@ -648,6 +664,32 @@ def scanner_list():
 @scanner_bp.route("/scanner/")
 def scanner_list_slash():
     return scanner_list()
+
+
+@scanner_bp.route("/scanner/training")
+def scanner_training_info():
+    reports = _discover_training_reports()
+    selected = request.args.get("report", "").strip()
+
+    allowed = {r["template"] for r in reports}
+    if not selected or selected not in allowed:
+        selected = reports[0]["template"] if reports else ""
+
+    log_activity("page_view", {"page": "training_info", "report": selected})
+    return render_template(
+        "scanner_training_info.html",
+        reports=reports,
+        selected_report=selected,
+    )
+
+
+@scanner_bp.route("/scanner/training/result/<template_name>")
+def scanner_training_result(template_name):
+    reports = _discover_training_reports()
+    allowed = {r["template"] for r in reports}
+    if template_name not in allowed:
+        return abort(404)
+    return render_template(template_name)
 
 
 

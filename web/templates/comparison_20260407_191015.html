@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Model Comparison — 2026-04-07 19:11</title>
+<style>
+  body { font-family: Consolas, 'Courier New', monospace; font-size: 13px;
+         background: #0d0d0d; color: #d4d4d4; margin: 0; padding: 20px; }
+  h1   { color: #c9c9c9; font-size: 1.3em; border-bottom: 1px solid #333; padding-bottom: 8px; }
+  .summary { background: #1a1a1a; border: 1px solid #333; padding: 14px 20px;
+              margin-bottom: 20px; border-radius: 4px; }
+  .summary table { border-collapse: collapse; width: 100%; max-width: 480px; }
+  .summary td { padding: 3px 12px; }
+  .summary .lbl { color: #888; }
+  .verdict-a { color: #4ec9b0; font-weight: bold; }
+  .verdict-b { color: #9cdcfe; font-weight: bold; }
+  .verdict-tie { color: #dcdcaa; }
+
+  table.main { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  table.main th { background: #1e1e1e; color: #9cdcfe; text-align: left;
+                   padding: 8px 10px; border-bottom: 2px solid #444; font-size: 0.85em; }
+  table.main td { padding: 7px 10px; border-bottom: 1px solid #222;
+                   vertical-align: top; word-break: break-word; }
+  col.c-num  { width: 3%; }
+  col.c-meta { width: 12%; }
+  col.c-ref  { width: 25%; }
+  col.c-hyp  { width: 30%; }
+
+  .row-b-better td { background: #0f1f2b; }
+  .row-a-better td { background: #1a1a0f; }
+  .row-tie td      { background: #111; }
+
+  span.ok  { color: #6a9955; }
+  span.ins { color: #f44747; text-decoration: underline; }
+  span.del { color: #ce9178; text-decoration: line-through; }
+
+  .stem  { color: #9cdcfe; font-size: 0.85em; }
+  .meta2 { color: #666; font-size: 0.78em; }
+  .scores { color: #888; font-size: 0.78em; margin-top: 4px; }
+  .num   { color: #555; font-size: 0.85em; text-align: right; }
+  .ref   { color: #b5cea8; }
+  .diff  { line-height: 1.5em; }
+
+  .legend { font-size: 0.82em; color: #666; margin-bottom: 10px; }
+  .legend span { margin-right: 16px; }
+</style>
+</head>
+<body>
+<h1>Whisper Model Comparison &mdash; 2026-04-07 19:11</h1>
+
+<div class="summary">
+  <table>
+    <tr><td class="lbl">Model A</td><td>new_trained_whisper_v1</td></tr>
+    <tr><td class="lbl">Model B</td><td>new_trained_whisper_v2</td></tr>
+    <tr><td class="lbl">Samples</td><td>64</td></tr>
+    <tr><td class="lbl">&nbsp;</td><td></td></tr>
+    <tr><td class="lbl">Model A WER</td><td>5.10%</td></tr>
+    <tr><td class="lbl">Model B WER</td><td>7.38%</td></tr>
+    <tr><td class="lbl">Model A CER</td><td>3.03%</td></tr>
+    <tr><td class="lbl">Model B CER</td><td>3.60%</td></tr>
+    <tr><td class="lbl">&nbsp;</td><td></td></tr>
+    <tr><td class="lbl">Verdict</td><td><span class='verdict-a'>Model A is BETTER (WER 5.10% vs 7.38%)</span></td></tr>
+  </table>
+</div>
+
+<div class="legend">
+  <span><span class="ok">green</span> = correct word</span>
+  <span><span class="ins">red underline</span> = insertion (extra word)</span>
+  <span><span class="del">orange strikethrough</span> = deletion (missing word)</span>
+  <span style="background:#0f1f2b;padding:1px 4px;">blue row</span> = Model B better
+  <span style="background:#1a1a0f;padding:1px 4px;">yellow row</span> = Model A better
+</div>
+
+<table class="main">
+  <colgroup>
+    <col class="c-num"> <col class="c-meta">
+    <col class="c-ref">
+    <col class="c-hyp"> <col class="c-hyp">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>File</th>
+      <th>Reference (ground truth)</th>
+      <th>Model A — new_trained_whisper_v1</th>
+      <th>Model B — new_trained_whisper_v2</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  <tr class="row-a-better">
+    <td class="num">1</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_07-32-33_mndpd</div>
+      <div class="meta2">police &bull; 6.0s</div>
+    </td>
+    <td class="ref">Mendon control to 531</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control</span> <span class="ok">to</span> <span class="ok">531</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control,</span> <span class="del">to</span> <span class="ok">531.</span></div>
+      <div class="scores">WER 75.0% &bull; CER 19.1%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">2</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_07-54-18_mndpd</div>
+      <div class="meta2">police &bull; 15.1s</div>
+    </td>
+    <td class="ref">531 Mendon Control. Mendon Control. FD has that patient, can you show me clear? Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">531</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">FD</span> <span class="ok">has</span> <span class="ok">that</span> <span class="ok">patient,</span> <span class="ok">can</span> <span class="ok">you</span> <span class="ok">show</span> <span class="ok">me</span> <span class="ok">clear?</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">531</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">FD</span> <span class="ok">has</span> <span class="ok">that</span> <span class="ok">patient,</span> <span class="ok">can</span> <span class="ok">you</span> <span class="ok">show</span> <span class="ok">me</span> <span class="ok">clear?</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-b-better">
+    <td class="num">3</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_08-09-18_pd</div>
+      <div class="meta2">police &bull; 19.9s</div>
+    </td>
+    <td class="ref">88 control. Control. Cumberland  Farms parking lot  1, Charlie, Juliet, Yankee 3-6.</td>
+    <td class="hyp">
+      <div class="diff"><span class="del">88</span> <span class="ins">8</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Cumberland</span> <span class="del">Farms</span> <span class="del">parking</span> <span class="del">lot</span> <span class="ins">5</span> <span class="ins">Spackalot,</span> <span class="ok">1</span> <span class="ok">Charlie,</span> <span class="ok">Juliet,</span> <span class="ok">Yankee,</span> <span class="ok">3-6.</span></div>
+      <div class="scores">WER 50.0% &bull; CER 19.3%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="del">88</span> <span class="ins">A</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Cumberland</span> <span class="del">Farms</span> <span class="del">parking</span> <span class="del">lot</span> <span class="ins">5,</span> <span class="ins">Spackalot</span> <span class="ok">1,</span> <span class="ok">Charlie,</span> <span class="ok">Juliet,</span> <span class="ok">Yankee</span> <span class="ok">3-6.</span></div>
+      <div class="scores">WER 33.3% &bull; CER 18.1%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">4</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_08-10-31_pd</div>
+      <div class="meta2">police &bull; 18.0s</div>
+    </td>
+    <td class="ref">8 for the operator. Go with it. Sierra five seven eight five zero five three zero. Tight up writing, all set. 10-4.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">8</span> <span class="ok">for</span> <span class="ok">the</span> <span class="ok">operator.</span> <span class="ok">Go</span> <span class="ok">with</span> <span class="ok">it.</span> <span class="ok">Sierra</span> <span class="ok">five</span> <span class="ok">seven</span> <span class="ok">eight</span> <span class="ok">five</span> <span class="ok">zero</span> <span class="ok">five</span> <span class="ok">three</span> <span class="ok">zero.</span> <span class="ok">Tight</span> <span class="ok">up</span> <span class="ok">writing,</span> <span class="ok">all</span> <span class="ok">set.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">8</span> <span class="ok">for</span> <span class="ok">the</span> <span class="ok">operator.</span> <span class="ok">Go</span> <span class="ok">with</span> <span class="ok">it.</span> <span class="ok">Sierra</span> <span class="del">five</span> <span class="del">seven</span> <span class="del">eight</span> <span class="del">five</span> <span class="del">zero</span> <span class="del">five</span> <span class="del">three</span> <span class="del">zero.</span> <span class="ins">578-50530,</span> <span class="ok">tight</span> <span class="ok">up</span> <span class="ok">writing,</span> <span class="ok">all</span> <span class="ok">set.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 40.9% &bull; CER 37.4%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">5</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_08-13-57_pd</div>
+      <div class="meta2">police &bull; 22.2s</div>
+    </td>
+    <td class="ref">8 control for the outcome. control. That&#x27;ll be 90-17, written warning, I&#x27;ll be clear. 10-4.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">8</span> <span class="ok">control</span> <span class="ok">for</span> <span class="ok">the</span> <span class="ok">outcome.</span> <span class="ok">Control.</span> <span class="ok">That&#x27;ll</span> <span class="ok">be</span> <span class="ok">90-17,</span> <span class="ok">written</span> <span class="ok">warning,</span> <span class="ok">I&#x27;ll</span> <span class="ok">be</span> <span class="ok">clear.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 6.7% &bull; CER 4.4%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">8</span> <span class="ok">control</span> <span class="ok">for</span> <span class="ok">the</span> <span class="ok">outcome.</span> <span class="ok">Control.</span> <span class="ok">That&#x27;ll</span> <span class="ok">be</span> <span class="ok">90-17,</span> <span class="ok">written</span> <span class="ok">warning,</span> <span class="ok">I&#x27;ll</span> <span class="ok">be</span> <span class="ok">clear.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 6.7% &bull; CER 4.4%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">6</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_09-01-45_pd</div>
+      <div class="meta2">police &bull; 15.7s</div>
+    </td>
+    <td class="ref">46 to control. Control. Be out on  portable, at town hall for minute. 10-4</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">46</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Be</span> <span class="ok">out</span> <span class="ok">on</span> <span class="ok">portable,</span> <span class="ok">at</span> <span class="ok">town</span> <span class="ok">hall</span> <span class="ok">for</span> <span class="ok">minute.</span> <span class="ok">10-4</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">46</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Be</span> <span class="ok">out</span> <span class="ok">on</span> <span class="ok">portable,</span> <span class="ok">at</span> <span class="ok">town</span> <span class="ok">hall</span> <span class="ok">for</span> <span class="ok">minute.</span> <span class="ok">10-4</span></div>
+      <div class="scores">WER 0.0% &bull; CER 1.4%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">7</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_09-07-57_pd</div>
+      <div class="meta2">police &bull; 15.3s</div>
+    </td>
+    <td class="ref">46 to control. Control. Show me clear. 10-4</td>
+    <td class="hyp">
+      <div class="diff"><span class="del">46</span> <span class="ins">26</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Show</span> <span class="ok">me</span> <span class="ok">clear.</span> <span class="ok">10-4</span></div>
+      <div class="scores">WER 12.5% &bull; CER 2.3%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="del">46</span> <span class="ins">26</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Show</span> <span class="ok">me</span> <span class="ok">clear.</span> <span class="ok">10-4</span></div>
+      <div class="scores">WER 12.5% &bull; CER 2.3%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">8</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_09-25-19_mndpd</div>
+      <div class="meta2">police &bull; 28.0s</div>
+    </td>
+    <td class="ref">Mendon control, 511. 511. Got a report of an MVA, 32 Hastings Street, Muffin House. No P.I. 10-4, 532, can you handle that? Affirmative, show en route.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control,</span> <span class="ok">511.</span> <span class="ok">511.</span> <span class="ok">Got</span> <span class="ok">a</span> <span class="ok">report</span> <span class="ok">of</span> <span class="ok">an</span> <span class="ok">MVA,</span> <span class="ok">32</span> <span class="ok">Hastings</span> <span class="ok">Street,</span> <span class="ok">Muffin</span> <span class="ok">House.</span> <span class="ok">No</span> <span class="ok">P.I.</span> <span class="ok">10-4,</span> <span class="ok">532,</span> <span class="ok">can</span> <span class="ok">you</span> <span class="ok">handle</span> <span class="ok">that?</span> <span class="ok">Affirmative,</span> <span class="ok">show</span> <span class="ok">en</span> <span class="ok">route.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 2.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control,</span> <span class="ok">511.</span> <span class="ok">511.</span> <span class="ok">Got</span> <span class="ok">a</span> <span class="ok">report</span> <span class="ok">of</span> <span class="ok">an</span> <span class="ok">MVA,</span> <span class="ok">32</span> <span class="ok">Hastings</span> <span class="ok">Street,</span> <span class="ok">Muffin</span> <span class="ok">House.</span> <span class="ok">No</span> <span class="ok">P.I.</span> <span class="ok">10-4,</span> <span class="ok">532,</span> <span class="ok">can</span> <span class="ok">you</span> <span class="ok">handle</span> <span class="ok">that?</span> <span class="ok">Affirmative,</span> <span class="ok">show</span> <span class="ok">en</span> <span class="ok">route.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">9</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_09-28-41_mndpd</div>
+      <div class="meta2">police &bull; 12.0s</div>
+    </td>
+    <td class="ref">532 Mendon Control, I&#x27;m on arrival. Received 532</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532</span> <span class="ok">Mendon</span> <span class="ok">Control,</span> <span class="ok">I&#x27;m</span> <span class="ok">on</span> <span class="ok">arrival.</span> <span class="ok">Received</span> <span class="ok">532</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532</span> <span class="ok">Mendon</span> <span class="ok">Control,</span> <span class="ok">I&#x27;m</span> <span class="ok">on</span> <span class="ok">arrival.</span> <span class="ok">Received</span> <span class="ok">532</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">10</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_09-32-04_mndpd</div>
+      <div class="meta2">police &bull; 27.1s</div>
+    </td>
+    <td class="ref">532 Mendon Control. Mendon Control. Air copy vehicle 1. Send it. Vehicle 1 is going to be MASS 5 Alpha Charlie Hotel 725A CH72. Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Air</span> <span class="ok">copy</span> <span class="ok">vehicle</span> <span class="ok">1.</span> <span class="ok">Send</span> <span class="ok">it.</span> <span class="ok">Vehicle</span> <span class="ok">1</span> <span class="ok">is</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">MASS</span> <span class="ok">5</span> <span class="ok">Alpha</span> <span class="ok">Charlie</span> <span class="ok">Hotel</span> <span class="ok">725A</span> <span class="ok">CH72.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Air</span> <span class="ok">copy</span> <span class="ok">vehicle</span> <span class="ok">1.</span> <span class="ok">Send</span> <span class="ok">it.</span> <span class="ok">Vehicle</span> <span class="ok">1</span> <span class="ok">is</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">MASS</span> <span class="ok">5</span> <span class="ok">Alpha</span> <span class="ok">Charlie</span> <span class="ok">Hotel</span> <span class="ok">725A</span> <span class="ok">CH72.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">11</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_09-35-15_mndpd</div>
+      <div class="meta2">police &bull; 14.8s</div>
+    </td>
+    <td class="ref">532 Mendon Control. Mendon Control. Could you assign me a case number and then repeat it over the air please?</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Could</span> <span class="ok">you</span> <span class="ok">assign</span> <span class="ok">me</span> <span class="ok">a</span> <span class="ok">case</span> <span class="ok">number</span> <span class="ok">and</span> <span class="ok">then</span> <span class="ok">repeat</span> <span class="ok">it</span> <span class="ok">over</span> <span class="ok">the</span> <span class="ok">air</span> <span class="ok">please?</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Could</span> <span class="ok">you</span> <span class="ok">assign</span> <span class="ok">me</span> <span class="ok">a</span> <span class="ok">case</span> <span class="ok">number</span> <span class="ok">and</span> <span class="ok">then</span> <span class="ok">repeat</span> <span class="ok">it</span> <span class="ok">over</span> <span class="ok">the</span> <span class="ok">air</span> <span class="ok">please?</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">12</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_09-38-12_mndpd</div>
+      <div class="meta2">police &bull; 17.0s</div>
+    </td>
+    <td class="ref">532 Mendon Control. Mendon Control. Clear. Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Clear.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Clear.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">13</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-08-35_bpd</div>
+      <div class="meta2">police &bull; 12.0s</div>
+    </td>
+    <td class="ref">We&#x27;ll be off at Milford, we&#x27;ll be standing by, parents are en route. Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">We&#x27;ll</span> <span class="ok">be</span> <span class="ok">off</span> <span class="ok">at</span> <span class="ok">Milford,</span> <span class="ok">we&#x27;ll</span> <span class="ok">be</span> <span class="ok">standing</span> <span class="ok">by,</span> <span class="ok">parents</span> <span class="ok">are</span> <span class="ok">en</span> <span class="ok">route.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">We&#x27;ll</span> <span class="ok">be</span> <span class="ok">off</span> <span class="ok">at</span> <span class="ok">Milford,</span> <span class="ok">we&#x27;ll</span> <span class="ok">be</span> <span class="ok">standing</span> <span class="ok">by,</span> <span class="ok">parents</span> <span class="ok">are</span> <span class="ok">en</span> <span class="ok">route.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">14</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-10-48_bpd</div>
+      <div class="meta2">police &bull; 22.1s</div>
+    </td>
+    <td class="ref">Bravo 27 to control, do you have the last 4 on that phone number? 6-9-1-4. Still open, can hear a male party in the background. Talking about subtraction, possibly a math teacher.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Bravo</span> <span class="ok">27</span> <span class="ok">to</span> <span class="ok">control,</span> <span class="ok">do</span> <span class="ok">you</span> <span class="ok">have</span> <span class="ok">the</span> <span class="ok">last</span> <span class="ok">4</span> <span class="ok">on</span> <span class="ok">that</span> <span class="ok">phone</span> <span class="ok">number?</span> <span class="ok">6-9-1-4.</span> <span class="ok">Still</span> <span class="ok">open,</span> <span class="ok">can</span> <span class="ok">hear</span> <span class="ok">a</span> <span class="ok">male</span> <span class="ok">party</span> <span class="ok">in</span> <span class="ok">the</span> <span class="ok">background.</span> <span class="ok">Talking</span> <span class="ok">about</span> <span class="ok">subtraction,</span> <span class="ok">possibly</span> <span class="ok">a</span> <span class="ok">math</span> <span class="ok">teacher.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Bravo</span> <span class="ok">27</span> <span class="ok">to</span> <span class="ok">control,</span> <span class="ok">do</span> <span class="ok">you</span> <span class="ok">have</span> <span class="ok">the</span> <span class="ok">last</span> <span class="ok">4</span> <span class="ok">on</span> <span class="ok">that</span> <span class="ok">phone</span> <span class="ok">number?</span> <span class="ok">6-9-1-4.</span> <span class="ok">Still</span> <span class="ok">open,</span> <span class="ok">can</span> <span class="ok">hear</span> <span class="ok">a</span> <span class="ok">male</span> <span class="ok">party</span> <span class="ok">in</span> <span class="ok">the</span> <span class="ok">background.</span> <span class="ok">Talking</span> <span class="ok">about</span> <span class="ok">subtraction,</span> <span class="ok">possibly</span> <span class="ok">a</span> <span class="ok">math</span> <span class="ok">teacher.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">15</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-14-55_bpd</div>
+      <div class="meta2">police &bull; 17.1s</div>
+    </td>
+    <td class="ref">Bravo 20 to control, is that line still open? You&#x27;re in the correct room. I heard them ask about the phones and the student hung up once they grabbed it.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Bravo</span> <span class="ok">20</span> <span class="ok">to</span> <span class="ok">control,</span> <span class="ok">is</span> <span class="ok">that</span> <span class="ok">line</span> <span class="ok">still</span> <span class="ok">open?</span> <span class="ok">You&#x27;re</span> <span class="ok">in</span> <span class="ok">the</span> <span class="ok">correct</span> <span class="ok">room.</span> <span class="ok">I</span> <span class="ok">heard</span> <span class="ok">them</span> <span class="ok">ask</span> <span class="ok">about</span> <span class="ok">the</span> <span class="ok">phones</span> <span class="ok">and</span> <span class="ok">the</span> <span class="ok">student</span> <span class="ok">hung</span> <span class="ok">up</span> <span class="ok">once</span> <span class="ok">they</span> <span class="ok">grabbed</span> <span class="ok">it.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.7%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Bravo</span> <span class="ok">20</span> <span class="ok">to</span> <span class="ok">control,</span> <span class="ok">is</span> <span class="ok">that</span> <span class="ok">line</span> <span class="ok">still</span> <span class="ok">open?</span> <span class="ok">You&#x27;re</span> <span class="ok">in</span> <span class="ok">the</span> <span class="ok">correct</span> <span class="ok">room.</span> <span class="ok">I</span> <span class="ok">heard</span> <span class="ok">them</span> <span class="ok">ask</span> <span class="ok">about</span> <span class="ok">the</span> <span class="ok">phones</span> <span class="ok">and</span> <span class="ok">the</span> <span class="ok">student</span> <span class="ok">hung</span> <span class="ok">up</span> <span class="ok">once</span> <span class="ok">they</span> <span class="ok">grabbed</span> <span class="ok">it.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.7%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">16</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-16-19_bpd</div>
+      <div class="meta2">police &bull; 12.3s</div>
+    </td>
+    <td class="ref">Bravo 27 to control, can you show both units clear? Confirmed accidental by a student. Received</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Bravo</span> <span class="ok">27</span> <span class="ok">to</span> <span class="ok">control,</span> <span class="ok">can</span> <span class="ok">you</span> <span class="ok">show</span> <span class="ok">both</span> <span class="ok">units</span> <span class="ok">clear?</span> <span class="ok">Confirmed</span> <span class="ok">accidental</span> <span class="ok">by</span> <span class="ok">a</span> <span class="ok">student.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 6.2% &bull; CER 2.1%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Bravo</span> <span class="ok">27</span> <span class="ok">to</span> <span class="ok">control,</span> <span class="ok">can</span> <span class="ok">you</span> <span class="ok">show</span> <span class="ok">both</span> <span class="ok">units</span> <span class="ok">clear?</span> <span class="ok">Confirmed</span> <span class="ok">accidental</span> <span class="ok">by</span> <span class="ok">a</span> <span class="ok">student.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 6.2% &bull; CER 2.1%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">17</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-35-53_mndpd</div>
+      <div class="meta2">police &bull; 7.8s</div>
+    </td>
+    <td class="ref">Mendon control 532</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control</span> <span class="ok">532</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control,</span> <span class="ok">532</span></div>
+      <div class="scores">WER 33.3% &bull; CER 5.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">18</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-36-14_mndpd</div>
+      <div class="meta2">police &bull; 7.4s</div>
+    </td>
+    <td class="ref">Mendon control 532</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control</span> <span class="ok">532</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control</span> <span class="ok">532.</span></div>
+      <div class="scores">WER 33.3% &bull; CER 5.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">19</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-36-52_mndpd</div>
+      <div class="meta2">police &bull; 35.0s</div>
+    </td>
+    <td class="ref">Mendon control, 511. 511. 28 Haywood Circle, speak with Amina Hanna in regards to an ongoing landlord dispute. She&#x27;s saying that the landlord took off his door and locked the basement so he can&#x27;t access his belongings. Several calls regarding this in the last week.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control,</span> <span class="ok">511.</span> <span class="ok">511.</span> <span class="ok">28</span> <span class="ok">Haywood</span> <span class="ok">Circle,</span> <span class="ok">speak</span> <span class="ok">with</span> <span class="ok">Amina</span> <span class="ok">Hanna</span> <span class="ok">in</span> <span class="ok">regards</span> <span class="ok">to</span> <span class="ok">an</span> <span class="ok">ongoing</span> <span class="ok">landlord</span> <span class="ok">dispute.</span> <span class="ok">She&#x27;s</span> <span class="ok">saying</span> <span class="ok">that</span> <span class="ok">the</span> <span class="ok">landlord</span> <span class="ok">took</span> <span class="ok">off</span> <span class="ok">his</span> <span class="ok">door</span> <span class="ok">and</span> <span class="ok">locked</span> <span class="ok">the</span> <span class="ok">basement</span> <span class="ok">so</span> <span class="ok">he</span> <span class="ok">can&#x27;t</span> <span class="ok">access</span> <span class="ok">his</span> <span class="ok">belongings.</span> <span class="ok">Several</span> <span class="ok">calls</span> <span class="ok">regarding</span> <span class="ok">this</span> <span class="ok">in</span> <span class="ok">the</span> <span class="ok">last</span> <span class="ok">week.</span> <span class="ins">10-4.</span></div>
+      <div class="scores">WER 2.2% &bull; CER 2.3%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control,</span> <span class="ok">511.</span> <span class="ok">511.</span> <span class="ok">28</span> <span class="ok">Haywood</span> <span class="ok">Circle,</span> <span class="ok">speak</span> <span class="ok">with</span> <span class="ok">Amina</span> <span class="ok">Hanna</span> <span class="ok">in</span> <span class="ok">regards</span> <span class="ok">to</span> <span class="ok">an</span> <span class="ok">ongoing</span> <span class="ok">landlord</span> <span class="ok">dispute.</span> <span class="ok">She&#x27;s</span> <span class="ok">saying</span> <span class="ok">that</span> <span class="ok">the</span> <span class="ok">landlord</span> <span class="ok">took</span> <span class="ok">off</span> <span class="ok">his</span> <span class="ok">door</span> <span class="ok">and</span> <span class="ok">locked</span> <span class="ok">the</span> <span class="ok">basement</span> <span class="ok">so</span> <span class="ok">he</span> <span class="ok">can&#x27;t</span> <span class="ok">access</span> <span class="ok">his</span> <span class="ok">belongings.</span> <span class="ok">Several</span> <span class="ok">calls</span> <span class="ok">regarding</span> <span class="ok">this</span> <span class="ok">in</span> <span class="ok">the</span> <span class="ok">last</span> <span class="ok">week.</span> <span class="ins">10-4.</span></div>
+      <div class="scores">WER 2.2% &bull; CER 2.3%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">20</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-38-54_mndpd</div>
+      <div class="meta2">police &bull; 18.2s</div>
+    </td>
+    <td class="ref">532, Mendon Control. Mendon Control. I&#x27;ll be in route with you on 111 to 28 KW. Received 532, thank you.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532,</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">I&#x27;ll</span> <span class="ok">be</span> <span class="ok">in</span> <span class="ok">route</span> <span class="ok">with</span> <span class="ok">you</span> <span class="ok">on</span> <span class="ok">111</span> <span class="ok">to</span> <span class="ok">28</span> <span class="ok">KW.</span> <span class="ok">Received</span> <span class="ok">532,</span> <span class="ok">thank</span> <span class="ok">you.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">532,</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">I&#x27;ll</span> <span class="ok">be</span> <span class="ok">in</span> <span class="ok">route</span> <span class="ok">with</span> <span class="ok">you</span> <span class="ok">on</span> <span class="ok">111</span> <span class="ok">to</span> <span class="ok">28</span> <span class="ok">KW.</span> <span class="ok">Received</span> <span class="ok">532,</span> <span class="ok">thank</span> <span class="ok">you.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">21</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_10-47-30_mndpd</div>
+      <div class="meta2">police &bull; 15.8s</div>
+    </td>
+    <td class="ref">53 to Mendon Control. Mendon Control. I&#x27;m on arrival. Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="del">53</span> <span class="del">to</span> <span class="ins">532</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">I&#x27;m</span> <span class="ok">on</span> <span class="ok">arrival.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 20.0% &bull; CER 4.8%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="del">53</span> <span class="del">to</span> <span class="ins">532</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">I&#x27;m</span> <span class="ok">on</span> <span class="ok">arrival.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 20.0% &bull; CER 4.8%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">22</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_11-02-15_mndpd</div>
+      <div class="meta2">police &bull; 14.2s</div>
+    </td>
+    <td class="ref">Mendon control 532, status check. All set, thank you. Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control</span> <span class="ok">532,</span> <span class="ok">status</span> <span class="ok">check.</span> <span class="ok">All</span> <span class="ok">set,</span> <span class="ok">thank</span> <span class="ok">you.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Mendon</span> <span class="ok">control,</span> <span class="ok">532,</span> <span class="ok">status</span> <span class="ok">check.</span> <span class="ok">All</span> <span class="ok">set,</span> <span class="ok">thank</span> <span class="ok">you.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 10.0% &bull; CER 1.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">23</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_11-06-50_mndpd</div>
+      <div class="meta2">police &bull; 16.4s</div>
+    </td>
+    <td class="ref">511, Mendon Control.  Mendon Control. Okay, we&#x27;ll be clear, can you just keep that call open for a little bit? Roger.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">511,</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Okay,</span> <span class="ok">we&#x27;ll</span> <span class="ok">be</span> <span class="ok">clear,</span> <span class="ok">can</span> <span class="ok">you</span> <span class="ok">just</span> <span class="ok">keep</span> <span class="ok">that</span> <span class="ok">call</span> <span class="ok">open</span> <span class="ok">for</span> <span class="ok">a</span> <span class="ok">little</span> <span class="ok">bit?</span> <span class="ok">Roger.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.9%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">511,</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Okay,</span> <span class="ok">we&#x27;ll</span> <span class="ok">be</span> <span class="ok">clear,</span> <span class="ok">can</span> <span class="ok">you</span> <span class="ok">just</span> <span class="ok">keep</span> <span class="ok">that</span> <span class="ok">call</span> <span class="ok">open</span> <span class="ok">for</span> <span class="ok">a</span> <span class="ok">little</span> <span class="ok">bit?</span> <span class="ok">Roger.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.9%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">24</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_13-55-08_pd</div>
+      <div class="meta2">police &bull; 22.0s</div>
+    </td>
+    <td class="ref">Go ahead 26.  2729 MASS license Sierra 0827-9307, copy. I copy.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Go</span> <span class="ok">ahead</span> <span class="del">26.</span> <span class="ins">20.</span> <span class="ok">2729</span> <span class="ok">MASS</span> <span class="ok">license</span> <span class="ok">Sierra</span> <span class="ok">0827-9307,</span> <span class="ok">copy.</span> <span class="ok">I</span> <span class="ok">copy.</span></div>
+      <div class="scores">WER 9.1% &bull; CER 1.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Go</span> <span class="ok">ahead</span> <span class="del">26.</span> <span class="del">2729</span> <span class="ins">20-7.</span> <span class="ins">27-29,</span> <span class="ok">MASS</span> <span class="ok">license</span> <span class="ok">Sierra</span> <span class="ok">0827-9307,</span> <span class="ok">copy.</span> <span class="ok">I</span> <span class="ok">copy.</span></div>
+      <div class="scores">WER 18.2% &bull; CER 9.5%</div>
+    </td>
+  </tr>
+
+  <tr class="row-b-better">
+    <td class="num">25</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_13-55-58_pd</div>
+      <div class="meta2">police &bull; 24.4s</div>
+    </td>
+    <td class="ref">26, active, active, negative. 10-4, it&#x27;s going to be a verbal 89-9, offense location is going to be Plain and Mill.   10-4.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">26,</span> <span class="ok">active,</span> <span class="ok">active,</span> <span class="ok">negative.</span> <span class="ok">10-4,</span> <span class="ok">it&#x27;s</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">a</span> <span class="ok">verbal</span> <span class="ok">89-9,</span> <span class="ok">offense</span> <span class="ok">location</span> <span class="ok">is</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">Plain</span> <span class="ok">and</span> <span class="ok">Mill.</span> <span class="del">10-4.</span> <span class="ins">4</span></div>
+      <div class="scores">WER 4.5% &bull; CER 36.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">26,</span> <span class="ok">active,</span> <span class="ok">active,</span> <span class="ok">negative.</span> <span class="ok">10-4,</span> <span class="ok">it&#x27;s</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">a</span> <span class="ok">verbal</span> <span class="ok">89-9,</span> <span class="ok">offense</span> <span class="ok">location</span> <span class="ok">is</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">Plain</span> <span class="ok">and</span> <span class="ok">Mill.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 1.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">26</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-29-53_pd</div>
+      <div class="meta2">police &bull; 21.4s</div>
+    </td>
+    <td class="ref">61 control. Control. Mendon St at Hammond, MASS 499AlphaZilla 1, 499AZ 1. 10-4.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">61</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">St</span> <span class="ok">at</span> <span class="ok">Hammond,</span> <span class="ok">MASS</span> <span class="ok">499AlphaZilla</span> <span class="ok">1,</span> <span class="ok">499AZ</span> <span class="ok">1.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">61</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="del">St</span> <span class="ins">Street</span> <span class="ok">at</span> <span class="ok">Hammond,</span> <span class="ok">MASS</span> <span class="ok">499AlphaZilla</span> <span class="ok">1,</span> <span class="ok">499AZ</span> <span class="ok">1.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 7.7% &bull; CER 5.1%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">27</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-31-39_pd</div>
+      <div class="meta2">police &bull; 12.3s</div>
+    </td>
+    <td class="ref">Control I&#x27;m clear, verbal to the RO for inspection. 10-4</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Control</span> <span class="ok">I&#x27;m</span> <span class="ok">clear,</span> <span class="ok">verbal</span> <span class="ok">to</span> <span class="ok">the</span> <span class="ok">RO</span> <span class="ok">for</span> <span class="ok">inspection.</span> <span class="ok">10-4</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Control</span> <span class="ok">I&#x27;m</span> <span class="ok">clear,</span> <span class="ok">verbal</span> <span class="ok">to</span> <span class="ok">the</span> <span class="ok">RO</span> <span class="ok">for</span> <span class="ok">inspection.</span> <span class="ok">10-4</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">28</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-39-50_frkfd</div>
+      <div class="meta2">fire &bull; 11.0s</div>
+    </td>
+    <td class="ref">Engine-2 is en-route. Franklin Fire.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2</span> <span class="ok">is</span> <span class="ok">en-route.</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 2.8%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2</span> <span class="ok">is</span> <span class="ok">en-route.</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 2.8%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">29</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-41-41_frkfd</div>
+      <div class="meta2">fire &bull; 14.4s</div>
+    </td>
+    <td class="ref">Engine-2, Franklin Fire. Engine-2 will be on arrival. Received Engine-2, you&#x27;re on arrival.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Engine-2</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">on</span> <span class="ok">arrival.</span> <span class="ok">Received</span> <span class="ok">Engine-2,</span> <span class="ok">you&#x27;re</span> <span class="ok">on</span> <span class="ok">arrival.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Engine-2</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">on</span> <span class="ok">arrival.</span> <span class="ok">Received</span> <span class="ok">Engine-2,</span> <span class="ok">you&#x27;re</span> <span class="ok">on</span> <span class="ok">arrival.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-b-better">
+    <td class="num">30</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-42-17_frkfd</div>
+      <div class="meta2">fire &bull; 16.7s</div>
+    </td>
+    <td class="ref">Engine-2 Franklin fire, 2 car MVA, we&#x27;re going to need PD down here for traffic control and paperwork exchange. They&#x27;re on the way.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2</span> <span class="ok">Franklin</span> <span class="ok">fire,</span> <span class="del">2</span> <span class="del">car</span> <span class="ins">2-car</span> <span class="ok">MVA,</span> <span class="ok">we&#x27;re</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">need</span> <span class="ok">PD</span> <span class="ok">down</span> <span class="ok">here</span> <span class="ok">for</span> <span class="ok">traffic</span> <span class="ok">control</span> <span class="ok">and</span> <span class="ok">paperwork</span> <span class="ok">exchange.</span> <span class="ok">They&#x27;re</span> <span class="ok">on</span> <span class="ok">the</span> <span class="ok">way.</span></div>
+      <div class="scores">WER 8.7% &bull; CER 1.5%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2</span> <span class="ok">Franklin</span> <span class="ok">fire,</span> <span class="ok">2</span> <span class="ok">car</span> <span class="ok">MVA,</span> <span class="ok">we&#x27;re</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">need</span> <span class="ok">PD</span> <span class="ok">down</span> <span class="ok">here</span> <span class="ok">for</span> <span class="ok">traffic</span> <span class="ok">control</span> <span class="ok">and</span> <span class="ok">paperwork</span> <span class="ok">exchange.</span> <span class="ok">They&#x27;re</span> <span class="ok">on</span> <span class="ok">the</span> <span class="ok">way.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">31</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-45-16_frkfd</div>
+      <div class="meta2">fire &bull; 31.1s</div>
+    </td>
+    <td class="ref">Engine-2,  Franklin Fire. Franklin Fire. Both vehicles appear to be operational. The operator of one vehicle will be transported by A-2 shortly. We&#x27;re going to be obtaining a patient refusal from the operator of the second vehicle. Received, both vehicles are operational. One will be transported, the other one will be getting a refusal.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Both</span> <span class="ok">vehicles</span> <span class="ok">appear</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">operational.</span> <span class="ok">The</span> <span class="ok">operator</span> <span class="ok">of</span> <span class="ok">one</span> <span class="ok">vehicle</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">transported</span> <span class="ok">by</span> <span class="ok">A-2</span> <span class="ok">shortly.</span> <span class="ok">We&#x27;re</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">obtaining</span> <span class="ok">a</span> <span class="ok">patient</span> <span class="ok">refusal</span> <span class="ok">from</span> <span class="ok">the</span> <span class="ok">operator</span> <span class="ok">of</span> <span class="ok">the</span> <span class="ok">second</span> <span class="ok">vehicle.</span> <span class="ok">Received,</span> <span class="ok">both</span> <span class="ok">vehicles</span> <span class="ok">are</span> <span class="ok">operational.</span> <span class="ok">One</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">transported,</span> <span class="ok">the</span> <span class="ok">other</span> <span class="ok">one</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">getting</span> <span class="ok">a</span> <span class="ok">refusal.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.3%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Both</span> <span class="ok">vehicles</span> <span class="ok">appear</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">operational.</span> <span class="ok">The</span> <span class="ok">operator</span> <span class="ok">of</span> <span class="ok">one</span> <span class="ok">vehicle</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">transported</span> <span class="ok">by</span> <span class="ok">A-2</span> <span class="ok">shortly.</span> <span class="ok">We&#x27;re</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">obtaining</span> <span class="ok">a</span> <span class="ok">patient</span> <span class="ok">refusal</span> <span class="ok">from</span> <span class="ok">the</span> <span class="ok">operator</span> <span class="ok">of</span> <span class="ok">the</span> <span class="ok">second</span> <span class="ok">vehicle.</span> <span class="ok">Received,</span> <span class="ok">both</span> <span class="ok">vehicles</span> <span class="ok">are</span> <span class="ok">operational.</span> <span class="ok">One</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">transported,</span> <span class="ok">the</span> <span class="ok">other</span> <span class="ok">one</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">getting</span> <span class="ok">a</span> <span class="ok">refusal.</span> <span class="ins">.</span> <span class="ins">.</span> <span class="ins">.</span> <span class="ins">.</span> <span class="ins">.</span></div>
+      <div class="scores">WER 9.3% &bull; CER 4.7%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">32</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-47-07_frkfd</div>
+      <div class="meta2">fire &bull; 19.2s</div>
+    </td>
+    <td class="ref">Franklin Fire from A-2.  Franklin Fire. Transporting 1 now BLS to landmark. Received BLS to landmark.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Franklin</span> <span class="ok">Fire</span> <span class="ok">from</span> <span class="ok">A-2.</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Transporting</span> <span class="ok">1</span> <span class="ok">now</span> <span class="ok">BLS</span> <span class="ok">to</span> <span class="ok">landmark.</span> <span class="ok">Received</span> <span class="ok">BLS</span> <span class="ok">to</span> <span class="ok">landmark.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 1.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Franklin</span> <span class="ok">Fire</span> <span class="ok">from</span> <span class="ok">A-2.</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Transporting</span> <span class="ok">1</span> <span class="ok">now</span> <span class="ok">BLS</span> <span class="ok">to</span> <span class="ok">Landmark.</span> <span class="ok">Received</span> <span class="ok">BLS</span> <span class="ok">to</span> <span class="ok">Landmark.</span></div>
+      <div class="scores">WER 12.5% &bull; CER 4.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">33</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-53-03_frkfd</div>
+      <div class="meta2">fire &bull; 19.1s</div>
+    </td>
+    <td class="ref">Engine-2 Franklin Fire. Engine-2 is clear and available. Pleased to handle. There&#x27;s no hazards. Engine-2 clear and available. Pleased to handle. No hazards. 1652.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Engine-2</span> <span class="ok">is</span> <span class="ok">clear</span> <span class="ok">and</span> <span class="ok">available.</span> <span class="ok">Pleased</span> <span class="ok">to</span> <span class="ok">handle.</span> <span class="ok">There&#x27;s</span> <span class="ok">no</span> <span class="ok">hazards.</span> <span class="ok">Engine-2</span> <span class="ok">clear</span> <span class="ok">and</span> <span class="ok">available.</span> <span class="ok">Pleased</span> <span class="ok">to</span> <span class="ok">handle.</span> <span class="ok">No</span> <span class="ok">hazards.</span> <span class="ok">1652.</span></div>
+      <div class="scores">WER 4.2% &bull; CER 1.2%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Engine-2</span> <span class="ok">is</span> <span class="ok">clear</span> <span class="ok">and</span> <span class="ok">available.</span> <span class="ok">Pleased</span> <span class="ok">to</span> <span class="ok">handle.</span> <span class="ok">There&#x27;s</span> <span class="ok">no</span> <span class="ok">hazards.</span> <span class="ok">Engine-2</span> <span class="ok">clear</span> <span class="ok">and</span> <span class="ok">available.</span> <span class="ok">Pleased</span> <span class="ok">to</span> <span class="ok">handle.</span> <span class="ok">No</span> <span class="ok">hazards.</span> <span class="ok">1652.</span></div>
+      <div class="scores">WER 4.2% &bull; CER 1.2%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">34</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_15-54-57_frkfd</div>
+      <div class="meta2">fire &bull; 23.0s</div>
+    </td>
+    <td class="ref">Engine-2 Franklin Fire, Engine-2 is back in quarters. Engine-2 is going to be out of service briefly for a vehicle swap. Engine-2 back in quarters, out of service for vehicle swap.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2</span> <span class="ok">Franklin</span> <span class="ok">Fire,</span> <span class="ok">Engine-2</span> <span class="ok">is</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters.</span> <span class="ok">Engine-2</span> <span class="ok">is</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">out</span> <span class="ok">of</span> <span class="ok">service</span> <span class="ok">briefly</span> <span class="ok">for</span> <span class="ok">a</span> <span class="ok">vehicle</span> <span class="ok">swap.</span> <span class="ok">Engine-2</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters,</span> <span class="ok">out</span> <span class="ok">of</span> <span class="ok">service</span> <span class="ok">for</span> <span class="ok">vehicle</span> <span class="ok">swap.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire,</span> <span class="ok">Engine-2</span> <span class="ok">is</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters.</span> <span class="ok">Engine-2</span> <span class="ok">is</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">out</span> <span class="ok">of</span> <span class="ok">service</span> <span class="ok">briefly</span> <span class="ok">for</span> <span class="ok">a</span> <span class="ok">vehicle</span> <span class="ok">swap.</span> <span class="ok">Engine-2</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters,</span> <span class="ok">out</span> <span class="ok">of</span> <span class="ok">service</span> <span class="ok">for</span> <span class="ok">vehicle</span> <span class="ok">swap.</span></div>
+      <div class="scores">WER 3.2% &bull; CER 1.1%</div>
+    </td>
+  </tr>
+
+  <tr class="row-b-better">
+    <td class="num">35</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-03_16-48-34_fd</div>
+      <div class="meta2">fire &bull; 29.1s</div>
+    </td>
+    <td class="ref">TONE!!!  Hopedale Fire Alarm announcing a general recall. EMTs are needed to respond with A-2 20 Bancroft Park. For the second medical, on duty crews  call. Repeating Hopedale Fire Alarm announcing a general recall. EMTs are needed to respond with A-2 20 Bancroft Park. Second medical, on duty crews on a call. Hopedale Fire Alarm clear 1648.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">TONE!!!</span> <span class="ok">Hopedale</span> <span class="ok">Fire</span> <span class="ok">Alarm</span> <span class="ok">announcing</span> <span class="ok">a</span> <span class="ok">general</span> <span class="ok">recall.</span> <span class="ok">EMTs</span> <span class="ok">are</span> <span class="ok">needed</span> <span class="ok">to</span> <span class="ok">respond</span> <span class="ok">with</span> <span class="ok">A-2</span> <span class="ok">20</span> <span class="ok">Bancroft</span> <span class="ok">Park.</span> <span class="ok">For</span> <span class="ok">the</span> <span class="ok">second</span> <span class="ok">medical,</span> <span class="ok">on</span> <span class="ok">duty</span> <span class="ok">crews</span> <span class="ok">call.</span> <span class="ok">Repeating</span> <span class="ok">Hopedale</span> <span class="ok">Fire</span> <span class="ok">Alarm</span> <span class="ok">announcing</span> <span class="ok">a</span> <span class="ok">general</span> <span class="ok">recall.</span> <span class="ok">EMTs</span> <span class="ok">are</span> <span class="ok">needed</span> <span class="ok">to</span> <span class="ok">respond</span> <span class="ok">with</span> <span class="ok">A-2</span> <span class="ok">20</span> <span class="ok">Bancroft</span> <span class="ok">Park.</span> <span class="ins">For</span> <span class="ins">the</span> <span class="ok">second</span> <span class="ok">medical,</span> <span class="ok">on</span> <span class="ok">duty</span> <span class="ok">crews</span> <span class="del">on</span> <span class="del">a</span> <span class="ok">call.</span> <span class="ok">Hopedale</span> <span class="ok">Fire</span> <span class="ok">Alarm</span> <span class="ok">clear</span> <span class="ok">1648.</span></div>
+      <div class="scores">WER 8.8% &bull; CER 3.8%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">TONE!!!</span> <span class="ok">Hopedale</span> <span class="ok">Fire</span> <span class="ok">Alarm</span> <span class="ok">announcing</span> <span class="ok">a</span> <span class="ok">general</span> <span class="ok">recall.</span> <span class="ok">EMTs</span> <span class="ok">are</span> <span class="ok">needed</span> <span class="ok">to</span> <span class="ok">respond</span> <span class="ok">with</span> <span class="ok">A-2</span> <span class="ok">20</span> <span class="ok">Bancroft</span> <span class="ok">Park.</span> <span class="ok">For</span> <span class="ok">the</span> <span class="ok">second</span> <span class="ok">medical,</span> <span class="ok">on</span> <span class="ok">duty</span> <span class="ok">crews,</span> <span class="ins">on</span> <span class="ins">a</span> <span class="ok">call.</span> <span class="ok">Repeating</span> <span class="ok">Hopedale</span> <span class="ok">Fire</span> <span class="ok">Alarm</span> <span class="ok">announcing</span> <span class="ok">a</span> <span class="ok">general</span> <span class="ok">recall.</span> <span class="ok">EMTs</span> <span class="ok">are</span> <span class="ok">needed</span> <span class="ok">to</span> <span class="ok">respond</span> <span class="ok">with</span> <span class="ok">A-2</span> <span class="ok">20</span> <span class="ok">Bancroft</span> <span class="ok">Park.</span> <span class="ok">Second</span> <span class="ok">medical,</span> <span class="ok">on</span> <span class="ok">duty</span> <span class="ok">crews,</span> <span class="ok">on</span> <span class="ok">a</span> <span class="ok">call.</span> <span class="ok">Hopedale</span> <span class="ok">Fire</span> <span class="ok">Alarm</span> <span class="ok">clear</span> <span class="ok">1648.</span></div>
+      <div class="scores">WER 7.0% &bull; CER 1.8%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">36</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_07-27-46_pd</div>
+      <div class="meta2">police &bull; 25.1s</div>
+    </td>
+    <td class="ref">89 to control. Control. Starting for Paul 2, 44570, 44570. Checks ok, I&#x27;ll be up at the schools. 10-4.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">89</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Starting</span> <span class="ok">for</span> <span class="ok">Paul</span> <span class="ok">2,</span> <span class="ok">44570,</span> <span class="ok">44570.</span> <span class="ok">Checks</span> <span class="ok">ok,</span> <span class="ok">I&#x27;ll</span> <span class="ok">be</span> <span class="ok">up</span> <span class="ok">at</span> <span class="ok">the</span> <span class="ok">schools.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">89</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Starting</span> <span class="ok">for</span> <span class="ok">Paul</span> <span class="ok">2,</span> <span class="ok">44570,</span> <span class="ok">44570.</span> <span class="ok">Checks</span> <span class="ok">ok,</span> <span class="ok">I&#x27;ll</span> <span class="ok">be</span> <span class="ok">up</span> <span class="ok">at</span> <span class="ok">the</span> <span class="ok">schools.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-b-better">
+    <td class="num">37</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_08-21-39_fd</div>
+      <div class="meta2">fire &bull; 5.5s</div>
+    </td>
+    <td class="ref">Received A-1, I have you in route 8:21.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Received</span> <span class="ok">A-1,</span> <span class="ok">I</span> <span class="ok">have</span> <span class="ok">you</span> <span class="ok">in</span> <span class="ok">route</span> <span class="del">8:21.</span> <span class="ins">8</span> <span class="ins">21.</span></div>
+      <div class="scores">WER 25.0% &bull; CER 2.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Received</span> <span class="ok">A-1,</span> <span class="ok">I</span> <span class="ok">have</span> <span class="ok">you</span> <span class="ok">in</span> <span class="ok">route</span> <span class="del">8:21.</span> <span class="ins">8-21.</span></div>
+      <div class="scores">WER 12.5% &bull; CER 2.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">38</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_08-29-27_fd</div>
+      <div class="meta2">fire &bull; 4.9s</div>
+    </td>
+    <td class="ref">On scene 8:29.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">On</span> <span class="ok">scene</span> <span class="del">8:29.</span> <span class="ins">8-3-2.</span></div>
+      <div class="scores">WER 33.3% &bull; CER 28.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">On</span> <span class="ok">scene</span> <span class="del">8:29.</span> <span class="ins">8-3.</span></div>
+      <div class="scores">WER 33.3% &bull; CER 21.4%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">39</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_08-38-02_fd</div>
+      <div class="meta2">fire &bull; 9.5s</div>
+    </td>
+    <td class="ref">Fire alarm, A-1. Fire Alarm. A-1 is clear returning.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Fire</span> <span class="ok">alarm,</span> <span class="ok">A-1.</span> <span class="ok">Fire</span> <span class="ok">Alarm.</span> <span class="ok">A-1</span> <span class="ok">is</span> <span class="ok">clear</span> <span class="ok">returning.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Fire</span> <span class="ok">alarm,</span> <span class="ok">A-1.</span> <span class="ok">Fire</span> <span class="ok">Alarm.</span> <span class="ok">A-1</span> <span class="ok">is</span> <span class="ok">clear</span> <span class="ok">returning.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">40</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-17-11_fd</div>
+      <div class="meta2">fire &bull; 4.9s</div>
+    </td>
+    <td class="ref">That should be fine</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">That</span> <span class="ok">should</span> <span class="ok">be</span> <span class="ok">fine.</span></div>
+      <div class="scores">WER 25.0% &bull; CER 5.3%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">That</span> <span class="ok">should</span> <span class="ok">be</span> <span class="ok">fine.</span></div>
+      <div class="scores">WER 25.0% &bull; CER 5.3%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">41</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-47-26_mpd</div>
+      <div class="meta2">police &bull; 39.4s</div>
+    </td>
+    <td class="ref">244 to control. We&#x27;ll be clear from the courthouse and available for calls. 10-4. Control 208. 8. Bellingham said she&#x27;s not living in their town anymore but they have an extensive history with her. This is a normal occurrence significant mental health.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">244</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ins">10-4.</span> <span class="ok">We&#x27;ll</span> <span class="ok">be</span> <span class="ok">clear</span> <span class="ok">from</span> <span class="ok">the</span> <span class="ok">courthouse</span> <span class="ok">and</span> <span class="ok">available</span> <span class="ok">for</span> <span class="ok">calls.</span> <span class="ok">10-4.</span> <span class="ok">Control</span> <span class="ok">208.</span> <span class="ok">8.</span> <span class="ok">Bellingham</span> <span class="ok">said</span> <span class="ok">she&#x27;s</span> <span class="ok">not</span> <span class="ok">living</span> <span class="ok">in</span> <span class="ok">their</span> <span class="ok">town</span> <span class="ok">anymore</span> <span class="ok">but</span> <span class="ok">they</span> <span class="ok">have</span> <span class="ok">an</span> <span class="ok">extensive</span> <span class="ok">history</span> <span class="ok">with</span> <span class="ok">her.</span> <span class="ok">this</span> <span class="ok">is</span> <span class="ok">a</span> <span class="ok">normal,</span> <span class="ok">occurrence,</span> <span class="ok">significant</span> <span class="ok">mental</span> <span class="ok">health.</span> <span class="ins">Okay,</span> <span class="ins">we</span> <span class="ins">did.</span></div>
+      <div class="scores">WER 16.7% &bull; CER 11.9%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">244</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ins">10-4.</span> <span class="ok">We&#x27;ll</span> <span class="ok">be</span> <span class="ok">clear</span> <span class="ok">from</span> <span class="ok">the</span> <span class="ok">courthouse</span> <span class="ok">and</span> <span class="ok">available</span> <span class="ok">for</span> <span class="ok">calls.</span> <span class="ok">10-4.</span> <span class="ok">Control</span> <span class="ok">208.</span> <span class="ok">8.</span> <span class="ok">Bellingham</span> <span class="ok">said</span> <span class="ok">she&#x27;s</span> <span class="ok">not</span> <span class="ok">living</span> <span class="ok">in</span> <span class="ok">their</span> <span class="ok">town</span> <span class="ok">anymore</span> <span class="ok">but</span> <span class="ok">they</span> <span class="ok">have</span> <span class="ok">an</span> <span class="ok">extensive</span> <span class="ok">history</span> <span class="ok">with</span> <span class="ok">her.</span> <span class="ok">this</span> <span class="ok">is</span> <span class="ok">a</span> <span class="ok">normal,</span> <span class="ok">occurrence,</span> <span class="ok">significant</span> <span class="ok">mental</span> <span class="ok">health.</span> <span class="ins">Okay,</span> <span class="ins">we</span> <span class="ins">did.</span></div>
+      <div class="scores">WER 16.7% &bull; CER 11.1%</div>
+    </td>
+  </tr>
+
+  <tr class="row-b-better">
+    <td class="num">42</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-52-06_mpd</div>
+      <div class="meta2">police &bull; 14.8s</div>
+    </td>
+    <td class="ref">12 to control. Are they only asking for that one location, I&#x27;m sorry I missed that, because I can clear here. No, you&#x27;re all set, they&#x27;re just looking for that one location.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">12</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Are</span> <span class="ok">they</span> <span class="ok">only</span> <span class="ok">asking</span> <span class="ok">for</span> <span class="ok">that</span> <span class="ok">one</span> <span class="ok">location,</span> <span class="ok">I&#x27;m</span> <span class="ok">sorry</span> <span class="ok">I</span> <span class="ok">missed</span> <span class="ok">that</span> <span class="ok">because</span> <span class="ok">I</span> <span class="ok">can</span> <span class="ok">clear</span> <span class="ok">here.</span> <span class="ok">No,</span> <span class="ok">you&#x27;re</span> <span class="ok">all</span> <span class="ok">set,</span> <span class="ok">they&#x27;re</span> <span class="ok">just</span> <span class="ok">looking</span> <span class="ok">for</span> <span class="ok">that</span> <span class="ok">one</span> <span class="ok">location.</span></div>
+      <div class="scores">WER 3.1% &bull; CER 0.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">12</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Are</span> <span class="ok">they</span> <span class="ok">only</span> <span class="ok">asking</span> <span class="ok">for</span> <span class="ok">that</span> <span class="ok">one</span> <span class="ok">location,</span> <span class="ok">I&#x27;m</span> <span class="ok">sorry</span> <span class="ok">I</span> <span class="ok">missed</span> <span class="ok">that,</span> <span class="ok">because</span> <span class="ok">I</span> <span class="ok">can</span> <span class="ok">clear</span> <span class="ok">here.</span> <span class="ok">No,</span> <span class="ok">you&#x27;re</span> <span class="ok">all</span> <span class="ok">set,</span> <span class="ok">they&#x27;re</span> <span class="ok">just</span> <span class="ok">looking</span> <span class="ok">for</span> <span class="ok">that</span> <span class="ok">one</span> <span class="ok">location.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">43</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-53-06_mpd</div>
+      <div class="meta2">police &bull; 23.8s</div>
+    </td>
+    <td class="ref">244 to control. Go Ahead. Yeah, motor vehicle stop will be in front of Casa Brazil, MASS PC2, Bravo Hotel Zulu 692, BHZ 69. 10-4. Control 203.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">244</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Go</span> <span class="ok">Ahead.</span> <span class="ok">Yeah,</span> <span class="ok">motor</span> <span class="ok">vehicle</span> <span class="ok">stop</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">in</span> <span class="ok">front</span> <span class="ok">of</span> <span class="ok">Casa</span> <span class="ok">Brazil,</span> <span class="ok">MASS</span> <span class="ok">PC2,</span> <span class="ok">Bravo</span> <span class="ok">Hotel</span> <span class="ok">Zulu</span> <span class="ok">692,</span> <span class="ok">BHZ</span> <span class="ok">69.</span> <span class="ok">10-4.</span> <span class="ok">Control</span> <span class="ok">203.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">244</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Go</span> <span class="ok">Ahead.</span> <span class="ok">Yeah,</span> <span class="ok">motor</span> <span class="ok">vehicle</span> <span class="ok">stop</span> <span class="ok">will</span> <span class="ok">be</span> <span class="ok">in</span> <span class="ok">front</span> <span class="ok">of</span> <span class="ok">Casa</span> <span class="ok">Brazil,</span> <span class="ok">MASS</span> <span class="del">PC2,</span> <span class="ins">PC</span> <span class="ins">2,</span> <span class="ok">Bravo</span> <span class="ok">Hotel</span> <span class="ok">Zulu</span> <span class="ok">692,</span> <span class="ok">BHZ</span> <span class="ok">69.</span> <span class="ok">10-4.</span> <span class="ok">Control</span> <span class="ok">203.</span></div>
+      <div class="scores">WER 7.4% &bull; CER 0.7%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">44</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-53-55_mpd</div>
+      <div class="meta2">police &bull; 26.8s</div>
+    </td>
+    <td class="ref">3 Roger. Control, 244. 244. Can I just confirm that plate with you 2 Bravo Hotel Charlie 7-5? Negative, it&#x27;s going to be 2 Bravo Hotel Zulu 6-9, 2 BHZ 6-9. Thank you.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">3</span> <span class="ok">Roger.</span> <span class="ok">Control,</span> <span class="ok">244.</span> <span class="ok">244.</span> <span class="ok">Can</span> <span class="ok">I</span> <span class="ok">just</span> <span class="ok">confirm</span> <span class="ok">that</span> <span class="ok">plate</span> <span class="ok">with</span> <span class="ok">you</span> <span class="ok">2</span> <span class="ok">Bravo</span> <span class="ok">Hotel</span> <span class="ok">Charlie</span> <span class="ok">7-5?</span> <span class="ok">Negative,</span> <span class="ok">it&#x27;s</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">2</span> <span class="ok">Bravo</span> <span class="ok">Hotel</span> <span class="ok">Zulu</span> <span class="ok">6-9,</span> <span class="ok">2</span> <span class="ok">BHZ</span> <span class="ok">6-9.</span> <span class="ok">Thank</span> <span class="ok">you.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">3</span> <span class="ok">Roger.</span> <span class="ok">Control,</span> <span class="ok">244.</span> <span class="ok">244.</span> <span class="ok">Can</span> <span class="ok">I</span> <span class="ok">just</span> <span class="ok">confirm</span> <span class="ok">that</span> <span class="ok">plate</span> <span class="ok">with</span> <span class="ok">you</span> <span class="ok">2</span> <span class="ok">Bravo</span> <span class="ok">Hotel</span> <span class="ok">Charlie</span> <span class="ok">7-5?</span> <span class="ok">Negative,</span> <span class="ok">it&#x27;s</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">2</span> <span class="ok">Bravo</span> <span class="ok">Hotel</span> <span class="ok">Zulu</span> <span class="ok">6-9,</span> <span class="ok">2</span> <span class="ok">BHZ</span> <span class="ok">6-9.</span> <span class="ok">Thank</span> <span class="ok">you.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">45</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-54-32_mpd</div>
+      <div class="meta2">police &bull; 37.2s</div>
+    </td>
+    <td class="ref">12 to 3. 3. You still on the other side of town because I&#x27;m going to be leaving the comfort inn and I can check Beaver Street. I&#x27;m over on Cape Road right now if you&#x27;re closer. Roger control, I&#x27;ll take that between Maple and Dino.  Received I got that  3 has that thank you</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">12</span> <span class="ok">to</span> <span class="ok">3.</span> <span class="ok">3.</span> <span class="ok">You</span> <span class="ok">still</span> <span class="ok">on</span> <span class="ok">the</span> <span class="ok">other</span> <span class="ok">side</span> <span class="ok">of</span> <span class="ok">town</span> <span class="ok">because</span> <span class="ok">I&#x27;m</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">leaving</span> <span class="ok">the</span> <span class="ok">comfort</span> <span class="del">inn</span> <span class="ins">end</span> <span class="ok">and</span> <span class="ok">I</span> <span class="ok">can</span> <span class="ok">check</span> <span class="ok">Beaver</span> <span class="ok">Street.</span> <span class="ok">I&#x27;m</span> <span class="ok">over</span> <span class="ok">on</span> <span class="ok">Cape</span> <span class="ok">Road</span> <span class="ok">right</span> <span class="ok">now</span> <span class="ok">if</span> <span class="ok">you&#x27;re</span> <span class="ok">closer.</span> <span class="ok">Roger</span> <span class="ok">control,</span> <span class="ok">I&#x27;ll</span> <span class="ok">take</span> <span class="ok">that</span> <span class="ok">between</span> <span class="ok">Maple</span> <span class="ok">and</span> <span class="ok">Dino.</span> <span class="ok">Received</span> <span class="ok">I</span> <span class="ok">got</span> <span class="ok">that.</span> <span class="del">3</span> <span class="del">has</span> <span class="ins">Received</span> <span class="ins">I</span> <span class="ins">got</span> <span class="ok">that,</span> <span class="ok">thank</span> <span class="ok">you.</span></div>
+      <div class="scores">WER 12.7% &bull; CER 7.3%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">12</span> <span class="ok">to</span> <span class="ok">3.</span> <span class="ok">3.</span> <span class="ok">You</span> <span class="ok">still</span> <span class="ok">on</span> <span class="ok">the</span> <span class="ok">other</span> <span class="ok">side</span> <span class="ok">of</span> <span class="ok">town</span> <span class="ok">because</span> <span class="ok">I&#x27;m</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">leaving</span> <span class="ok">the</span> <span class="ok">comfort</span> <span class="del">inn</span> <span class="del">and</span> <span class="ins">in,</span> <span class="ok">I</span> <span class="ok">can</span> <span class="ok">check</span> <span class="ok">Beaver</span> <span class="ok">Street.</span> <span class="ok">I&#x27;m</span> <span class="ok">over</span> <span class="ok">on</span> <span class="ok">Cape</span> <span class="ok">Road</span> <span class="ok">right</span> <span class="ok">now</span> <span class="ok">if</span> <span class="ok">you&#x27;re</span> <span class="ok">closer.</span> <span class="ok">Roger</span> <span class="ok">control,</span> <span class="ok">I&#x27;ll</span> <span class="ok">take</span> <span class="ok">that</span> <span class="ok">between</span> <span class="ok">Maple</span> <span class="ok">and</span> <span class="ok">Dino.</span> <span class="ok">Received,</span> <span class="ok">I</span> <span class="ok">got</span> <span class="ok">that.</span> <span class="del">3</span> <span class="del">has</span> <span class="ins">Received,</span> <span class="ins">I</span> <span class="ins">got</span> <span class="ok">that,</span> <span class="ok">thank</span> <span class="ok">you.</span></div>
+      <div class="scores">WER 16.4% &bull; CER 8.8%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">46</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-56-28_mpd</div>
+      <div class="meta2">police &bull; 18.2s</div>
+    </td>
+    <td class="ref">14 to control.  Go ahead 14. She&#x27;s been removed from the property, advise not to come back. I&#x27;ll take it on the left so you can show me that it&#x27;s clear.  10-4</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">14</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="del">Go</span> <span class="del">ahead</span> <span class="ins">Fire</span> <span class="ok">14.</span> <span class="ok">She&#x27;s</span> <span class="ok">been</span> <span class="ok">removed</span> <span class="ok">from</span> <span class="ok">the</span> <span class="ok">property,</span> <span class="ok">advise</span> <span class="ok">not</span> <span class="ok">to</span> <span class="ok">come</span> <span class="ok">back.</span> <span class="ok">I&#x27;ll</span> <span class="ok">take</span> <span class="ok">it</span> <span class="ok">on</span> <span class="ok">the</span> <span class="ok">left</span> <span class="ok">so</span> <span class="ok">you</span> <span class="ok">can</span> <span class="ok">show</span> <span class="ok">me</span> <span class="ok">that</span> <span class="ok">it&#x27;s</span> <span class="ok">clear.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 9.4% &bull; CER 5.7%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">14</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="del">Go</span> <span class="del">ahead</span> <span class="ins">Fire</span> <span class="ok">14.</span> <span class="ok">She&#x27;s</span> <span class="ok">been</span> <span class="ok">removed</span> <span class="ok">from</span> <span class="ok">the</span> <span class="ok">property,</span> <span class="del">advise</span> <span class="ins">advised</span> <span class="ok">not</span> <span class="ok">to</span> <span class="ok">come</span> <span class="ok">back.</span> <span class="ok">I&#x27;ll</span> <span class="ok">take</span> <span class="ok">it</span> <span class="ok">on</span> <span class="ok">the</span> <span class="ok">left</span> <span class="ok">so</span> <span class="ok">you</span> <span class="ok">can</span> <span class="ok">show</span> <span class="del">me</span> <span class="del">that</span> <span class="del">it&#x27;s</span> <span class="ins">units</span> <span class="ok">clear.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 21.9% &bull; CER 12.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">47</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-57-13_mpd</div>
+      <div class="meta2">police &bull; 18.0s</div>
+    </td>
+    <td class="ref">44 to control. Go ahead. Yeah, where was it they were coming from? Funeral Traffic. Funeral Traffic. Coming from Edwards, going to Sacred Heart.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">44</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Go</span> <span class="ok">ahead.</span> <span class="ok">Yeah,</span> <span class="ok">where</span> <span class="ok">was</span> <span class="ok">it</span> <span class="ok">they</span> <span class="ok">were</span> <span class="ok">coming</span> <span class="ok">from?</span> <span class="ok">Funeral</span> <span class="ok">Traffic.</span> <span class="ok">Funeral</span> <span class="ok">Traffic.</span> <span class="ok">Coming</span> <span class="ok">from</span> <span class="ok">Edwards,</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">Sacred</span> <span class="ok">Heart.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">44</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Go</span> <span class="ok">ahead.</span> <span class="ok">Yeah,</span> <span class="ok">where</span> <span class="ok">was</span> <span class="ok">it</span> <span class="ok">they</span> <span class="ok">were</span> <span class="ok">coming</span> <span class="ok">from?</span> <span class="ok">Funeral</span> <span class="ok">Traffic.</span> <span class="ok">Funeral</span> <span class="ok">Traffic.</span> <span class="ok">Coming</span> <span class="ok">from</span> <span class="ok">Edwards,</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">Sacred</span> <span class="ok">Heart.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">48</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_04-58-45_mndpd</div>
+      <div class="meta2">police &bull; 23.1s</div>
+    </td>
+    <td class="ref">511 to Mendon control.  Mendon control.  You can show me clear, just the owners of Country Bunkin, they&#x27;re just picking something up. Building security.  Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">511,</span> <span class="del">to</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">You</span> <span class="ok">can</span> <span class="ok">show</span> <span class="ok">me</span> <span class="ok">clear,</span> <span class="ok">just</span> <span class="ok">the</span> <span class="ok">owners</span> <span class="ok">of</span> <span class="ok">Country</span> <span class="ok">Bunkin,</span> <span class="ok">they&#x27;re</span> <span class="ok">just</span> <span class="ok">picking</span> <span class="ok">something</span> <span class="ok">up.</span> <span class="ok">Building</span> <span class="ok">security.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 16.0% &bull; CER 3.1%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">511,</span> <span class="del">to</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">Mendon</span> <span class="ok">Control.</span> <span class="ok">You</span> <span class="ok">can</span> <span class="ok">show</span> <span class="ok">me</span> <span class="ok">clear,</span> <span class="ok">just</span> <span class="ok">the</span> <span class="ok">owners</span> <span class="ok">of</span> <span class="ok">Country</span> <span class="ok">Bunkin,</span> <span class="ok">they&#x27;re</span> <span class="ok">just</span> <span class="ok">picking</span> <span class="ok">something</span> <span class="ok">up.</span> <span class="ok">Building</span> <span class="ok">security.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 16.0% &bull; CER 4.9%</div>
+    </td>
+  </tr>
+
+  <tr class="row-b-better">
+    <td class="num">49</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_11-15-28_pd</div>
+      <div class="meta2">police &bull; 17.8s</div>
+    </td>
+    <td class="ref">89 to control. Control.  Just giving you an update we&#x27;re code-4. Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">89</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Just</span> <span class="ok">giving</span> <span class="ok">you</span> <span class="ok">an</span> <span class="ok">update</span> <span class="ok">we&#x27;re</span> <span class="del">code-4.</span> <span class="ins">clear</span> <span class="ins">for.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 16.7% &bull; CER 12.2%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">89</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Just</span> <span class="ok">giving</span> <span class="ok">you</span> <span class="ok">an</span> <span class="ok">update</span> <span class="ok">we&#x27;re</span> <span class="ok">code-4.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 1.4%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">50</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_11-47-05_pd</div>
+      <div class="meta2">police &bull; 23.5s</div>
+    </td>
+    <td class="ref">89 to control. Control.  We&#x27;re going to be clear, looks like it was just a couple of kids making a fort. It&#x27;s on the Hazel Street side. 10-4.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">89</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">We&#x27;re</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">clear,</span> <span class="ok">looks</span> <span class="ok">like</span> <span class="ok">it</span> <span class="ok">was</span> <span class="ok">just</span> <span class="ok">a</span> <span class="ok">couple</span> <span class="ok">of</span> <span class="ok">kids</span> <span class="ok">making</span> <span class="ok">a</span> <span class="ok">fort.</span> <span class="ok">It&#x27;s</span> <span class="ok">on</span> <span class="ok">the</span> <span class="ok">Hazel</span> <span class="ok">Street</span> <span class="ok">side.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">89</span> <span class="ok">to</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">We&#x27;re</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">clear,</span> <span class="ok">looks</span> <span class="ok">like</span> <span class="ok">it</span> <span class="ok">was</span> <span class="ok">just</span> <span class="ok">a</span> <span class="ok">couple</span> <span class="ok">of</span> <span class="ok">kids</span> <span class="ok">making</span> <span class="ok">a</span> <span class="ok">fort.</span> <span class="ok">It&#x27;s</span> <span class="ok">on</span> <span class="ok">the</span> <span class="ok">Hazel</span> <span class="ok">Street</span> <span class="ok">side.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.7%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">51</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_12-04-08_bfd</div>
+      <div class="meta2">fire &bull; 20.0s</div>
+    </td>
+    <td class="ref">A-1 to fire alarm. Fire alarm. A-1 is responding. Received A-1 responding 1203. Again it&#x27;s  for an elderly female that fell bleeding from the back of the head.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">A-1</span> <span class="ok">to</span> <span class="ok">fire</span> <span class="ok">alarm.</span> <span class="ok">Fire</span> <span class="ok">alarm.</span> <span class="ok">A-1</span> <span class="ok">is</span> <span class="ok">responding.</span> <span class="ok">Received</span> <span class="ok">A-1</span> <span class="ok">responding</span> <span class="del">1203.</span> <span class="ins">12</span> <span class="ins">to</span> <span class="ins">3.</span> <span class="ok">Again</span> <span class="ok">it&#x27;s</span> <span class="ok">for</span> <span class="ok">an</span> <span class="ok">elderly</span> <span class="ok">female</span> <span class="ok">that</span> <span class="ok">fell</span> <span class="ok">bleeding</span> <span class="ok">from</span> <span class="ok">the</span> <span class="ok">back</span> <span class="ok">of</span> <span class="ok">the</span> <span class="ok">head.</span></div>
+      <div class="scores">WER 10.7% &bull; CER 2.5%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">A-1</span> <span class="ok">to</span> <span class="ok">fire</span> <span class="ok">alarm.</span> <span class="ok">Fire</span> <span class="ok">alarm.</span> <span class="ok">A-1</span> <span class="ok">is</span> <span class="ok">responding.</span> <span class="ok">Received</span> <span class="ok">A-1</span> <span class="ok">responding</span> <span class="del">1203.</span> <span class="ins">12</span> <span class="ins">to</span> <span class="ins">3.</span> <span class="ok">Again</span> <span class="ok">it&#x27;s</span> <span class="ok">for</span> <span class="ok">an</span> <span class="ok">elderly</span> <span class="ok">female</span> <span class="ok">that</span> <span class="ok">fell</span> <span class="ok">bleeding</span> <span class="ok">from</span> <span class="ok">the</span> <span class="ok">back</span> <span class="ok">of</span> <span class="ok">the</span> <span class="ok">head.</span></div>
+      <div class="scores">WER 10.7% &bull; CER 2.5%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">52</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_13-15-03_mndpd</div>
+      <div class="meta2">police &bull; 18.4s</div>
+    </td>
+    <td class="ref">9 Blackstone Street, Mendon Housing Authority, Apartment Bravo 3, a little autistic girl was found wandering there.  538 Roger.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">9</span> <span class="ok">Blackstone</span> <span class="ok">Street,</span> <span class="ok">Mendon</span> <span class="ok">Housing</span> <span class="ok">Authority,</span> <span class="ok">Apartment</span> <span class="ok">Bravo</span> <span class="ok">3,</span> <span class="ok">a</span> <span class="ok">little</span> <span class="ok">autistic</span> <span class="ok">girl</span> <span class="ok">was</span> <span class="ok">found</span> <span class="ok">wandering</span> <span class="ok">there.</span> <span class="ok">538</span> <span class="ok">Roger.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">9</span> <span class="ok">Blackstone</span> <span class="ok">Street,</span> <span class="ok">Mendon</span> <span class="ok">Housing</span> <span class="ok">Authority,</span> <span class="ok">Apartment</span> <span class="ok">Bravo</span> <span class="ok">3,</span> <span class="ok">a</span> <span class="ok">little</span> <span class="ok">autistic</span> <span class="ok">girl</span> <span class="ok">was</span> <span class="ok">found</span> <span class="ok">wandering</span> <span class="ok">there.</span> <span class="ok">538</span> <span class="ok">Roger.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">53</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_13-53-58_bfd</div>
+      <div class="meta2">fire &bull; 14.0s</div>
+    </td>
+    <td class="ref">A-1 to Fire Alarm, A-1 is on arrival landmark, ending mileage 2.5.  Received on arrival landmark, ending mileage 2.5, 1353.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">A-1</span> <span class="ok">to</span> <span class="ok">Fire</span> <span class="ok">Alarm,</span> <span class="ok">A-1</span> <span class="ok">is</span> <span class="ok">on</span> <span class="ok">arrival</span> <span class="ok">landmark,</span> <span class="ok">ending</span> <span class="ok">mileage</span> <span class="ok">2.5.</span> <span class="ok">Received</span> <span class="ok">on</span> <span class="ok">arrival</span> <span class="ok">landmark,</span> <span class="ok">ending</span> <span class="ok">mileage</span> <span class="ok">2.5,</span> <span class="ok">1353.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">A-1</span> <span class="ok">to</span> <span class="ok">Fire</span> <span class="ok">Alarm,</span> <span class="ok">A-1</span> <span class="ok">is</span> <span class="ok">on</span> <span class="ok">arrival</span> <span class="ok">Landmark,</span> <span class="ok">ending</span> <span class="ok">mileage</span> <span class="ok">2.5.</span> <span class="ok">Received</span> <span class="ok">on</span> <span class="ok">arrival</span> <span class="ok">Landmark,</span> <span class="ok">ending</span> <span class="ok">mileage</span> <span class="ok">2.5,</span> <span class="ok">1353.</span></div>
+      <div class="scores">WER 10.0% &bull; CER 1.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">54</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_14-23-16_bfd</div>
+      <div class="meta2">fire &bull; 12.0s</div>
+    </td>
+    <td class="ref">Squad-1 Fire Alarm, Squad-1 back in quarters.  Received Squad-1 back in quarters 1423.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Squad-1</span> <span class="ok">Fire</span> <span class="ok">Alarm,</span> <span class="ok">Squad-1</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters.</span> <span class="ok">Received</span> <span class="ok">Squad-1</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters</span> <span class="ok">1423.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Squad-1</span> <span class="ok">Fire</span> <span class="ok">Alarm,</span> <span class="ok">Squad-1</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters.</span> <span class="ok">Received</span> <span class="ok">Squad-1</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters</span> <span class="ok">1423.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">55</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_15-40-34_pd</div>
+      <div class="meta2">police &bull; 6.7s</div>
+    </td>
+    <td class="ref">10-4.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">56</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_15-52-14_blkfd</div>
+      <div class="meta2">fire &bull; 12.8s</div>
+    </td>
+    <td class="ref">Fire alarm, Support 1 is going to be in route to Milville as well.  Received Support 1 en route 1552.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Fire</span> <span class="ok">alarm,</span> <span class="del">Support</span> <span class="del">1</span> <span class="ins">Support-1</span> <span class="ok">is</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">in</span> <span class="ok">route</span> <span class="ok">to</span> <span class="ok">Milville</span> <span class="ok">as</span> <span class="ok">well.</span> <span class="ok">Received</span> <span class="del">Support</span> <span class="del">1</span> <span class="ins">Support-1</span> <span class="ok">en</span> <span class="ok">route</span> <span class="ok">1552.</span></div>
+      <div class="scores">WER 20.0% &bull; CER 2.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Fire</span> <span class="ok">alarm,</span> <span class="del">Support</span> <span class="del">1</span> <span class="ins">Support-1</span> <span class="ok">is</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">in</span> <span class="ok">route</span> <span class="ok">to</span> <span class="ok">Milville</span> <span class="ok">as</span> <span class="ok">well.</span> <span class="ok">Received</span> <span class="del">Support</span> <span class="del">1</span> <span class="ins">Support-1</span> <span class="ok">en</span> <span class="ok">route</span> <span class="ok">1552.</span></div>
+      <div class="scores">WER 20.0% &bull; CER 2.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">57</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_16-42-05_mfd</div>
+      <div class="meta2">fire &bull; 10.9s</div>
+    </td>
+    <td class="ref">Engine-5, Rescue-1 in quarters.  Engine-5, Rescue-1, I have you both back in quarters.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-5,</span> <span class="ok">Rescue-1</span> <span class="ok">in</span> <span class="ok">quarters.</span> <span class="ok">Engine-5,</span> <span class="ok">Rescue-1,</span> <span class="ok">I</span> <span class="ok">have</span> <span class="ok">you</span> <span class="ok">both</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 1.2%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-5,</span> <span class="ok">Rescue-1</span> <span class="ok">in</span> <span class="ok">quarters.</span> <span class="ok">Engine-5,</span> <span class="ok">Rescue-1,</span> <span class="ok">I</span> <span class="ok">have</span> <span class="ok">you</span> <span class="ok">both</span> <span class="ok">back</span> <span class="ok">in</span> <span class="ok">quarters.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 1.2%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">58</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_17-21-05_pd</div>
+      <div class="meta2">police &bull; 17.5s</div>
+    </td>
+    <td class="ref">93 control. Control.  Appears accidental, we&#x27;ll be clear. 10-4.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">93</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Appears</span> <span class="ok">accidental,</span> <span class="ok">we&#x27;ll</span> <span class="ok">be</span> <span class="ok">clear.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 1.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">93</span> <span class="ok">control.</span> <span class="ok">Control.</span> <span class="ok">Appears</span> <span class="ok">accidental,</span> <span class="ok">we&#x27;ll</span> <span class="ok">be</span> <span class="ok">clear.</span> <span class="ok">10-4.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 1.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">59</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_04-18-15_bpd</div>
+      <div class="meta2">police &bull; 13.6s</div>
+    </td>
+    <td class="ref">Control it&#x27;s going to be ending mileage 3134, 0.9.  Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Control</span> <span class="ok">it&#x27;s</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">ending</span> <span class="ok">mileage</span> <span class="ok">3134,</span> <span class="ok">0.9.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Control</span> <span class="ok">it&#x27;s</span> <span class="ok">going</span> <span class="ok">to</span> <span class="ok">be</span> <span class="ok">ending</span> <span class="ok">mileage</span> <span class="ok">3134,</span> <span class="ok">0.9.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">60</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_08-44-08_mpd</div>
+      <div class="meta2">police &bull; 10.6s</div>
+    </td>
+    <td class="ref">7 to control, you can show me out in the area.  Received.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">7</span> <span class="ok">to</span> <span class="ok">control,</span> <span class="ok">you</span> <span class="ok">can</span> <span class="ok">show</span> <span class="ok">me</span> <span class="ok">out</span> <span class="ok">in</span> <span class="ok">the</span> <span class="ok">area.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">7</span> <span class="ok">to</span> <span class="ok">control,</span> <span class="ok">you</span> <span class="ok">can</span> <span class="ok">show</span> <span class="ok">me</span> <span class="ok">out</span> <span class="ok">in</span> <span class="ok">the</span> <span class="ok">area.</span> <span class="ok">Received.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">61</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_09-03-42_frkfd</div>
+      <div class="meta2">fire &bull; 25.4s</div>
+    </td>
+    <td class="ref">Engine-2, Franklin Fire.  Fire.  False detector is U208, there&#x27;s no reading, there&#x27;s no EMS here.  Received faulty detector, no reading, no EMS. Received, sir.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Fire.</span> <span class="ok">False</span> <span class="ok">detector</span> <span class="ok">is</span> <span class="ok">U208,</span> <span class="ok">there&#x27;s</span> <span class="ok">no</span> <span class="ok">reading,</span> <span class="ok">there&#x27;s</span> <span class="ok">no</span> <span class="ok">EMS</span> <span class="ok">here.</span> <span class="ok">Received</span> <span class="ok">faulty</span> <span class="ok">detector,</span> <span class="ok">no</span> <span class="ok">reading,</span> <span class="ok">no</span> <span class="ok">EMS.</span> <span class="ok">Received,</span> <span class="ok">sir.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.0%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Engine-2,</span> <span class="ok">Franklin</span> <span class="ok">Fire.</span> <span class="ok">Fire.</span> <span class="ok">False</span> <span class="ok">detector,</span> <span class="del">is</span> <span class="ok">U208,</span> <span class="ok">there&#x27;s</span> <span class="ok">no</span> <span class="ok">reading,</span> <span class="ok">there&#x27;s</span> <span class="ok">no</span> <span class="ok">EMS</span> <span class="ok">here.</span> <span class="ok">Received</span> <span class="ok">faulty</span> <span class="ok">detector,</span> <span class="ok">no</span> <span class="ok">reading,</span> <span class="ok">no</span> <span class="ok">EMS.</span> <span class="ok">Received</span> <span class="ok">sir.</span></div>
+      <div class="scores">WER 12.5% &bull; CER 3.1%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">62</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_09-15-13_mpd</div>
+      <div class="meta2">police &bull; 20.7s</div>
+    </td>
+    <td class="ref">Control 206.  6.  106 Beaver Street, again 106 Beaver Street.  You can go to that residence, that&#x27;s the Tree warden&#x27;s residence see if he&#x27;s there, you can make contact with him.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Control</span> <span class="ok">206.</span> <span class="ok">6.</span> <span class="ok">106</span> <span class="ok">Beaver</span> <span class="ok">Street,</span> <span class="ok">again</span> <span class="ok">106</span> <span class="ok">Beaver</span> <span class="ok">Street.</span> <span class="ok">You</span> <span class="ok">can</span> <span class="ok">go</span> <span class="ok">to</span> <span class="ok">that</span> <span class="ok">residence,</span> <span class="ok">that&#x27;s</span> <span class="ok">the</span> <span class="ok">Tree</span> <span class="ok">warden&#x27;s</span> <span class="ok">residence</span> <span class="ok">see</span> <span class="ok">if</span> <span class="ok">he&#x27;s</span> <span class="ok">there,</span> <span class="ok">you</span> <span class="ok">can</span> <span class="ok">make</span> <span class="ok">contact</span> <span class="ok">with</span> <span class="ok">him.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.6%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Control</span> <span class="ok">206.</span> <span class="ok">6.</span> <span class="ok">106</span> <span class="ok">Beaver</span> <span class="ok">Street,</span> <span class="ok">again</span> <span class="ok">106</span> <span class="ok">Beaver</span> <span class="ok">Street.</span> <span class="ok">You</span> <span class="ok">can</span> <span class="ok">go</span> <span class="ok">to</span> <span class="ok">that</span> <span class="ok">residence,</span> <span class="ok">that&#x27;s</span> <span class="ok">the</span> <span class="ok">Tree</span> <span class="ok">warden&#x27;s</span> <span class="ok">residence</span> <span class="ok">see</span> <span class="ok">if</span> <span class="ok">he&#x27;s</span> <span class="ok">there,</span> <span class="ok">you</span> <span class="ok">can</span> <span class="ok">make</span> <span class="ok">contact</span> <span class="ok">with</span> <span class="ok">him.</span></div>
+      <div class="scores">WER 0.0% &bull; CER 0.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-a-better">
+    <td class="num">63</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_12-17-42_mfd</div>
+      <div class="meta2">fire &bull; 38.1s</div>
+    </td>
+    <td class="ref">Ladder-1 to Fire alarm, what&#x27;s the nature of the medical?  Going for the same male that needed the lift assistant to his car.  His wife called to say that he&#x27;s dehydrated now.  Received, have the rescue go to that medical.  Fire alarm, copy. Fire alarm, copies, P-Chef. We&#x27;re clear, we&#x27;re available for a call. C-4, what&#x27;s your pleasure.</td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Ladder-1</span> <span class="ok">to</span> <span class="ok">Fire</span> <span class="ok">Alarm,</span> <span class="ok">what&#x27;s</span> <span class="ok">the</span> <span class="ok">nature</span> <span class="ok">of</span> <span class="ok">the</span> <span class="ok">medical?</span> <span class="ok">Going</span> <span class="ok">for</span> <span class="ok">the</span> <span class="ok">same</span> <span class="ok">male</span> <span class="ok">that</span> <span class="ok">needed</span> <span class="ok">the</span> <span class="ok">lift</span> <span class="ok">assistant</span> <span class="ok">to</span> <span class="ok">his</span> <span class="ok">car.</span> <span class="ok">His</span> <span class="ok">wife</span> <span class="ok">called</span> <span class="ok">to</span> <span class="ok">say</span> <span class="ok">that</span> <span class="ok">he&#x27;s</span> <span class="ok">dehydrated</span> <span class="ok">now.</span> <span class="ok">Received,</span> <span class="ok">have</span> <span class="ok">the</span> <span class="ok">rescue</span> <span class="ok">go</span> <span class="ok">to</span> <span class="ok">that</span> <span class="ok">medical.</span> <span class="del">Fire</span> <span class="del">alarm,</span> <span class="del">copy.</span> <span class="ok">Fire</span> <span class="ok">Alarm,</span> <span class="ok">copies,</span> <span class="ok">P-Chef.</span> <span class="ok">We&#x27;re</span> <span class="ok">clear,</span> <span class="ok">we&#x27;re</span> <span class="ok">available</span> <span class="ok">for</span> <span class="ok">a</span> <span class="ok">call.</span> <span class="ok">C-4,</span> <span class="ok">what&#x27;s</span> <span class="ok">your</span> <span class="ok">pleasure.</span></div>
+      <div class="scores">WER 8.6% &bull; CER 6.2%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="ok">Ladder-1</span> <span class="ok">to</span> <span class="ok">Fire</span> <span class="ok">Alarm,</span> <span class="ok">what&#x27;s</span> <span class="ok">the</span> <span class="ok">nature</span> <span class="ok">of</span> <span class="ok">the</span> <span class="ok">medical?</span> <span class="ok">Going</span> <span class="ok">for</span> <span class="ok">the</span> <span class="ok">same</span> <span class="ok">male</span> <span class="ok">that</span> <span class="ok">needed</span> <span class="ok">the</span> <span class="ok">lift</span> <span class="ok">assistant</span> <span class="ok">to</span> <span class="ok">his</span> <span class="ok">car.</span> <span class="ok">His</span> <span class="ok">wife</span> <span class="ok">called</span> <span class="ok">to</span> <span class="ok">say</span> <span class="ok">that</span> <span class="ok">he&#x27;s</span> <span class="ok">dehydrated</span> <span class="ok">now.</span> <span class="ok">Received,</span> <span class="ok">have</span> <span class="ok">the</span> <span class="ok">rescue,</span> <span class="ok">go</span> <span class="ok">to</span> <span class="ok">that</span> <span class="ok">medical.</span> <span class="del">Fire</span> <span class="del">alarm,</span> <span class="del">copy.</span> <span class="del">Fire</span> <span class="del">alarm,</span> <span class="ins">5.</span> <span class="ins">5.</span> <span class="ins">Alright,</span> <span class="ins">I&#x27;m</span> <span class="ok">copies,</span> <span class="ok">P-Chef.</span> <span class="ok">We&#x27;re</span> <span class="ok">clear,</span> <span class="ok">we&#x27;re</span> <span class="ok">available</span> <span class="ok">for</span> <span class="ok">a</span> <span class="ok">call.</span> <span class="ok">C-4,</span> <span class="ok">what&#x27;s</span> <span class="ok">your</span> <span class="ok">pleasure.</span></div>
+      <div class="scores">WER 12.1% &bull; CER 8.6%</div>
+    </td>
+  </tr>
+
+  <tr class="row-tie">
+    <td class="num">64</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_12-20-14_mfd</div>
+      <div class="meta2">fire &bull; 30.4s</div>
+    </td>
+    <td class="ref">Rescue 1 arriving on scene.  Rescue 1 on scene. He might be in Papa Gino&#x27;s now trying to get a drink, again if you want to check Papa Gino&#x27;s.  Rescue has that.  You can show P-10 on scene.  P-1 on scene as well.</td>
+    <td class="hyp">
+      <div class="diff"><span class="del">Rescue</span> <span class="del">1</span> <span class="ins">Rescue-1</span> <span class="ok">arriving</span> <span class="ok">on</span> <span class="ok">scene.</span> <span class="del">Rescue</span> <span class="del">1</span> <span class="ins">Rescue-1</span> <span class="ok">on</span> <span class="ok">scene.</span> <span class="ok">He</span> <span class="ok">might</span> <span class="ok">be</span> <span class="ok">in</span> <span class="ok">Papa</span> <span class="ok">Gino&#x27;s</span> <span class="ok">now</span> <span class="ok">trying</span> <span class="ok">to</span> <span class="ok">get</span> <span class="ok">a</span> <span class="ok">drink,</span> <span class="ok">again</span> <span class="ok">if</span> <span class="ok">you</span> <span class="ok">want</span> <span class="ok">to</span> <span class="ok">check</span> <span class="ok">Papa</span> <span class="ok">Gino&#x27;s.</span> <span class="ok">Rescue</span> <span class="ok">has</span> <span class="ok">that.</span> <span class="ok">You</span> <span class="ok">can</span> <span class="ok">show</span> <span class="ok">P-10</span> <span class="ok">on</span> <span class="ok">scene.</span> <span class="ok">P-1</span> <span class="ok">on</span> <span class="ok">scene</span> <span class="ok">as</span> <span class="ok">well.</span> <span class="ins">you</span></div>
+      <div class="scores">WER 11.6% &bull; CER 5.2%</div>
+    </td>
+    <td class="hyp">
+      <div class="diff"><span class="del">Rescue</span> <span class="del">1</span> <span class="ins">Rescue-1</span> <span class="ok">arriving</span> <span class="ok">on</span> <span class="ok">scene.</span> <span class="del">Rescue</span> <span class="del">1</span> <span class="ins">Rescue-1</span> <span class="ok">on</span> <span class="ok">scene.</span> <span class="ok">He</span> <span class="ok">might</span> <span class="ok">be</span> <span class="ok">in</span> <span class="ok">Papa</span> <span class="ok">Gino&#x27;s</span> <span class="ok">now</span> <span class="ok">trying</span> <span class="ok">to</span> <span class="ok">get</span> <span class="ok">a</span> <span class="ok">drink,</span> <span class="ok">again</span> <span class="ok">if</span> <span class="ok">you</span> <span class="ok">want</span> <span class="ok">to</span> <span class="ok">check</span> <span class="ok">Papa</span> <span class="ok">Gino&#x27;s.</span> <span class="ok">Rescue</span> <span class="ok">has</span> <span class="ok">that.</span> <span class="ok">You</span> <span class="ok">can</span> <span class="ok">show</span> <span class="ok">P-10</span> <span class="ok">on</span> <span class="ok">scene.</span> <span class="ok">P-1</span> <span class="ok">on</span> <span class="ok">scene</span> <span class="ok">as</span> <span class="ok">well.</span> <span class="ins">you</span></div>
+      <div class="scores">WER 11.6% &bull; CER 5.2%</div>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

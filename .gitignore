@@ -8,6 +8,9 @@
 .env.production
 .env.*.local
 
+# --- AI
+.codex
+
 # --- VAPID / crypto keys ---
 vapid_private.key
 vapid_public.key

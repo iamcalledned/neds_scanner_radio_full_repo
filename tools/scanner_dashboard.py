@@ -17,10 +17,17 @@ Deps:
 
 from __future__ import annotations
 
+import sys
 import os
+
+venv_python = os.path.expanduser("~/venv/bin/python3")
+if sys.executable != venv_python:
+    os.execv(venv_python, [venv_python] + sys.argv)
+    
 import socket
 import subprocess
 import time
+import json
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
@@ -28,7 +35,7 @@ import redis
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.reactive import reactive
-from textual.widgets import DataTable, Footer, Header, Static, Log
+from textual.widgets import DataTable, Footer, Header, Static, Log, TabbedContent, TabPane, Select, Checkbox, Button, Label
 
 # -----------------------------
 # Config
@@ -36,6 +43,9 @@ from textual.widgets import DataTable, Footer, Header, Static, Log
 ENV_FILE = os.path.expanduser("~/.config/scanner/env")
 REFRESH_SEC = 1.0
 LOG_LINES = 800  # pull last N log lines each refresh
+
+TRANSCRIBER_ENV_FILE = "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/transcriber/.env"
+MODEL_CATALOG_FILE = "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/transcriber/model_catalog.json"
 
 
 @dataclass(frozen=True)
@@ -211,6 +221,90 @@ def systemctl_action(unit: str, verb: str) -> Tuple[bool, str]:
 
 
 # -----------------------------
+# Model Configuration Helpers
+# -----------------------------
+def get_available_models() -> List[str]:
+    try:
+        with open(MODEL_CATALOG_FILE, "r") as f:
+            cat = json.load(f)
+        return list(cat.get("models", {}).keys())
+    except Exception:
+        return []
+
+def read_env_settings() -> Tuple[str, bool, List[str], bool]:
+    default_model = ""
+    default_enabled = False
+    secondary_models = []
+    secondary_enabled = False
+    
+    if not os.path.exists(TRANSCRIBER_ENV_FILE):
+        return default_model, default_enabled, secondary_models, secondary_enabled
+        
+    with open(TRANSCRIBER_ENV_FILE, "r") as f:
+        for line in f:
+            sline = line.strip()
+            
+            if sline.startswith("DEFAULT_MODEL_KEY="):
+                default_enabled = True
+                default_model = sline.split("=", 1)[1].strip()
+            elif sline.startswith("#DEFAULT_MODEL_KEY=") or sline.startswith("# DEFAULT_MODEL_KEY="):
+                default_enabled = False
+                default_model = sline.split("=", 1)[1].strip()
+                
+            elif sline.startswith("SECONDARY_MODELS="):
+                secondary_enabled = True
+                val = sline.split("=", 1)[1].strip()
+                if val:
+                    secondary_models = [x.strip() for x in val.split(",")]
+            elif sline.startswith("#SECONDARY_MODELS=") or sline.startswith("# SECONDARY_MODELS="):
+                secondary_enabled = False
+                val = sline.split("=", 1)[1].strip()
+                if val:
+                    secondary_models = [x.strip() for x in val.split(",")]
+                    
+    return default_model, default_enabled, secondary_models, secondary_enabled
+
+def update_transcriber_env(default_model: str, default_enabled: bool, secondary_models_str: str, secondary_enabled: bool) -> bool:
+    if not os.path.exists(TRANSCRIBER_ENV_FILE):
+        lines = []
+    else:
+        with open(TRANSCRIBER_ENV_FILE, "r") as f:
+            lines = f.readlines()
+            
+    out = []
+    found_default = False
+    found_secondary = False
+    
+    for line in lines:
+        sline = line.strip()
+        
+        if sline.startswith("DEFAULT_MODEL_KEY=") or sline.startswith("#DEFAULT_MODEL_KEY=") or sline.startswith("# DEFAULT_MODEL_KEY="):
+            out.append(f"{'' if default_enabled else '# '}DEFAULT_MODEL_KEY={default_model}\n")
+            found_default = True
+            continue
+            
+        if sline.startswith("SECONDARY_MODELS=") or sline.startswith("#SECONDARY_MODELS=") or sline.startswith("# SECONDARY_MODELS="):
+            out.append(f"{'' if secondary_enabled else '# '}SECONDARY_MODELS={secondary_models_str}\n")
+            found_secondary = True
+            continue
+            
+        out.append(line)
+        
+    if not found_default:
+        out.append(f"{'' if default_enabled else '# '}DEFAULT_MODEL_KEY={default_model}\n")
+            
+    if not found_secondary:
+        out.append(f"{'' if secondary_enabled else '# '}SECONDARY_MODELS={secondary_models_str}\n")
+            
+    try:
+        with open(TRANSCRIBER_ENV_FILE, "w") as f:
+            f.writelines(out)
+        return True
+    except Exception:
+        return False
+
+
+# -----------------------------
 # Widgets
 # -----------------------------
 class HealthPanel(Static):
@@ -246,6 +340,85 @@ class ServiceTable(DataTable):
         self.zebra_stripes = True
 
 
+class ModelConfigPanel(Vertical):
+    def compose(self) -> ComposeResult:
+        default_model, default_enabled, sec_models, sec_enabled = read_env_settings()
+        
+        models = get_available_models()
+        for m in [default_model] + sec_models:
+            if m and m not in models:
+                models.append(m)
+        
+        with Horizontal(id="settings_header"):
+            yield Label("Model Configuration", id="settings_title")
+            yield Button("Reload Options", id="refresh_models_btn")
+            
+        yield Label("Default Model", classes="lbl")
+        with Horizontal(classes="toggle_row"):
+            yield Checkbox("Enable", value=default_enabled, id="enable_default_cb")
+            yield Select([(m, m) for m in models], value=default_model if default_model else getattr(Select, "BLANK", None), id="default_model_select")
+        
+        yield Label("Secondary Models", classes="lbl")
+        yield Checkbox("Enable", value=sec_enabled, id="enable_secondary_cb")
+        
+        with Vertical(id="secondary_models_list"):
+            for m in models:
+                yield Checkbox(m, value=(m in sec_models), id=f"sec_cb_{m}", classes="sec_cb")
+                
+        yield Button("Save Changes", id="save_config_btn", variant="primary")
+        yield Label("", id="settings_status")
+
+    def refresh_settings_ui(self) -> None:
+        default_model, default_enabled, sec_models, sec_enabled = read_env_settings()
+        
+        models = get_available_models()
+        for m in [default_model] + sec_models:
+            if m and m not in models:
+                models.append(m)
+        
+        sel = self.query_one("#default_model_select", Select)
+        if hasattr(sel, "set_options"):
+            sel.set_options([(m, m) for m in models])
+            
+        blank_val = getattr(Select, "BLANK", None)
+        sel.value = default_model if default_model else blank_val
+            
+        self.query_one("#enable_default_cb", Checkbox).value = default_enabled
+        self.query_one("#enable_secondary_cb", Checkbox).value = sec_enabled
+        
+        sec_list = self.query_one("#secondary_models_list", Vertical)
+        for child in list(sec_list.children):
+            child.remove()
+            
+        for m in models:
+            sec_list.mount(Checkbox(m, value=(m in sec_models), id=f"sec_cb_{m}", classes="sec_cb"))
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "save_config_btn":
+            sel = self.query_one("#default_model_select", Select)
+            val = getattr(sel, "value", None)
+            blank_val = getattr(Select, "BLANK", object())
+            default_model = str(val) if val and val != blank_val else ""
+            
+            default_enabled = self.query_one("#enable_default_cb", Checkbox).value
+            sec_enabled = self.query_one("#enable_secondary_cb", Checkbox).value
+            
+            sec_models = [cb.id[7:] for cb in self.query(Checkbox).filter(".sec_cb") if cb.value]
+            sec_str = ",".join(sec_models)
+            
+            success = update_transcriber_env(default_model, default_enabled, sec_str, sec_enabled)
+            status = self.query_one("#settings_status", Label)
+            if success:
+                status.update(f"[{time.strftime('%H:%M:%S')}] [green]Saved successfully![/green]")
+            else:
+                status.update(f"[{time.strftime('%H:%M:%S')}] [red]Error saving file[/red]")
+                
+        elif event.button.id == "refresh_models_btn":
+            self.refresh_settings_ui()
+            status = self.query_one("#settings_status", Label)
+            status.update(f"[{time.strftime('%H:%M:%S')}] [yellow]Reloaded models from disk[/yellow]")
+
+
 # -----------------------------
 # App
 # -----------------------------
@@ -259,6 +432,24 @@ class ScannerControlRoom(App):
     #main { height: 1fr; }
     #logs { height: 1fr; border: round $accent; padding: 0 1; }
     #statusbar { height: 3; border: round $secondary; padding: 0 1; }
+
+    /* Model Config Settings */
+    #model_config_panel { padding: 1 2; height: 100%; width: 100%; }
+    #settings_header { height: 3; align: left middle; }
+    #settings_title { text-style: bold; width: 1fr; content-align: left middle; }
+    .lbl { margin-top: 1; text-style: bold; }
+    .toggle_row { height: 3; }
+    #default_model_select { width: 60; margin-left: 2; }
+    #secondary_models_list { 
+        height: 1fr; 
+        border: solid $accent; 
+        padding: 0 1; 
+        margin-top: 1;
+        margin-bottom: 1; 
+        overflow-y: auto;
+    }
+    #save_config_btn { margin-top: 1; }
+    #settings_status { margin-top: 1; }
     """
 
     BINDINGS = [
@@ -280,16 +471,21 @@ class ScannerControlRoom(App):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
 
-        with Horizontal(id="top"):
-            with Container(id="services"):
-                yield Static("[b]Services[/b]")
-                yield ServiceTable(id="svc_table")
-            with Container(id="health"):
-                yield HealthPanel(id="health_panel")
+        with TabbedContent(initial="dashboard_tab"):
+            with TabPane("Dashboard", id="dashboard_tab"):
+                with Horizontal(id="top"):
+                    with Container(id="services"):
+                        yield Static("[b]Services[/b]")
+                        yield ServiceTable(id="svc_table")
+                    with Container(id="health"):
+                        yield HealthPanel(id="health_panel")
 
-        with Vertical(id="main"):
-            yield Log(id="logs", highlight=True)
-            yield Static("", id="statusbar")
+                with Vertical(id="main"):
+                    yield Log(id="logs", highlight=True)
+                    yield Static("", id="statusbar")
+                    
+            with TabPane("Model Settings", id="settings_tab"):
+                yield ModelConfigPanel(id="model_config_panel")
 
         yield Footer()
 
