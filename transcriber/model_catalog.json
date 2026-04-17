@@ -57,8 +57,8 @@
         "temperature": 0.0
       }
     },
-    "trained_whisper_medium_v4_ct2": {
-      "model": "trained_whisper_medium_v4_ct2",
+    "trained_whisper_medium_v10_ct2": {
+      "model": "trained_whisper_medium_v10_ct2",
       "compute_type": "float16",
       "device": "cuda",
       "transcribe": {

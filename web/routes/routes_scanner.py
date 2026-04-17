@@ -1303,6 +1303,7 @@ def scanner_call_activity():
     from datetime import datetime
 
     _archive_base = os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls/scanner_archive")
+    
     STATS_LOG = Path(_archive_base) / "logs" / "stats.log"
     data = {
         "calls_by_hour": {},

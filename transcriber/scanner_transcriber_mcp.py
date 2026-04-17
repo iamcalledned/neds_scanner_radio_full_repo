@@ -29,21 +29,17 @@ load_dotenv(os.path.join(_project_root, ".env"))
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-import re
-import gc
 import json
-import time
-import shutil
+import threading
 import logging
 import logging.handlers
 import argparse
-import subprocess
 import urllib.request
 import urllib.error
 from dataclasses import dataclass
 from pathlib import Path
 from collections import OrderedDict
-from typing import Any, Dict, Optional, Tuple, List
+from typing import Any, Dict, Optional, Tuple, List, Callable
 from contextlib import asynccontextmanager
 
 import torch
@@ -61,6 +57,44 @@ from mcp_tools.location_inference import call_location_inference_service
 from mcp_tools.scoring import score_transcript
 
 from mcp_functions.audio_analysis import process_analyze_audio
+from mcp_functions.category_detection import detect_category as _detect_category_impl
+from mcp_functions.model_catalog import build_model_catalog as _build_model_catalog_impl
+from mcp_functions.router_runtime import (
+    build_router as _build_router_impl,
+    build_routing_rules as _build_routing_rules_impl,
+    ensure_runtime as _ensure_runtime_impl,
+)
+from mcp_functions.whisper_loader import load_whisper_model as _load_whisper_model_impl
+from mcp_config.scanner_transcriber_settings import (
+    ALLOWED_ROOTS,
+    ARCHIVE_BASE,
+    DEFAULT_COMPUTE_TYPE,
+    DEFAULT_MODEL_KEY,
+    DEFAULT_MODEL_KEY_ENV,
+    ENABLE_DB,
+    FEED_KEYS,
+    INTERACTIVE_ALLOWED_ROOTS,
+    LOCATION_INFER_BASE_URL,
+    LOCATION_INFER_TIMEOUT_S,
+    MIN_DURATION,
+    MODEL_BASE_DIR,
+    MODEL_CACHE_LIMIT,
+    MODEL_CATALOG_FILE,
+    MODEL_CATALOG_JSON,
+    MODEL_DIR,
+    MODEL_ROUTING_FILE,
+    MODEL_ROUTING_RULES,
+    RMS_THRESHOLD,
+    SOURCE_MAP,
+    TMP_DIR,
+    TRANSCRIBE_DEFAULTS,
+    TRANSCRIBE_KEYS,
+    WARM_DEFAULT_MODEL,
+)
+from mcp_routes.interactive_transcribe_segment import register_interactive_transcribe_segment_route
+from mcp_routes.location_inference import register_location_inference_tools
+from mcp_routes.route_and_transcribe import register_route_and_transcribe_tool
+from mcp_routes.transcribe_with_state import transcribe_with_state as _transcribe_with_state_impl
 
 
 # ==========================
@@ -89,91 +123,19 @@ hf_logging.set_verbosity_error()
 
 
 # ==========================
-# Config (env override)
+# Config
 # ==========================
-ARCHIVE_BASE = Path(os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls/scanner_archive")).expanduser().resolve()
-TMP_DIR = Path(os.environ.get("SCANNER_TMP_DIR", "/tmp/scanner_tmp")).expanduser().resolve()
-
-MODEL_BASE_DIR = Path(os.environ.get("MODEL_BASE_DIR", "/home/ned/models")).expanduser().resolve()
-MODEL_DIR = Path(os.environ.get("WHISPER_MODEL_DIR", MODEL_BASE_DIR / "trained_whisper_medium_april_2026_ct2")).expanduser().resolve()
-DEFAULT_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "float16")
-
-MIN_DURATION = float(os.environ.get("MIN_DURATION", "2"))
-RMS_THRESHOLD = float(os.environ.get("RMS_THRESHOLD", "0.001"))
-
-LOCATION_INFER_BASE_URL = os.environ.get("LOCATION_INFER_BASE_URL", "http://127.0.0.1:8011").rstrip("/")
-LOCATION_INFER_TIMEOUT_S = int(os.environ.get("LOCATION_INFER_TIMEOUT_S", "30"))
-
-# Only allow reading audio from under these roots (comma-separated)
-ALLOWED_ROOTS = [
-    p.strip() for p in os.environ.get("ALLOWED_AUDIO_ROOTS", str(ARCHIVE_BASE)).split(",") if p.strip()
-]
-ALLOWED_ROOTS = [Path(p).expanduser().resolve() for p in ALLOWED_ROOTS]
-
-# Optional DB insert
-ENABLE_DB = os.environ.get("ENABLE_SCANNER_DB", "1").strip() not in ("0", "false", "False")
 DB_IMPORT_OK = False
 scanner_db = None
 
-# Dynamic model routing config
-MODEL_CATALOG_JSON = os.environ.get("MODEL_CATALOG_JSON", "")
-MODEL_CATALOG_FILE = os.environ.get("MODEL_CATALOG_FILE", "")
-MODEL_ROUTING_RULES = os.environ.get("MODEL_ROUTING_RULES", "")
-MODEL_ROUTING_FILE = os.environ.get("MODEL_ROUTING_FILE", "")
-DEFAULT_MODEL_KEY = os.environ.get("DEFAULT_MODEL_KEY", "default")
-DEFAULT_MODEL_KEY_ENV = os.environ.get("DEFAULT_MODEL_KEY")
-MODEL_CACHE_LIMIT = int(os.environ.get("MODEL_CACHE_LIMIT", "1"))
-WARM_DEFAULT_MODEL = os.environ.get("WARM_DEFAULT_MODEL", "1").strip().lower() not in ("0", "false", "no")
-
-
-TRANSCRIBE_DEFAULTS: Dict[str, Any] = {
-    "task": "transcribe",
-    "language": "en",
-    "beam_size": 3,
-    "word_timestamps": False,
-    "condition_on_previous_text": False,
-    "vad_filter": False,
-    "initial_prompt": None,
-    "temperature": 0.0,
-    "best_of": None,
-    "patience": None,
-    "compression_ratio_threshold": None,
-    "log_prob_threshold": None,
-    "no_speech_threshold": None,
-}
-
-TRANSCRIBE_KEYS = tuple(TRANSCRIBE_DEFAULTS.keys())
-
-
-# ==========================
-# Category detection
-# ==========================
-FEED_KEYS = [
-    "mndfd", "mndpd", "mpd", "mfd", "bpd", "bfd", "pd", "fd",
-    "blkfd", "blkpd", "uptfd", "uptpd", "frkpd", "frkfd",
-]
-
-SOURCE_MAP = {
-    "pd": "Hopedale",
-    "fd": "Hopedale",
-    "mfd": "Milford",
-    "mpd": "Milford",
-    "bfd": "Bellingham",
-    "bpd": "Bellingham",
-    "mndfd": "Mendon",
-    "mndpd": "Mendon",
-    "uptfd": "Upton",
-    "uptpd": "Upton",
-    "blkfd": "Blackstone",
-    "blkpd": "Blackstone",
-    "frkfd": "Franklin",
-    "frkpd": "Franklin",
-}
-
 
 def _is_under_allowed_roots(p: Path) -> bool:
+    return _is_under_roots(p, ALLOWED_ROOTS)
+
+
+def _is_under_roots(p: Path, roots: List[Path]) -> bool:
     rp = p.expanduser().resolve()
-    for root in ALLOWED_ROOTS:
+    for root in roots:
         try:
             rp.relative_to(root)
             return True
@@ -182,16 +144,12 @@ def _is_under_allowed_roots(p: Path) -> bool:
     return False
 
 
+def _is_under_interactive_allowed_roots(p: Path) -> bool:
+    return _is_under_roots(p, INTERACTIVE_ALLOWED_ROOTS)
+
+
 def detect_category(file: Path) -> Tuple[str, str]:
-    """Detect feed (e.g., mpd, frkfd) from filename or path."""
-    name = file.name.lower()
-    parts = " ".join(file.parts).lower()
-    for key in FEED_KEYS:
-        if re.search(rf"_{key}(?:\.|_|$)", name):
-            return key, key
-        if f"/{key}/" in parts:
-            return key, key
-    return "misc", "misc"
+    return _detect_category_impl(file, FEED_KEYS)
 
 
 
@@ -295,6 +253,10 @@ class ModelRouter:
         model = self.get_model(key)
         device = torch.device("cuda")
         return WhisperState(model=model, device=device, gate=self.gate)
+
+
+_RUNTIME_LOCK = threading.Lock()
+_RUNTIME: Dict[str, Any] = {}
 
 
 def _require_cuda() -> torch.device:
@@ -439,138 +401,67 @@ def _build_transcribe_kwargs(
     return kwargs
 
 
-def _resolve_active_model_profile(ctx: Context, requested_model_key: str = "") -> Tuple[str, Optional[ModelInfo]]:
-    router = _get_router(ctx)
+def _resolve_model_profile(router: Optional[ModelRouter], requested_model_key: str = "") -> Tuple[str, Optional[ModelInfo]]:
     if not router:
         return "default", None
     return router.resolve_profile(requested_model_key)
 
 
+def _resolve_active_model_profile(ctx: Context, requested_model_key: str = "") -> Tuple[str, Optional[ModelInfo]]:
+    return _resolve_model_profile(_get_router(ctx), requested_model_key)
+
+
 def _build_model_catalog() -> Tuple[Dict[str, ModelInfo], str]:
-    raw = _json_from_env(MODEL_CATALOG_JSON, MODEL_CATALOG_FILE) or {}
-    catalog: Dict[str, ModelInfo] = {}
-    catalog_default_key = "default"
-
-    default_model_ref = str(MODEL_DIR)
-    default_transcribe = _merged_transcribe_settings(None)
-
-    # Always include default entry (env WHISPER_MODEL_DIR) so existing behavior works.
-    catalog["default"] = ModelInfo(
-        key="default",
-        model=default_model_ref,
-        compute_type=DEFAULT_COMPUTE_TYPE,
-        device="cuda",
-        transcribe=default_transcribe,
+    return _build_model_catalog_impl(
+        json_from_env_fn=_json_from_env,
+        model_catalog_json=MODEL_CATALOG_JSON,
+        model_catalog_file=MODEL_CATALOG_FILE,
+        model_dir=MODEL_DIR,
+        default_compute_type=DEFAULT_COMPUTE_TYPE,
+        merged_transcribe_settings_fn=_merged_transcribe_settings,
+        resolve_model_ref_fn=_resolve_model_ref,
+        model_info_cls=ModelInfo,
     )
-
-    # Merge user-defined catalog entries
-    if isinstance(raw, dict):
-        entries = raw.get("models") if isinstance(raw.get("models"), dict) else raw
-        if isinstance(raw.get("default_model"), str) and raw.get("default_model"):
-            catalog_default_key = raw["default_model"]
-
-        for key, val in entries.items():
-            if not isinstance(val, dict):
-                continue
-            model_ref = val.get("model") or val.get("path") or val.get("model_path") or val.get("dir")
-            if not model_ref:
-                continue
-
-            resolved_model = _resolve_model_ref(str(model_ref))
-            compute_type = val.get("compute_type", DEFAULT_COMPUTE_TYPE)
-            device = str(val.get("device", "cuda")).strip().lower() or "cuda"
-            transcribe_cfg = val.get("transcribe") if isinstance(val.get("transcribe"), dict) else val
-
-            catalog[key] = ModelInfo(
-                key=key,
-                model=resolved_model,
-                compute_type=compute_type,
-                device=device,
-                transcribe=_merged_transcribe_settings(transcribe_cfg),
-            )
-
-    if catalog_default_key not in catalog:
-        catalog_default_key = "default"
-
-    return catalog, catalog_default_key
 
 
 def _build_routing_rules() -> List[RoutingRule]:
-    raw = _json_from_env(MODEL_ROUTING_RULES, MODEL_ROUTING_FILE) or []
-    rules: List[RoutingRule] = []
-    if not isinstance(raw, list):
-        return rules
-
-    for item in raw:
-        if not isinstance(item, dict):
-            continue
-        model_key = item.get("model") or item.get("model_key")
-        if not model_key:
-            continue
-        match = item.get("match", item)
-        feed_re = match.get("feed_regex") if isinstance(match, dict) else None
-        path_re = match.get("path_regex") if isinstance(match, dict) else None
-        min_dur = match.get("min_duration") if isinstance(match, dict) else None
-        max_dur = match.get("max_duration") if isinstance(match, dict) else None
-
-        try:
-            feed_regex = re.compile(feed_re, re.IGNORECASE) if feed_re else None
-        except re.error:
-            feed_regex = None
-        try:
-            path_regex = re.compile(path_re, re.IGNORECASE) if path_re else None
-        except re.error:
-            path_regex = None
-
-        rule = RoutingRule(
-            model_key=model_key,
-            feed_regex=feed_regex,
-            path_regex=path_regex,
-            min_duration=float(min_dur) if min_dur is not None else None,
-            max_duration=float(max_dur) if max_dur is not None else None,
-        )
-        rules.append(rule)
-    return rules
+    return _build_routing_rules_impl(
+        json_from_env_fn=_json_from_env,
+        model_routing_rules=MODEL_ROUTING_RULES,
+        model_routing_file=MODEL_ROUTING_FILE,
+        routing_rule_cls=RoutingRule,
+    )
 
 
 def _build_router() -> ModelRouter:
-    catalog, catalog_default_key = _build_model_catalog()
-    rules = _build_routing_rules()
-    if DEFAULT_MODEL_KEY_ENV:
-        env_default = DEFAULT_MODEL_KEY.strip()
-        default_key = env_default if env_default in catalog else "default"
-    else:
-        default_key = catalog_default_key
-    return ModelRouter(catalog=catalog, rules=rules, default_key=default_key)
+    return _build_router_impl(
+        build_model_catalog_fn=_build_model_catalog,
+        build_routing_rules_fn=_build_routing_rules,
+        default_model_key_env=DEFAULT_MODEL_KEY_ENV,
+        default_model_key=DEFAULT_MODEL_KEY,
+        model_router_cls=ModelRouter,
+    )
+
+
+def _ensure_runtime() -> Dict[str, Any]:
+    return _ensure_runtime_impl(
+        runtime=_RUNTIME,
+        runtime_lock=_RUNTIME_LOCK,
+        build_router_fn=_build_router,
+        warm_default_model=WARM_DEFAULT_MODEL,
+        log=log,
+    )
 
 
 def load_whisper_model(model_dir: Path = MODEL_DIR, compute_type: str = DEFAULT_COMPUTE_TYPE) -> WhisperState:
-    # Keep allocator config (your env can override)
-    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = os.environ.get(
-        "PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True"
-    )
-
-    device = _require_cuda()
-
-    if not model_dir.exists():
-        raise FileNotFoundError(f"WHISPER_MODEL_DIR not found: {model_dir}")
-
-    log.info(f"Loading faster-whisper model from: {model_dir}")
-
-    model = WhisperModel(
-        str(model_dir),
-        device="cuda",
+    return _load_whisper_model_impl(
+        model_dir=model_dir,
         compute_type=compute_type,
-    )
-
-    free, total = torch.cuda.mem_get_info()
-    log.info(f"CUDA memory free: {free/(1024**3):.2f} GB / {total/(1024**3):.2f} GB")
-    log.info("Model ready on CUDA (fp16)")
-
-    return WhisperState(
-        model=model,
-        device=device,
-        gate=GPUGate(),
+        require_cuda_fn=_require_cuda,
+        whisper_model_cls=WhisperModel,
+        log=log,
+        whisper_state_cls=WhisperState,
+        gpu_gate_cls=GPUGate,
     )
 
 
@@ -702,14 +593,9 @@ async def lifespan(_: FastMCP):
     - start periodic WAL checkpoint task
     """
     import asyncio
-    router = _build_router()
-    state: Optional[WhisperState] = None
-
-    if WARM_DEFAULT_MODEL:
-        log.info(f"[lifespan] Warming default model '{router.default_key}'")
-        state = router.get_state(router.default_key)
-    else:
-        log.info("[lifespan] WARM_DEFAULT_MODEL=0; deferring model load until first request")
+    runtime = _ensure_runtime()
+    router = runtime.get("router")
+    state: Optional[WhisperState] = runtime.get("state")
 
     try_import_db()
 
@@ -722,43 +608,51 @@ async def lifespan(_: FastMCP):
             ctx["state"] = state
         yield ctx
     finally:
-        # shutdown cleanup
         wal_task.cancel()
-        try:
-            del state
-        except Exception:
-            pass
-        try:
-            router.cache.clear()
-        except Exception:
-            pass
-        gc.collect()
-        try:
-            torch.cuda.empty_cache()
-        except Exception:
-            pass
-
 
 mcp = FastMCP("scanner-transcriber", json_response=True, lifespan=lifespan)
 
 
 def _get_state(ctx: Context) -> WhisperState:
+    runtime = _ensure_runtime()
     data = ctx.request_context.lifespan_context
-    state = data.get("state")
+    state = data.get("state") or runtime.get("state")
     if state is None:
-        router: Optional[ModelRouter] = data.get("router")
+        router: Optional[ModelRouter] = data.get("router") or runtime.get("router")
         if router:
             log.info("[router] Lazy-loading default model for legacy transcribe_file path")
             state = router.get_state(router.default_key)
             data["state"] = state
+            runtime["state"] = state
         else:
             state = load_whisper_model()
             data["state"] = state
+            runtime["state"] = state
+    elif data.get("state") is None:
+        data["state"] = state
     return state
 
 
 def _get_router(ctx: Context) -> Optional[ModelRouter]:
-    return ctx.request_context.lifespan_context.get("router")
+    return ctx.request_context.lifespan_context.get("router") or _ensure_runtime().get("router")
+
+
+def _coerce_bool(value: Any, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in ("1", "true", "yes", "on")
+    return bool(value)
+
+
+def _interactive_error_status(error_code: str) -> int:
+    if error_code in {"invalid_json", "invalid_payload", "missing_path", "path_not_allowed", "missing_file", "too_short", "static"}:
+        return 400
+    if error_code in {"router_unavailable", "preprocess_failed", "transcribe_failed"}:
+        return 500
+    return 400
 
 
 # ==========================
@@ -781,7 +675,7 @@ def analyze_audio(ctx: Context, path: str) -> Dict[str, Any]:
 
 
 def _transcribe_with_state(
-    ctx: Context,
+    ctx: Optional[Context],
     state: WhisperState,
     *,
     path: str,
@@ -793,222 +687,67 @@ def _transcribe_with_state(
     delete_source_raw: bool,
     custom_output_dir: str,
     skip_wav_copy: bool,
+    router: Optional[ModelRouter] = None,
+    is_allowed_fn: Callable[[Path], bool] = _is_under_allowed_roots,
 ) -> Dict[str, Any]:
-    src = Path(path).expanduser()
-    if not _is_under_allowed_roots(src):
-        return {"ok": False, "error": "path_not_allowed", "path": str(src)}
+    return _transcribe_with_state_impl(
+        ctx,
+        state,
+        path=path,
+        model_key=model_key,
+        profile=profile,
+        language=language,
+        write_artifacts=write_artifacts,
+        insert_db=insert_db,
+        delete_source_raw=delete_source_raw,
+        custom_output_dir=custom_output_dir,
+        skip_wav_copy=skip_wav_copy,
+        router=router,
+        is_allowed_fn=is_allowed_fn,
+        get_duration_fn=get_duration,
+        min_duration=MIN_DURATION,
+        is_static_fn=is_static,
+        get_rms_fn=get_rms,
+        rms_threshold=RMS_THRESHOLD,
+        detect_category_fn=detect_category,
+        archive_base=ARCHIVE_BASE,
+        tmp_dir=TMP_DIR,
+        get_router_fn=_get_router,
+        resolve_model_profile_fn=_resolve_model_profile,
+        log=log,
+        preprocess_audio_fn=preprocess_audio,
+        transcribe_wavefile_fn=transcribe_wavefile,
+        score_transcript_fn=score_transcript,
+        source_map=SOURCE_MAP,
+        model_dir=MODEL_DIR,
+        detect_hook_request_fn=detect_hook_request,
+        db_state_getter=lambda: (DB_IMPORT_OK, scanner_db),
+    )
 
-    src = src.resolve()
-    if not src.exists():
-        return {"ok": False, "error": "missing_file", "path": str(src)}
 
-    dur = get_duration(src)
-    if dur < MIN_DURATION:
-        return {"ok": False, "error": "too_short", "duration": dur, "min_duration": MIN_DURATION}
-
-    if is_static(src):
-        return {"ok": False, "error": "static", "rms": get_rms(src), "rms_threshold": RMS_THRESHOLD}
-
-    clean_subdir, raw_subdir = detect_category(src)
-    clean_dir = (ARCHIVE_BASE / "clean" / clean_subdir).resolve()
-    raw_dir = (ARCHIVE_BASE / "raw" / raw_subdir).resolve()
-
-    TMP_DIR.mkdir(parents=True, exist_ok=True)
-    clean_dir.mkdir(parents=True, exist_ok=True)
-    raw_dir.mkdir(parents=True, exist_ok=True)
-
-    tmp = TMP_DIR / f"{src.stem}_clean.wav"
-
-    target_dir = Path(custom_output_dir).expanduser().resolve() if custom_output_dir else clean_dir
-    if custom_output_dir:
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-    out_txt = target_dir / f"{src.stem}.txt"
-    out_json = target_dir / f"{src.stem}.json"
-    out_wav = target_dir / f"{src.stem}.wav"
-
-    t0 = time.time()
-    try:
-        resolved_model_key, model_info = _resolve_active_model_profile(ctx, model_key)
-        log.info(f"[PRE-PROCESS AUDIO] Preprocessing {src.name} profile={profile}")
-        preprocess_audio(src, tmp, profile=profile)
-        log.info(f"[PRE-PROCESS AUDIO] Preprocessing done, starting Whisper inference…")
-        text = transcribe_wavefile(
-            state,
-            tmp,
-            language=language,
-            transcribe_settings=model_info.transcribe if model_info else None,
-        )
-        log.info(f"[PRE-PROCESS AUDIO] Whisper inference done in {time.time()-t0:.1f}s")
-        # insert cool algo here to determine if they were towed
-        
-        rms = get_rms(tmp)
-        quality = score_transcript(text, dur, rms)
-        now_iso = __import__("datetime").datetime.now().isoformat()
-
-        feed = clean_subdir.lower()
-        town = SOURCE_MAP.get(feed, "Unknown")
-        state_name = "Massachusetts"
-        dept = "fire" if "fd" in feed else "police" if "pd" in feed else ""
-
-        transcription_model = model_info.model if model_info else MODEL_DIR.name
-        hook_requested = detect_hook_request(text)
-        log.info(f"hook_requested: {hook_requested}")
-
-        meta: Dict[str, Any] = {
-            "filename": out_wav.name,
-            "transcript": text,
-            "raw_transcript": text,
-            "normalized_transcript": text,
-            "duration": dur,
-            "rms": rms,
-            "timestamp": now_iso,
-            "source": clean_subdir,
-            "town": town,
-            "state": state_name,
-            "dept": dept,
-            "profile": profile,
-            "language": language,
-            "classification": {
-                "zero_shot": {},
-                "location": None,
-                "address_number": None,
-                "address_street": None,
-                "units": [],
-                "tone_detected": False,
-                "agency": None,
-                "call_type": None,
-                "urgency": None,
-            },
-            "intent_labeled": False,
-            "intent_labeled_at": None,
-            "edited_transcript": None,
-            "transcription_quality": {
-                "score": quality["score"],
-                "needs_retry": quality["needs_retry"],
-                "needs_review": quality["needs_review"],
-                "reasons": quality["reasons"],
-            },
-            "profile_used": profile,
-            "retry_profiles_tried": [profile],
-            "transcription_engine": "faster-whisper",
-            "transcription_model": transcription_model,
-            "transcription_model_key": resolved_model_key,
-            "hook_request": hook_requested,
-        }
-
-        # Regex-based metadata enrichment (address, units, agency, tone, urgency)
-        try:
-            from nlp_zero_shot import enrich_meta_in_memory
-            meta = enrich_meta_in_memory(meta)
-        except Exception as e:
-            meta.setdefault("warnings", []).append(f"enrichment_failed: {e}")
-
-        if write_artifacts:
-            out_txt.write_text(text, encoding="utf-8")
-            out_json.write_text(json.dumps(meta, indent=2), encoding="utf-8")
-            if not skip_wav_copy:
-                shutil.copy(tmp, out_wav)
-
-        # Optional DB insert
-        db_result = None
-        if insert_db and DB_IMPORT_OK and scanner_db is not None:
-            log.info(f"[DB] Inserting record for {out_wav.name} (town={town}, dept={dept})...")
-            try:
-                if not getattr(scanner_db, "DB_PATH", None) or not scanner_db.DB_PATH.exists():
-                    scanner_db.create_tables()
-
-                db_meta = {
-                    "town": town,
-                    "state": state_name,
-                    "dept": dept,
-                    "category": clean_subdir,
-                    "filename": out_wav.name,
-                    "json_path": str(out_json),
-                    "wav_path": str(out_wav),
-                    "duration": dur,
-                    "rms": rms,
-                    "transcript": text,
-                    "edited_transcript": None,
-                    "timestamp": now_iso,
-                    "reviewed": 0,
-                    "play_count": 0,
-                    "classification": meta.get("classification", {}),
-                    "intent_labeled": int(meta.get("intent_labeled", 0)),
-                    "intent_labeled_at": meta.get("intent_labeled_at"),
-                    "extra": meta,
-                    "raw_transcript": text,
-                    "normalized_transcript": text,
-                    "transcription_score": quality["score"],
-                    "needs_retry": int(quality["needs_retry"]),
-                    "needs_review": int(quality["needs_review"]),
-                    "quality_reasons": quality["reasons"],
-                    "profile_used": profile,
-                    "retry_profiles_tried": [profile],
-                    "transcription_engine": "faster-whisper",
-                    "transcription_model": meta.get("transcription_model"),
-                    "hook_request": hook_requested,
-                    # Derived address fields from dictionary-backed extraction
-                    "derived_address": meta.get("derived_address"),
-                    "derived_street": meta.get("derived_street"),
-                    "derived_addr_num": meta.get("derived_addr_num"),
-                    "derived_town": meta.get("derived_town"),
-                    "derived_lat": meta.get("derived_lat"),
-                    "derived_lng": meta.get("derived_lng"),
-                    "address_confidence": meta.get("address_confidence", "none"),
-                }
-                scanner_db.insert_call(db_meta)
-                db_result = {"ok": True}
-                log.info(f"[DB] Insert successful for {out_wav.name}")
-            except Exception as e:
-                db_result = {"ok": False, "error": str(e)}
-                log.error(f"[DB] Insert failed for {out_wav.name}: {e}")
-
-        # Optional delete source
-        deleted = False
-        if delete_source_raw:
-            try:
-                src.unlink()
-                deleted = True
-            except Exception as e:
-                meta.setdefault("warnings", []).append(f"delete_failed: {e}")
-
-        elapsed = time.time() - t0
-        return {
-            "ok": True,
-            "text": text,
-            "duration": dur,
-            "rms": rms,
-            "profile": profile,
-            "language": language,
-            "model_key": resolved_model_key,
-            "source_path": str(src),
-            "clean_dir": str(clean_dir),
-            "output_dir": str(target_dir),
-            "artifacts": {
-                "txt": str(out_txt) if write_artifacts else None,
-                "json": str(out_json) if write_artifacts else None,
-                "wav": str(out_wav) if write_artifacts and not skip_wav_copy else None,
-            },
-            "db": db_result,
-            "deleted_source": deleted,
-            "elapsed_s": round(elapsed, 3),
-        }
-
-    except subprocess.CalledProcessError as e:
-        return {"ok": False, "error": "preprocess_failed", "details": str(e)}
-    except Exception as e:
-        return {"ok": False, "error": "transcribe_failed", "details": str(e)}
-    finally:
-        try:
-            tmp.unlink(missing_ok=True)
-        except Exception:
-            pass
-        gc.collect()
-        try:
-            torch.cuda.empty_cache()
-        except Exception:
-            pass
+register_interactive_transcribe_segment_route(
+    mcp=mcp,
+    ensure_runtime=_ensure_runtime,
+    resolve_model_profile=_resolve_model_profile,
+    transcribe_with_state=_transcribe_with_state,
+    interactive_error_status=_interactive_error_status,
+    coerce_bool=_coerce_bool,
+    is_under_interactive_allowed_roots=_is_under_interactive_allowed_roots,
+)
+register_route_and_transcribe_tool(
+    mcp=mcp,
+    get_router=_get_router,
+    is_under_allowed_roots=_is_under_allowed_roots,
+    detect_category=detect_category,
+    get_duration=get_duration,
+    transcribe_with_state=_transcribe_with_state,
+)
+register_location_inference_tools(
+    mcp=mcp,
+    call_location_inference_service=call_location_inference_service,
+    is_under_allowed_roots=_is_under_allowed_roots,
+    sidecar_json_for_audio=sidecar_json_for_audio,
+)
 
 
 @mcp.tool()
@@ -1049,222 +788,6 @@ def transcribe_file(
         custom_output_dir=custom_output_dir,
         skip_wav_copy=skip_wav_copy,
     )
-
-
-@mcp.tool()
-def route_and_transcribe(
-    ctx: Context,
-    path: str,
-    profile: str = "default",
-    language: str = "en",
-    auto_route: bool = True,
-    model_key: str = "",
-    write_artifacts: bool = True,
-    insert_db: bool = True,
-    delete_source_raw: bool = False,
-    custom_output_dir: str = "",
-    skip_wav_copy: bool = False,
-) -> Dict[str, Any]:
-    """
-    Route a call to the appropriate Whisper model based on routing rules or an explicit model_key.
-
-    Args:
-      path: WAV path (must be under allowed roots)
-      profile: preprocessing profile
-      language: decoding language hint (for API compatibility)
-      auto_route: when True, evaluate routing rules; otherwise use model_key or default
-      model_key: optional explicit model key from the catalog
-    """
-    router = _get_router(ctx)
-    if not router:
-        return {"ok": False, "error": "router_unavailable"}
-
-    src = Path(path).expanduser().resolve()
-    if not _is_under_allowed_roots(src):
-        return {"ok": False, "error": "path_not_allowed", "path": str(src)}
-    if not src.exists():
-        return {"ok": False, "error": "missing_file", "path": str(src)}
-
-    feed_hint, _ = detect_category(src)
-    duration = get_duration(src)
-
-    chosen_model = model_key.strip() or router.default_key
-    if auto_route:
-        chosen_model = router.choose_model(path=src, feed=feed_hint, duration=duration)
-
-    state = router.get_state(chosen_model)
-    result = _transcribe_with_state(
-        ctx,
-        state,
-        path=str(src),
-        model_key=chosen_model,
-        profile=profile,
-        language=language,
-        write_artifacts=write_artifacts,
-        insert_db=insert_db,
-        delete_source_raw=delete_source_raw,
-        custom_output_dir=custom_output_dir,
-        skip_wav_copy=skip_wav_copy,
-    )
-
-    result["model_key"] = chosen_model
-    result["routing"] = {
-        "auto_route": auto_route,
-        "feed_hint": feed_hint,
-        "duration": duration,
-    }
-    return result
-
-
-@mcp.tool()
-def infer_location(
-    ctx: Context,
-    transcript: str,
-    town: str = "",
-    feed: str = "",
-    candidate_streets: Optional[list] = None,
-    candidate_landmarks: Optional[list] = None,
-    candidate_towns: Optional[list] = None,
-    notes: str = "",
-) -> Dict[str, Any]:
-    """
-    Run location inference on a transcript by calling the local inference service.
-
-    Args:
-      transcript: the call transcript text
-      town: optional town hint
-      feed: optional feed/category hint (e.g. mpd, frkfd)
-      candidate_streets: optional list of street name candidates
-      candidate_landmarks: optional list of landmark candidates
-      candidate_towns: optional list of town candidates
-      notes: optional freeform notes for the inference service
-    """
-    if not transcript.strip():
-        return {"ok": False, "error": "transcript_empty"}
-
-    result = call_location_inference_service(
-        transcript=transcript,
-        town=town or None,
-        feed=feed or None,
-        candidate_streets=candidate_streets,
-        candidate_landmarks=candidate_landmarks,
-        candidate_towns=candidate_towns,
-        notes=notes or None,
-    )
-
-    out: Dict[str, Any] = {
-        "ok": result["ok"],
-        "transcript": transcript,
-        "town": town or None,
-        "feed": feed or None,
-        "service": result,
-    }
-    if result["ok"] and isinstance(result.get("response"), dict):
-        out["inferred_location"] = result["response"].get("inference")
-    elif not result["ok"]:
-        out["error"] = result.get("error")
-    return out
-
-
-@mcp.tool()
-def infer_location_for_file(
-    ctx: Context,
-    path: str,
-    candidate_streets: Optional[list] = None,
-    candidate_landmarks: Optional[list] = None,
-    candidate_towns: Optional[list] = None,
-    notes: str = "",
-    update_json: bool = False,
-) -> Dict[str, Any]:
-    """
-    Load a call's transcript from its sidecar JSON and run location inference.
-
-    Args:
-      path: path to the .wav or .json file (must be under allowed roots)
-      candidate_streets: optional street name hints
-      candidate_landmarks: optional landmark hints
-      candidate_towns: optional town hints
-      notes: optional freeform notes for the inference service
-      update_json: if True, write inference results back into the sidecar JSON
-    """
-    src = Path(path).expanduser()
-    if not _is_under_allowed_roots(src):
-        return {"ok": False, "error": "path_not_allowed", "path": str(src)}
-
-    src = src.resolve()
-
-    if src.suffix.lower() == ".wav":
-        json_path = sidecar_json_for_audio(src)
-    else:
-        json_path = src
-
-    if not json_path.exists():
-        return {"ok": False, "error": "json_not_found", "json_path": str(json_path)}
-
-    try:
-        meta = json.loads(json_path.read_text(encoding="utf-8"))
-    except Exception as e:
-        return {"ok": False, "error": f"json_load_failed: {e}", "json_path": str(json_path)}
-
-    # Pick best available transcript field
-    transcript = ""
-    transcript_field = None
-    for field in ("normalized_transcript", "raw_transcript", "transcript"):
-        val = meta.get(field, "")
-        if val and val.strip():
-            transcript = val.strip()
-            transcript_field = field
-            break
-
-    if not transcript:
-        return {"ok": False, "error": "no_transcript_in_json", "json_path": str(json_path)}
-
-    town = meta.get("town") or None
-    feed = meta.get("source") or meta.get("category") or None
-
-    result = call_location_inference_service(
-        transcript=transcript,
-        town=town,
-        feed=feed,
-        candidate_streets=candidate_streets,
-        candidate_landmarks=candidate_landmarks,
-        candidate_towns=candidate_towns,
-        notes=notes or None,
-    )
-
-    out: Dict[str, Any] = {
-        "ok": result["ok"],
-        "source_path": str(src),
-        "json_path": str(json_path),
-        "transcript_used": transcript,
-        "transcript_field": transcript_field,
-        "town": town,
-        "feed": feed,
-        "service": result,
-    }
-
-    if result["ok"] and isinstance(result.get("response"), dict):
-        out["inferred_location"] = result["response"].get("inference")
-    elif not result["ok"]:
-        out["error"] = result.get("error")
-        return out
-
-    if update_json and result["ok"]:
-        try:
-            resp = result["response"]
-            meta["location_inference"] = resp.get("inference")
-            meta["location_inference_meta"] = {
-                "model": resp.get("model"),
-                "prompt_version": resp.get("prompt_version"),
-                "updated_at": __import__("datetime").datetime.now().isoformat(),
-            }
-            json_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
-            out["json_updated"] = True
-        except Exception as e:
-            out["json_updated"] = False
-            out.setdefault("warnings", []).append(f"json_update_failed: {e}")
-
-    return out
 
 
 @mcp.tool()

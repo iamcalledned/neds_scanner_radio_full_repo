@@ -33,7 +33,7 @@ from typing import Dict, List, Optional, Tuple
 
 import redis
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import DataTable, Footer, Header, Static, Log, TabbedContent, TabPane, Select, Checkbox, Button, Label
 
@@ -47,6 +47,19 @@ LOG_LINES = 800  # pull last N log lines each refresh
 TRANSCRIBER_ENV_FILE = "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/transcriber/.env"
 MODEL_CATALOG_FILE = "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/transcriber/model_catalog.json"
 
+def clean_proc(p):
+    parts = p.split()
+
+    pid = parts[0] if parts else "?"
+    cmd = parts[1] if len(parts) > 1 else "unknown"
+
+    name = os.path.basename(cmd)
+
+    # Optional: detect GPU-related chrome process
+    if "--type=gpu-process" in p:
+        name += " (GPU)"
+
+    return f"{name} (pid: {pid})"
 
 @dataclass(frozen=True)
 class ServiceDef:
@@ -64,6 +77,9 @@ SERVICES: List[ServiceDef] = [
     ServiceDef("rtl_tcp@12003.service", "MFD, MNDFD"),
     ServiceDef("rtl_tcp@12004.service", "MNDPD, BLKPD"),
     ServiceDef("scanner-websocket.service", "Websocket Server"),
+    ServiceDef("scanner-archive-sweep.service", "Archive Sweeper"),
+    ServiceDef("scanner-archive-sweep.timer", "Archive Sweep Timer"),
+    ServiceDef("vllm.service", "vLLM Local Model Server"),
 ]
 
 
@@ -308,6 +324,8 @@ def update_transcriber_env(default_model: str, default_enabled: bool, secondary_
 # Widgets
 # -----------------------------
 class HealthPanel(Static):
+
+    
     def update_health(self, env: Dict[str, str]) -> None:
         redis_url = env.get("REDIS_URL", "redis://127.0.0.1:6379/0")
         mcp_url = env.get("MCP_URL", "http://127.0.0.1:8000/mcp")
@@ -318,27 +336,31 @@ class HealthPanel(Static):
         gpu = gpu_mem()
         gpu_procs = gpu_processes()
 
+        # Limit the number of GPU processes to display
+        max_gpu_procs = 5
+        gpu_procs_display = gpu_procs[:max_gpu_procs]
+
         lines = [
             "[b]Health[/b]",
             f"Redis: {'[green]OK[/green]' if redis_ok else '[red]DOWN[/red]'}",
             f"MCP TCP ({host}:{port}): {'[green]OK[/green]' if mcp_ok else '[red]DOWN[/red]'}",
             f"GPU Mem: {gpu}",
-            "GPU Procs:",
-            *[f"  {p}" for p in gpu_procs],
             "",
-            "[b]Env[/b]",
+            "[b]GPU Processes[/b]",
+            *["  - " + clean_proc(p) for p in gpu_procs_display],
+            "" if len(gpu_procs) <= max_gpu_procs else f"  - ... (and {len(gpu_procs) - max_gpu_procs} more)",
+            "",
+            "[b]Environment Variables[/b]",
             f"REDIS_URL={redis_url}",
             f"MCP_URL={mcp_url}",
         ]
         self.update("\n".join(lines))
-
 
 class ServiceTable(DataTable):
     def on_mount(self) -> None:
         self.add_columns("Service", "Active", "Sub", "PID", "Since")
         self.cursor_type = "row"
         self.zebra_stripes = True
-
 
 class ModelConfigPanel(Vertical):
     def compose(self) -> ComposeResult:
@@ -380,7 +402,7 @@ class ModelConfigPanel(Vertical):
         if hasattr(sel, "set_options"):
             sel.set_options([(m, m) for m in models])
             
-        blank_val = getattr(Select, "BLANK", None)
+        blank_val = getattr(Select, "BLANK", object())
         sel.value = default_model if default_model else blank_val
             
         self.query_one("#enable_default_cb", Checkbox).value = default_enabled
@@ -425,7 +447,10 @@ class ModelConfigPanel(Vertical):
 class ScannerControlRoom(App):
     CSS = """
     Screen { layout: vertical; }
-
+    #services_scroll { 
+    height: 1fr; 
+    overflow-y: auto; 
+        }   
     #top { height: 12; }
     #services { width: 60%; padding: 0 1; }
     #health { width: 40%; padding: 0 1; }
@@ -473,16 +498,17 @@ class ScannerControlRoom(App):
 
         with TabbedContent(initial="dashboard_tab"):
             with TabPane("Dashboard", id="dashboard_tab"):
-                with Horizontal(id="top"):
-                    with Container(id="services"):
-                        yield Static("[b]Services[/b]")
-                        yield ServiceTable(id="svc_table")
-                    with Container(id="health"):
-                        yield HealthPanel(id="health_panel")
-
-                with Vertical(id="main"):
-                    yield Log(id="logs", highlight=True)
-                    yield Static("", id="statusbar")
+                    with Horizontal(id="top"):
+                        with Container(id="services"):
+                            yield Static("[b]Services[/b]")
+                            with VerticalScroll(id="services_scroll"):
+                                yield ServiceTable(id="svc_table")
+                        with Container(id="health"):
+                            with VerticalScroll(id="health_scroll"):
+                                yield HealthPanel(id="health_panel")
+                    with Vertical(id="main"):
+                        yield Log(id="logs", highlight=True)
+                        yield Static("", id="statusbar")
                     
             with TabPane("Model Settings", id="settings_tab"):
                 yield ModelConfigPanel(id="model_config_panel")
