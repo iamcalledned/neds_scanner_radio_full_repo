@@ -64,6 +64,7 @@ from mcp_functions.router_runtime import (
     build_routing_rules as _build_routing_rules_impl,
     ensure_runtime as _ensure_runtime_impl,
 )
+from mcp_functions.transcribe_wavefile import transcribe_wavefile as _transcribe_wavefile_impl
 from mcp_functions.whisper_loader import load_whisper_model as _load_whisper_model_impl
 from mcp_config.scanner_transcriber_settings import (
     ALLOWED_ROOTS,
@@ -473,34 +474,17 @@ def transcribe_wavefile(
     language: str = "en",
     transcribe_settings: Optional[Dict[str, Any]] = None,
 ) -> str:
-    """
-    Transcribe a preprocessed WAV using the loaded faster-whisper model.
-    Serialized with a GPU lock.
-    """
-    kwargs = _build_transcribe_kwargs(
+    return _transcribe_wavefile_impl(
+        state=state,
+        wav_path=wav_path,
         task=task,
         language=language,
-        profile_settings=transcribe_settings,
+        transcribe_settings=transcribe_settings,
+        build_transcribe_kwargs_fn=_build_transcribe_kwargs,
+        log=log,
+        get_duration_fn=get_duration,
+        get_rms_fn=get_rms,
     )
-    log.info(
-        "[transcribe_wavefile] decode settings: "
-        f"beam_size={kwargs.get('beam_size')} "
-        f"vad_filter={kwargs.get('vad_filter')} "
-        f"language={kwargs.get('language')} "
-        f"task={kwargs.get('task')} "
-        f"initial_prompt_set={bool(kwargs.get('initial_prompt'))}"
-    )
-
-    log.info("[transcribe_wavefile] Acquiring GPU gate…")
-    with state.gate.acquire("whisper", timeout_s=120):
-        log.info("[transcribe_wavefile] GPU gate acquired, running model.transcribe()…")
-        segments, _ = state.model.transcribe(str(wav_path), **kwargs)
-        
-        text = " ".join([segment.text for segment in segments]).strip()
-        snippet = (text[:140] + "…") if len(text) > 140 else text
-
-    log.info(f"[transcribe_wavefile] {snippet} | duration={get_duration(wav_path):.1f}s | rms={get_rms(wav_path):.6f}")
-    return text
 
 
 # ==========================
@@ -525,12 +509,6 @@ def detect_hook_request(text: str) -> bool:
 def sidecar_json_for_audio(path: Path) -> Path:
     """Return the sidecar .json path for a given audio file path."""
     return path.with_suffix(".json")
-
-
-
-
-
-
 
 
 
