@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable
 
+from mcp.server.fastmcp import Context
+
 
 def register_route_and_transcribe_tool(
     *,
@@ -15,7 +17,7 @@ def register_route_and_transcribe_tool(
 ) -> None:
     @mcp.tool()
     def route_and_transcribe(
-        ctx: Any,
+        ctx: Context,
         path: str,
         profile: str = "default",
         language: str = "en",

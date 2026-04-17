@@ -54,7 +54,7 @@ def build_router(
     build_routing_rules_fn: Callable[[], list[Any]],
     default_model_key_env: str | None,
     default_model_key: str,
-    model_router_cls: type,
+    model_router_factory: Callable[[dict[str, Any], list[Any], str], Any],
 ) -> Any:
     catalog, catalog_default_key = build_model_catalog_fn()
     rules = build_routing_rules_fn()
@@ -63,7 +63,7 @@ def build_router(
         default_key = env_default if env_default in catalog else "default"
     else:
         default_key = catalog_default_key
-    return model_router_cls(catalog=catalog, rules=rules, default_key=default_key)
+    return model_router_factory(catalog, rules, default_key)
 
 
 def ensure_runtime(

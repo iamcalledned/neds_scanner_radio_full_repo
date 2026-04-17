@@ -29,22 +29,13 @@ load_dotenv(os.path.join(_project_root, ".env"))
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-import json
 import threading
 import logging
 import logging.handlers
 import argparse
-import urllib.request
-import urllib.error
-from dataclasses import dataclass
 from pathlib import Path
-from collections import OrderedDict
-from typing import Any, Dict, Optional, Tuple, List, Callable
+from typing import Any, Dict, Optional, Tuple, Callable
 from contextlib import asynccontextmanager
-
-import torch
-import numpy as np
-import soundfile as sf
 
 from faster_whisper import WhisperModel
 from transformers.utils import logging as hf_logging
@@ -58,11 +49,34 @@ from mcp_tools.scoring import score_transcript
 
 from mcp_functions.audio_analysis import process_analyze_audio
 from mcp_functions.category_detection import detect_category as _detect_category_impl
+from mcp_functions.model_runtime import (
+    ModelInfo,
+    ModelRouter,
+    RoutingRule,
+    WhisperState,
+    build_transcribe_kwargs,
+    json_from_env,
+    merged_transcribe_settings,
+    require_cuda,
+    resolve_model_profile,
+    resolve_model_ref,
+)
 from mcp_functions.model_catalog import build_model_catalog as _build_model_catalog_impl
 from mcp_functions.router_runtime import (
     build_router as _build_router_impl,
     build_routing_rules as _build_routing_rules_impl,
     ensure_runtime as _ensure_runtime_impl,
+)
+from mcp_functions.server_runtime import (
+    coerce_bool as _coerce_bool,
+    detect_hook_request,
+    get_router as _get_router_impl,
+    get_state as _get_state_impl,
+    interactive_error_status as _interactive_error_status,
+    is_under_roots,
+    sidecar_json_for_audio,
+    try_import_db as _try_import_db_impl,
+    wal_checkpoint_loop as _wal_checkpoint_loop_impl,
 )
 from mcp_functions.transcribe_wavefile import transcribe_wavefile as _transcribe_wavefile_impl
 from mcp_functions.whisper_loader import load_whisper_model as _load_whisper_model_impl
@@ -75,8 +89,6 @@ from mcp_config.scanner_transcriber_settings import (
     ENABLE_DB,
     FEED_KEYS,
     INTERACTIVE_ALLOWED_ROOTS,
-    LOCATION_INFER_BASE_URL,
-    LOCATION_INFER_TIMEOUT_S,
     MIN_DURATION,
     MODEL_BASE_DIR,
     MODEL_CACHE_LIMIT,
@@ -92,6 +104,7 @@ from mcp_config.scanner_transcriber_settings import (
     TRANSCRIBE_KEYS,
     WARM_DEFAULT_MODEL,
 )
+from mcp_routes.core_transcribe_tools import register_core_transcribe_tools
 from mcp_routes.interactive_transcribe_segment import register_interactive_transcribe_segment_route
 from mcp_routes.location_inference import register_location_inference_tools
 from mcp_routes.route_and_transcribe import register_route_and_transcribe_tool
@@ -131,252 +144,35 @@ scanner_db = None
 
 
 def _is_under_allowed_roots(p: Path) -> bool:
-    return _is_under_roots(p, ALLOWED_ROOTS)
-
-
-def _is_under_roots(p: Path, roots: List[Path]) -> bool:
-    rp = p.expanduser().resolve()
-    for root in roots:
-        try:
-            rp.relative_to(root)
-            return True
-        except ValueError:
-            continue
-    return False
+    return is_under_roots(p, ALLOWED_ROOTS)
 
 
 def _is_under_interactive_allowed_roots(p: Path) -> bool:
-    return _is_under_roots(p, INTERACTIVE_ALLOWED_ROOTS)
+    return is_under_roots(p, INTERACTIVE_ALLOWED_ROOTS)
 
 
 def detect_category(file: Path) -> Tuple[str, str]:
     return _detect_category_impl(file, FEED_KEYS)
 
 
-
-
-# ==========================
-# Model state (GPU-only)
-# ==========================
-@dataclass
-class WhisperState:
-    model: WhisperModel
-    device: torch.device
-    gate: GPUGate
-
-
-@dataclass
-class ModelInfo:
-    key: str
-    model: str
-    compute_type: str = DEFAULT_COMPUTE_TYPE
-    device: str = "cuda"
-    transcribe: Dict[str, Any] = None
-
-
-@dataclass
-class RoutingRule:
-    model_key: str
-    feed_regex: Optional[re.Pattern] = None
-    path_regex: Optional[re.Pattern] = None
-    min_duration: Optional[float] = None
-    max_duration: Optional[float] = None
-
-    def matches(self, *, feed: str, path: Path, duration: float) -> bool:
-        if self.feed_regex and not self.feed_regex.search(feed or ""):
-            return False
-        if self.path_regex and not self.path_regex.search(str(path).lower()):
-            return False
-        if self.min_duration is not None and duration < self.min_duration:
-            return False
-        if self.max_duration is not None and duration > self.max_duration:
-            return False
-        return True
-
-
-class ModelRouter:
-    """
-    Lightweight model registry + routing rules.
-    Keeps at most MODEL_CACHE_LIMIT models loaded to avoid VRAM thrash.
-    """
-
-    def __init__(self, catalog: Dict[str, ModelInfo], rules: List[RoutingRule], default_key: str):
-        self.catalog = catalog
-        self.rules = rules
-        self.default_key = default_key if default_key in catalog else "default"
-        self.cache: OrderedDict[str, WhisperModel] = OrderedDict()
-        self.max_cached = max(1, MODEL_CACHE_LIMIT)
-        self.gate = GPUGate()
-
-    def _trim_cache(self) -> None:
-        while len(self.cache) > self.max_cached:
-            evict_key, evict_model = self.cache.popitem(last=False)
-            try:
-                del evict_model
-                torch.cuda.empty_cache()
-            except Exception:
-                pass
-            log.info(f"[router] Evicted model '{evict_key}' from cache to respect MODEL_CACHE_LIMIT={self.max_cached}")
-
-    def get_model(self, key: str) -> WhisperModel:
-        if key not in self.catalog:
-            log.warning(f"[router] Requested model '{key}' not in catalog; falling back to default '{self.default_key}'")
-            key = self.default_key
-
-        if key in self.cache:
-            self.cache.move_to_end(key)
-            return self.cache[key]
-
-        info = self.catalog[key]
-        if info.device != "cuda":
-            log.warning(f"[router] Model '{key}' requested device='{info.device}', but this service is GPU-only. Using cuda.")
-        log.info(f"[router] Loading model '{key}' from {info.model}")
-        _require_cuda()
-        model = WhisperModel(str(info.model), device="cuda", compute_type=info.compute_type)
-        self.cache[key] = model
-        self._trim_cache()
-        return model
-
-    def resolve_profile(self, key: Optional[str] = None) -> Tuple[str, ModelInfo]:
-        resolved = (key or "").strip() or self.default_key
-        if resolved not in self.catalog:
-            log.warning(f"[router] Requested profile '{resolved}' not in catalog; falling back to default '{self.default_key}'")
-            resolved = self.default_key
-        return resolved, self.catalog[resolved]
-
-    def choose_model(self, *, path: Path, feed: str, duration: float) -> str:
-        for rule in self.rules:
-            if rule.matches(feed=feed, path=path, duration=duration):
-                return rule.model_key if rule.model_key in self.catalog else self.default_key
-        return self.default_key
-
-    def get_state(self, key: str) -> WhisperState:
-        model = self.get_model(key)
-        device = torch.device("cuda")
-        return WhisperState(model=model, device=device, gate=self.gate)
-
-
 _RUNTIME_LOCK = threading.Lock()
 _RUNTIME: Dict[str, Any] = {}
 
 
-def _require_cuda() -> torch.device:
-    if not torch.cuda.is_available():
-        raise RuntimeError("CUDA is required (GPU-only). torch.cuda.is_available() is False.")
-    # Optional: TF32 speedups on Ampere+
-    try:
-        torch.backends.cuda.matmul.allow_tf32 = True
-        torch.backends.cudnn.allow_tf32 = True
-    except Exception:
-        pass
-    return torch.device("cuda")
+def _require_cuda():
+    return require_cuda()
 
 
 def _json_from_env(env_value: str, file_path: str) -> Optional[Any]:
-    """
-    Helper: load JSON from an env string or a file path. Returns None on failure.
-    """
-    if env_value:
-        try:
-            return json.loads(env_value)
-        except Exception as e:
-            log.warning(f"[router] Failed to parse JSON from env: {e}")
-    if file_path:
-        p = Path(file_path).expanduser()
-        if p.exists():
-            try:
-                return json.loads(p.read_text())
-            except Exception as e:
-                log.warning(f"[router] Failed to parse JSON from {p}: {e}")
-    return None
+    return json_from_env(env_value, file_path)
 
 
 def _resolve_model_ref(model_ref: str) -> str:
-    raw = (model_ref or "").strip()
-    if not raw:
-        return str(MODEL_DIR)
-
-    p = Path(raw).expanduser()
-    if p.is_absolute() or raw.startswith(".") or raw.startswith("~"):
-        return str(p.resolve())
-
-    # Backward compatible behavior: bare local model folders resolve under MODEL_BASE_DIR.
-    if "/" not in raw and "\\" not in raw:
-        return str((MODEL_BASE_DIR / p).resolve())
-
-    candidate = (MODEL_BASE_DIR / p).expanduser()
-    if candidate.exists():
-        return str(candidate.resolve())
-
-    # Keep hub-style IDs (e.g., org/model-name) untouched.
-    return raw
-
-
-def _normalize_temperature(value: Any) -> Any:
-    if value is None:
-        return None
-    if isinstance(value, (int, float)):
-        return float(value)
-    if isinstance(value, list):
-        out: List[float] = []
-        for item in value:
-            if isinstance(item, (int, float)):
-                out.append(float(item))
-        if not out:
-            return None
-        return out
-    return None
+    return resolve_model_ref(model_ref, model_dir=MODEL_DIR, model_base_dir=MODEL_BASE_DIR)
 
 
 def _merged_transcribe_settings(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-    merged: Dict[str, Any] = dict(TRANSCRIBE_DEFAULTS)
-    if isinstance(raw, dict):
-        for key in TRANSCRIBE_KEYS:
-            if key in raw:
-                merged[key] = raw.get(key)
-
-    if not merged.get("task"):
-        merged["task"] = TRANSCRIBE_DEFAULTS["task"]
-    if not merged.get("language"):
-        merged["language"] = TRANSCRIBE_DEFAULTS["language"]
-
-    try:
-        merged["beam_size"] = int(merged.get("beam_size", TRANSCRIBE_DEFAULTS["beam_size"]))
-    except (TypeError, ValueError):
-        merged["beam_size"] = TRANSCRIBE_DEFAULTS["beam_size"]
-    if merged["beam_size"] < 1:
-        merged["beam_size"] = TRANSCRIBE_DEFAULTS["beam_size"]
-
-    for bool_key in ("word_timestamps", "condition_on_previous_text", "vad_filter"):
-        merged[bool_key] = bool(merged.get(bool_key, TRANSCRIBE_DEFAULTS[bool_key]))
-
-    prompt = merged.get("initial_prompt")
-    if isinstance(prompt, str):
-        prompt = prompt.strip()
-    merged["initial_prompt"] = prompt or None
-
-    temperature = _normalize_temperature(merged.get("temperature"))
-    merged["temperature"] = TRANSCRIBE_DEFAULTS["temperature"] if temperature is None else temperature
-
-    for optional_num_key in (
-        "best_of",
-        "patience",
-        "compression_ratio_threshold",
-        "log_prob_threshold",
-        "no_speech_threshold",
-    ):
-        value = merged.get(optional_num_key)
-        if value is None:
-            continue
-        try:
-            merged[optional_num_key] = float(value)
-        except (TypeError, ValueError):
-            merged[optional_num_key] = None
-
-    if merged.get("best_of") is not None:
-        merged["best_of"] = int(merged["best_of"])
-
-    return merged
+    return merged_transcribe_settings(raw, defaults=TRANSCRIBE_DEFAULTS, keys=TRANSCRIBE_KEYS)
 
 
 def _build_transcribe_kwargs(
@@ -385,31 +181,17 @@ def _build_transcribe_kwargs(
     language: str,
     profile_settings: Optional[Dict[str, Any]],
 ) -> Dict[str, Any]:
-    settings = _merged_transcribe_settings(profile_settings)
-    if task:
-        settings["task"] = task
-    if language:
-        settings["language"] = language
-
-    kwargs: Dict[str, Any] = {}
-    for key in TRANSCRIBE_KEYS:
-        value = settings.get(key)
-        if value is None:
-            continue
-        if key == "initial_prompt" and isinstance(value, str) and not value.strip():
-            continue
-        kwargs[key] = value
-    return kwargs
+    return build_transcribe_kwargs(
+        task=task,
+        language=language,
+        profile_settings=profile_settings,
+        merged_transcribe_settings_fn=_merged_transcribe_settings,
+        keys=TRANSCRIBE_KEYS,
+    )
 
 
 def _resolve_model_profile(router: Optional[ModelRouter], requested_model_key: str = "") -> Tuple[str, Optional[ModelInfo]]:
-    if not router:
-        return "default", None
-    return router.resolve_profile(requested_model_key)
-
-
-def _resolve_active_model_profile(ctx: Context, requested_model_key: str = "") -> Tuple[str, Optional[ModelInfo]]:
-    return _resolve_model_profile(_get_router(ctx), requested_model_key)
+    return resolve_model_profile(router, requested_model_key)
 
 
 def _build_model_catalog() -> Tuple[Dict[str, ModelInfo], str]:
@@ -425,7 +207,7 @@ def _build_model_catalog() -> Tuple[Dict[str, ModelInfo], str]:
     )
 
 
-def _build_routing_rules() -> List[RoutingRule]:
+def _build_routing_rules() -> list[RoutingRule]:
     return _build_routing_rules_impl(
         json_from_env_fn=_json_from_env,
         model_routing_rules=MODEL_ROUTING_RULES,
@@ -440,7 +222,12 @@ def _build_router() -> ModelRouter:
         build_routing_rules_fn=_build_routing_rules,
         default_model_key_env=DEFAULT_MODEL_KEY_ENV,
         default_model_key=DEFAULT_MODEL_KEY,
-        model_router_cls=ModelRouter,
+        model_router_factory=lambda catalog, rules, default_key: ModelRouter(
+            catalog=catalog,
+            rules=rules,
+            default_key=default_key,
+            max_cached=MODEL_CACHE_LIMIT,
+        ),
     )
 
 
@@ -488,78 +275,18 @@ def transcribe_wavefile(
 
 
 # ==========================
-# Hook request detection
-# ==========================
-_HOOK_PATTERNS = re.compile(
-    r'\b(tow|togi|togis|togie|togies|togy|hook|arts|towing)\b',
-    re.IGNORECASE,
-)
-
-def detect_hook_request(text: str) -> bool:
-    """Return True if the transcript contains a towing/hook keyword."""
-    if not text:
-        return False
-    
-    return bool(_HOOK_PATTERNS.search(text))
-
-
-# ==========================
-# Location inference client
-# ==========================
-def sidecar_json_for_audio(path: Path) -> Path:
-    """Return the sidecar .json path for a given audio file path."""
-    return path.with_suffix(".json")
-
-
-
-
-# ==========================
 # Optional DB integration
 # ==========================
 def try_import_db() -> None:
     global DB_IMPORT_OK, scanner_db
-    if not ENABLE_DB:
-        return
-    try:
-        from shared.scanner_db import (
-            insert_call, create_tables, DB_PATH,
-            update_call_classification, update_hook_request,
-            update_review_status, infer_town_from_filename,
-            infer_dept_from_filename,
-        )
-        # Build a namespace that looks like the old module import
-        import types
-        _mod = types.SimpleNamespace(
-            insert_call=insert_call,
-            create_tables=create_tables,
-            DB_PATH=DB_PATH,
-            update_call_classification=update_call_classification,
-            update_hook_request=update_hook_request,
-            update_review_status=update_review_status,
-            infer_town_from_filename=infer_town_from_filename,
-            infer_dept_from_filename=infer_dept_from_filename,
-        )
-        scanner_db = _mod
-        DB_IMPORT_OK = True
-        log.info("shared.scanner_db import OK (DB inserts enabled).")
-    except Exception as e:
-        DB_IMPORT_OK = False
-        log.warning(f"shared.scanner_db import failed (DB inserts disabled): {e}")
+    DB_IMPORT_OK, scanner_db = _try_import_db_impl(ENABLE_DB, log)
 
 
 # ==========================
 # MCP server with lifespan
 # ==========================
 async def _wal_checkpoint_loop():
-    """Periodically checkpoint the WAL file to prevent unbounded growth."""
-    import asyncio
-    while True:
-        await asyncio.sleep(300)          # every 5 minutes
-        try:
-            from shared.scanner_db import wal_checkpoint
-            wal_checkpoint()
-        except Exception as e:
-            log.warning(f"[DB] Periodic WAL checkpoint failed: {e}")
+    await _wal_checkpoint_loop_impl(log)
 
 
 @asynccontextmanager
@@ -592,64 +319,16 @@ mcp = FastMCP("scanner-transcriber", json_response=True, lifespan=lifespan)
 
 
 def _get_state(ctx: Context) -> WhisperState:
-    runtime = _ensure_runtime()
-    data = ctx.request_context.lifespan_context
-    state = data.get("state") or runtime.get("state")
-    if state is None:
-        router: Optional[ModelRouter] = data.get("router") or runtime.get("router")
-        if router:
-            log.info("[router] Lazy-loading default model for legacy transcribe_file path")
-            state = router.get_state(router.default_key)
-            data["state"] = state
-            runtime["state"] = state
-        else:
-            state = load_whisper_model()
-            data["state"] = state
-            runtime["state"] = state
-    elif data.get("state") is None:
-        data["state"] = state
-    return state
+    return _get_state_impl(
+        ctx,
+        ensure_runtime_fn=_ensure_runtime,
+        load_whisper_model_fn=load_whisper_model,
+        log=log,
+    )
 
 
 def _get_router(ctx: Context) -> Optional[ModelRouter]:
-    return ctx.request_context.lifespan_context.get("router") or _ensure_runtime().get("router")
-
-
-def _coerce_bool(value: Any, default: bool = False) -> bool:
-    if value is None:
-        return default
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        return value.strip().lower() in ("1", "true", "yes", "on")
-    return bool(value)
-
-
-def _interactive_error_status(error_code: str) -> int:
-    if error_code in {"invalid_json", "invalid_payload", "missing_path", "path_not_allowed", "missing_file", "too_short", "static"}:
-        return 400
-    if error_code in {"router_unavailable", "preprocess_failed", "transcribe_failed"}:
-        return 500
-    return 400
-
-
-# ==========================
-# MCP tools
-# ==========================
-@mcp.tool()
-def analyze_audio(ctx: Context, path: str) -> Dict[str, Any]:
-    """
-    Analyze a WAV file (duration, RMS, static detection).
-
-    Args:
-      path: Absolute or relative path to the WAV file (must be under allowed roots).
-    """
-    return process_analyze_audio(
-        path=path,
-        is_allowed_fn=_is_under_allowed_roots,
-        min_duration=MIN_DURATION,
-        rms_threshold=RMS_THRESHOLD,
-    )
+    return _get_router_impl(ctx, ensure_runtime_fn=_ensure_runtime)
 
 
 def _transcribe_with_state(
@@ -726,67 +405,15 @@ register_location_inference_tools(
     is_under_allowed_roots=_is_under_allowed_roots,
     sidecar_json_for_audio=sidecar_json_for_audio,
 )
-
-
-@mcp.tool()
-def transcribe_file(
-    ctx: Context,
-    path: str,
-    profile: str = "default",
-    language: str = "en",
-    write_artifacts: bool = True,
-    insert_db: bool = True,
-    delete_source_raw: bool = False,
-    custom_output_dir: str = "",
-    skip_wav_copy: bool = False,
-) -> Dict[str, Any]:
-    """
-    Preprocess + transcribe a scanner WAV, then write artifacts under ARCHIVE_BASE/clean/<feed>/.
-
-    Args:
-      path: WAV path (must be under allowed roots)
-      profile: preprocessing profile (default|radio|static_fix|aggressive)
-      language: unused in this implementation (GPU-only fast tokenizer path)
-      write_artifacts: if True, writes .json/.txt/.wav to clean folder
-      insert_db: if True and scanner_db is available, insert into DB
-      delete_source_raw: if True, deletes the source raw WAV after success
-    """
-    state = _get_state(ctx)
-
-    return _transcribe_with_state(
-        ctx,
-        state,
-        path=path,
-        model_key="",
-        profile=profile,
-        language=language,
-        write_artifacts=write_artifacts,
-        insert_db=insert_db,
-        delete_source_raw=delete_source_raw,
-        custom_output_dir=custom_output_dir,
-        skip_wav_copy=skip_wav_copy,
-    )
-
-
-@mcp.tool()
-def retranscribe_file(
-    ctx: Context,
-    path: str,
-    profile: str = "radio",
-    language: str = "en",
-) -> Dict[str, Any]:
-    """
-    Convenience wrapper for transcribe_file with a different preprocessing profile.
-    """
-    return transcribe_file(
-        ctx,
-        path=path,
-        profile=profile,
-        language=language,
-        write_artifacts=True,
-        insert_db=True,
-        delete_source_raw=False,
-    )
+register_core_transcribe_tools(
+    mcp=mcp,
+    process_analyze_audio_fn=process_analyze_audio,
+    is_under_allowed_fn=_is_under_allowed_roots,
+    min_duration=MIN_DURATION,
+    rms_threshold=RMS_THRESHOLD,
+    get_state_fn=_get_state,
+    transcribe_with_state_fn=_transcribe_with_state,
+)
 
 
 # ==========================

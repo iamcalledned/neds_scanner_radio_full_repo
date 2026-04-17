@@ -92,6 +92,40 @@ def mark_processed(path: str):
     PROCESSED_FILE.write_text("\n".join(sorted(processed)))
 
 
+def extract_tool_payload(result) -> dict | None:
+    """
+    Accept both common MCP tool response shapes:
+    - structuredContent={"result": {...}}
+    - structuredContent={...}
+    """
+    structured = getattr(result, "structuredContent", None)
+    if isinstance(structured, dict):
+        wrapped = structured.get("result")
+        if isinstance(wrapped, dict):
+            return wrapped
+        if "ok" in structured or "error" in structured or "text" in structured:
+            return structured
+
+    content = getattr(result, "content", None)
+    if isinstance(content, list):
+        for item in content:
+            text = getattr(item, "text", None)
+            if not isinstance(text, str):
+                continue
+            try:
+                parsed = json.loads(text)
+            except Exception:
+                continue
+            if isinstance(parsed, dict):
+                wrapped = parsed.get("result")
+                if isinstance(wrapped, dict):
+                    return wrapped
+                if "ok" in parsed or "error" in parsed or "text" in parsed:
+                    return parsed
+
+    return None
+
+
 def summarize():
     uptime = (datetime.now(UTC) - start_time).total_seconds() / 60
     log.info("")
@@ -184,12 +218,15 @@ async def main():
                                 log.info(f"MCP Transcribing: {file_path}")
                                 try:
                                     result = await call_transcribe(session, file_path)
-                                    # MCP returns a content wrapper; the structured result is usually in structuredContent
-                                    structured = getattr(result, "structuredContent", None) or {}
-                                    payload = structured.get("result") if isinstance(structured, dict) else None
+                                    payload = extract_tool_payload(result)
 
                                     if not payload or not payload.get("ok"):
-                                        log.error(f"MCP transcription failed: {payload}")
+                                        log.error(
+                                            "MCP transcription failed: %s | structured=%r | content=%r",
+                                            payload,
+                                            getattr(result, "structuredContent", None),
+                                            getattr(result, "content", None),
+                                        )
                                         failed_count += 1
                                     else:
                                         mark_processed(str(file_path))
@@ -214,8 +251,7 @@ async def main():
                                                 for sec_model in SECONDARY_MODELS:
                                                     log.info(f"Running secondary transcript using '{sec_model}'...")
                                                     sec_res = await call_sec_transcribe(session, file_path, sec_model)
-                                                    sec_struct = getattr(sec_res, "structuredContent", None) or {}
-                                                    sec_payload = sec_struct.get("result") if isinstance(sec_struct, dict) else None
+                                                    sec_payload = extract_tool_payload(sec_res)
                                                     
                                                     if sec_payload and sec_payload.get("ok"):
                                                         sec_text = sec_payload.get("text", "").strip()

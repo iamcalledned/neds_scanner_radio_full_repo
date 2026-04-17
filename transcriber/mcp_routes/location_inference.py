@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+from mcp.server.fastmcp import Context
+
 
 def register_location_inference_tools(
     *,
@@ -14,7 +16,7 @@ def register_location_inference_tools(
 ) -> None:
     @mcp.tool()
     def infer_location(
-        ctx: Any,
+        ctx: Context,
         transcript: str,
         town: str = "",
         feed: str = "",
@@ -63,7 +65,7 @@ def register_location_inference_tools(
 
     @mcp.tool()
     def infer_location_for_file(
-        ctx: Any,
+        ctx: Context,
         path: str,
         candidate_streets: Optional[list] = None,
         candidate_landmarks: Optional[list] = None,
