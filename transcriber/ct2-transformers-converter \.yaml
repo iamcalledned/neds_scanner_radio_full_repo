@@ -1,0 +1,4 @@
+ ct2-transformers-converter \
+  --model /home/ned/models/whisper_large_v3_scanner_merged\
+  --output_dir /home/ned/models/whisper_large_v3_scanner_ct2 \
+  --quantization float16

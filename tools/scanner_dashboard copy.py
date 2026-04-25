@@ -4,14 +4,12 @@ scanner_dashboard.py — Textual dashboard to start/stop/monitor:
   - scanner-mcp.service
   - scanner-recorder.service
   - scanner-transcriber.service
-  - vllm.service
 
 Features:
   - Service status table (Active/Sub/PID/Since)
   - Health checks: Redis ping, MCP TCP, GPU mem (nvidia-smi)
   - Live log tail for selected service
   - Keybindings: start/stop/restart selected, start/stop/restart all
-  - Model config panel to update Transcriber and vLLM models dynamically
 
 Deps:
   pip install textual redis
@@ -278,108 +276,13 @@ def systemctl_action(unit: str, verb: str) -> Tuple[bool, str]:
 # -----------------------------
 # Model Configuration Helpers
 # -----------------------------
-def get_transcribe_models() -> List[str]:
+def get_available_models() -> List[str]:
     try:
         with open(MODEL_CATALOG_FILE, "r") as f:
             cat = json.load(f)
-        return [k for k, v in cat.get("models", {}).items() if v.get("kind", "transcribe") == "transcribe"]
+        return list(cat.get("models", {}).keys())
     except Exception:
         return []
-
-
-def get_chat_models() -> List[str]:
-    try:
-        with open(MODEL_CATALOG_FILE, "r") as f:
-            cat = json.load(f)
-        return [k for k, v in cat.get("models", {}).items() if v.get("kind") == "chat"]
-    except Exception:
-        return []
-
-
-def get_current_vllm_model() -> str:
-    try:
-        service_path = os.path.expanduser("~/.config/systemd/user/vllm.service")
-        if not os.path.exists(service_path):
-            return ""
-        with open(service_path, "r") as f:
-            for line in f:
-                if line.startswith("ExecStart="):
-                    parts = line.split()
-                    if "serve" in parts:
-                        idx = parts.index("serve")
-                        if idx + 1 < len(parts):
-                            model_path = parts[idx + 1]
-                            try:
-                                with open(MODEL_CATALOG_FILE, "r") as cf:
-                                    cat = json.load(cf)
-                                for k, v in cat.get("models", {}).items():
-                                    if v.get("kind") == "chat" and v.get("model") == model_path:
-                                        return k
-                            except Exception:
-                                pass
-                            return model_path
-    except Exception:
-        pass
-    return ""
-
-
-def update_vllm_service(model_key: str) -> bool:
-    try:
-        with open(MODEL_CATALOG_FILE, "r") as f:
-            cat = json.load(f)
-        
-        model_info = cat.get("models", {}).get(model_key)
-        if not model_info or model_info.get("kind") != "chat":
-            return False
-        
-        chat_cfg = model_info.get("chat", {})
-        
-        vllm_bin = chat_cfg.get("vllm_bin", "/home/ned/vllm_stack/bin/vllm")
-        model_path = model_info.get("model", "")
-        
-        args = [vllm_bin, "serve", model_path]
-        
-        if "port" in chat_cfg:
-            args.extend(["--port", str(chat_cfg["port"])])
-        if "gpu_memory_utilization" in chat_cfg:
-            args.extend(["--gpu-memory-utilization", str(chat_cfg["gpu_memory_utilization"])])
-        if "max_num_seqs" in chat_cfg:
-            args.extend(["--max-num-seqs", str(chat_cfg["max_num_seqs"])])
-        if "max_model_len" in chat_cfg:
-            args.extend(["--max-model-len", str(chat_cfg["max_model_len"])])
-        if "tokenizer_mode" in chat_cfg:
-            args.extend(["--tokenizer-mode", str(chat_cfg["tokenizer_mode"])])
-        if chat_cfg.get("trust_remote_code"):
-            args.append("--trust-remote-code")
-        if chat_cfg.get("enable_auto_tool_choice"):
-            args.append("--enable-auto-tool-choice")
-        if "tool_call_parser" in chat_cfg:
-            args.extend(["--tool-call-parser", str(chat_cfg["tool_call_parser"])])
-        if "extra_args" in chat_cfg:
-            args.extend(chat_cfg["extra_args"])
-            
-        exec_start = " ".join(args)
-        
-        service_path = os.path.expanduser("~/.config/systemd/user/vllm.service")
-        
-        if not os.path.exists(service_path):
-            return False
-            
-        with open(service_path, "r") as f:
-            lines = f.readlines()
-            
-        with open(service_path, "w") as f:
-            for line in lines:
-                if line.startswith("ExecStart="):
-                    f.write(f"ExecStart={exec_start}\n")
-                else:
-                    f.write(line)
-        
-        subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
-        subprocess.run(["systemctl", "--user", "restart", "vllm.service"], check=True)
-        return True
-    except Exception:
-        return False
 
 
 def read_env_settings() -> Tuple[str, bool, List[str], bool]:
@@ -511,38 +414,33 @@ class ServiceTable(DataTable):
         self.zebra_stripes = True
 
 
-class ModelConfigPanel(VerticalScroll):
+class ModelConfigPanel(Vertical):
     def compose(self) -> ComposeResult:
         default_model, default_enabled, sec_models, sec_enabled = read_env_settings()
 
-        transcribe_models = get_transcribe_models()
-        chat_models = get_chat_models()
-        current_chat_model = get_current_vllm_model()
-
+        models = get_available_models()
         for m in [default_model] + sec_models:
-            if m and m not in transcribe_models:
-                transcribe_models.append(m)
-        if current_chat_model and current_chat_model not in chat_models:
-            chat_models.append(current_chat_model)
+            if m and m not in models:
+                models.append(m)
 
         with Horizontal(id="settings_header"):
-            yield Label("Transcriber Model Configuration", id="settings_title")
+            yield Label("Model Configuration", id="settings_title")
             yield Button("Reload Options", id="refresh_models_btn")
 
-        yield Label("Default Transcriber Model", classes="lbl")
+        yield Label("Default Model", classes="lbl")
         with Horizontal(classes="toggle_row"):
             yield Checkbox("Enable", value=default_enabled, id="enable_default_cb")
             yield Select(
-                [(m, m) for m in transcribe_models],
+                [(m, m) for m in models],
                 value=default_model if default_model else getattr(Select, "BLANK", None),
                 id="default_model_select",
             )
 
-        yield Label("Secondary Transcriber Models", classes="lbl")
+        yield Label("Secondary Models", classes="lbl")
         yield Checkbox("Enable", value=sec_enabled, id="enable_secondary_cb")
 
         with Vertical(id="secondary_models_list"):
-            for m in transcribe_models:
+            for m in models:
                 yield Checkbox(
                     m,
                     value=(m in sec_models),
@@ -550,38 +448,20 @@ class ModelConfigPanel(VerticalScroll):
                     classes="sec_cb",
                 )
 
-        yield Button("Save Transcriber Config", id="save_config_btn", variant="primary")
-        
-        yield Static("", classes="spacer")
-        
-        yield Label("vLLM Service Configuration", classes="lbl", id="vllm_title")
-        yield Label("Select Chat Model for vLLM Service", classes="lbl")
-        with Horizontal(classes="toggle_row"):
-            yield Select(
-                [(m, m) for m in chat_models],
-                value=current_chat_model if current_chat_model else getattr(Select, "BLANK", None),
-                id="chat_model_select",
-            )
-            yield Button("Update & Restart vLLM", id="update_vllm_btn", variant="warning")
-            
+        yield Button("Save Changes", id="save_config_btn", variant="primary")
         yield Label("", id="settings_status")
 
     def refresh_settings_ui(self) -> None:
         default_model, default_enabled, sec_models, sec_enabled = read_env_settings()
 
-        transcribe_models = get_transcribe_models()
-        chat_models = get_chat_models()
-        current_chat_model = get_current_vllm_model()
-
+        models = get_available_models()
         for m in [default_model] + sec_models:
-            if m and m not in transcribe_models:
-                transcribe_models.append(m)
-        if current_chat_model and current_chat_model not in chat_models:
-            chat_models.append(current_chat_model)
+            if m and m not in models:
+                models.append(m)
 
         sel = self.query_one("#default_model_select", Select)
         if hasattr(sel, "set_options"):
-            sel.set_options([(m, m) for m in transcribe_models])
+            sel.set_options([(m, m) for m in models])
 
         blank_val = getattr(Select, "BLANK", object())
         sel.value = default_model if default_model else blank_val
@@ -593,7 +473,7 @@ class ModelConfigPanel(VerticalScroll):
         for child in list(sec_list.children):
             child.remove()
 
-        for m in transcribe_models:
+        for m in models:
             sec_list.mount(
                 Checkbox(
                     m,
@@ -602,11 +482,6 @@ class ModelConfigPanel(VerticalScroll):
                     classes="sec_cb",
                 )
             )
-
-        chat_sel = self.query_one("#chat_model_select", Select)
-        if hasattr(chat_sel, "set_options"):
-            chat_sel.set_options([(m, m) for m in chat_models])
-        chat_sel.value = current_chat_model if current_chat_model else blank_val
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "save_config_btn":
@@ -628,36 +503,14 @@ class ModelConfigPanel(VerticalScroll):
             success = update_transcriber_env(default_model, default_enabled, sec_str, sec_enabled)
             status = self.query_one("#settings_status", Label)
             if success:
-                status.update(f"[{time.strftime('%H:%M:%S')}] [green]Transcriber config saved successfully![/green]")
+                status.update(f"[{time.strftime('%H:%M:%S')}] [green]Saved successfully![/green]")
             else:
-                status.update(f"[{time.strftime('%H:%M:%S')}] [red]Error saving transcriber config file[/red]")
-
-        elif event.button.id == "update_vllm_btn":
-            chat_sel = self.query_one("#chat_model_select", Select)
-            val = getattr(chat_sel, "value", None)
-            blank_val = getattr(Select, "BLANK", object())
-            chat_model = str(val) if val and val != blank_val else ""
-            
-            status = self.query_one("#settings_status", Label)
-            if not chat_model:
-                status.update(f"[{time.strftime('%H:%M:%S')}] [yellow]No chat model selected[/yellow]")
-                return
-
-            status.update(f"[{time.strftime('%H:%M:%S')}] [yellow]Updating & restarting vLLM service...[/yellow]")
-            # Ensure the UI gets the update first
-            self.app.call_after_refresh(self._do_vllm_update, chat_model, status)
+                status.update(f"[{time.strftime('%H:%M:%S')}] [red]Error saving file[/red]")
 
         elif event.button.id == "refresh_models_btn":
             self.refresh_settings_ui()
             status = self.query_one("#settings_status", Label)
             status.update(f"[{time.strftime('%H:%M:%S')}] [yellow]Reloaded models from disk[/yellow]")
-
-    def _do_vllm_update(self, chat_model: str, status: Label) -> None:
-        success = update_vllm_service(chat_model)
-        if success:
-            status.update(f"[{time.strftime('%H:%M:%S')}] [green]vLLM service updated and restarted![/green]")
-        else:
-            status.update(f"[{time.strftime('%H:%M:%S')}] [red]Failed to update vLLM service![/red]")
 
 
 # -----------------------------
@@ -684,20 +537,15 @@ class ScannerControlRoom(App):
     .lbl { margin-top: 1; text-style: bold; }
     .toggle_row { height: 3; }
     #default_model_select { width: 60; margin-left: 2; }
-    #chat_model_select { width: 60; margin-left: 2; }
     #secondary_models_list {
         height: 1fr;
-        min-height: 10;
         border: solid $accent;
         padding: 0 1;
         margin-top: 1;
         margin-bottom: 1;
         overflow-y: auto;
     }
-    .spacer { height: 1; border-top: solid $panel; margin-top: 1; margin-bottom: 1; }
-    #vllm_title { color: $warning; text-style: bold; margin-bottom: 1; margin-top: 1; }
     #save_config_btn { margin-top: 1; }
-    #update_vllm_btn { margin-left: 2; }
     #settings_status { margin-top: 1; }
     """
 

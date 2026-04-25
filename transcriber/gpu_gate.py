@@ -109,6 +109,41 @@ class GPUGate:
     def acquire(self, owner: str, timeout_s: Optional[float] = None, gpu_index: int = 0):
         return _GPUGateContext(self, owner=owner, timeout_s=timeout_s, gpu_index=gpu_index)
 
+    def claim(self, owner: str, timeout_s: Optional[float] = None, gpu_index: int = 0) -> str:
+        start = time.time()
+        while True:
+            ok, info = gpu_health_ok(
+                min_free_mb=self.cfg.min_free_mb,
+                max_temp_c=self.cfg.max_temp_c,
+                gpu_index=gpu_index,
+            )
+            if ok:
+                tok = self._try_lock(owner)
+                if tok:
+                    return tok
+
+            if timeout_s is not None and (time.time() - start) >= timeout_s:
+                raise TimeoutError(f"GPU lock timeout owner={owner} info={info}")
+
+            time.sleep(self.cfg.retry_ms / 1000.0)
+
+    def release(self, token: str) -> bool:
+        return self._unlock(token)
+
+    def refresh(self, token: str) -> bool:
+        script = """
+        if redis.call("GET", KEYS[1]) == ARGV[1] then
+          return redis.call("PEXPIRE", KEYS[1], ARGV[2])
+        else
+          return 0
+        end
+        """
+        try:
+            res = self.r.eval(script, 1, self.cfg.lock_key, token, str(self.cfg.ttl_ms))
+            return bool(res)
+        except Exception:
+            return False
+
     def _try_lock(self, owner: str) -> Optional[str]:
         token = f"{owner}:{uuid.uuid4().hex}"
         ok = self.r.set(self.cfg.lock_key, token, nx=True, px=self.cfg.ttl_ms)

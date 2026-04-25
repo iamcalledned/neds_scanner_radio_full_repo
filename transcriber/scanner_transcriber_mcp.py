@@ -42,13 +42,15 @@ from transformers.utils import logging as hf_logging
 
 from mcp.server.fastmcp import FastMCP, Context
 
-from gpu_gate import GPUGate
+from gpu_manager import GPUManager, get_shared_gpu_manager
 from mcp_tools.audio_processing import preprocess_audio, get_duration, get_rms, is_static
 from mcp_tools.location_inference import call_location_inference_service
 from mcp_tools.scoring import score_transcript
 
 from mcp_functions.audio_analysis import process_analyze_audio
 from mcp_functions.category_detection import detect_category as _detect_category_impl
+from mcp_functions.interactive_batch import transcribe_batch as _transcribe_batch_impl
+from mcp_functions.managed_vllm import ManagedVLLMManager
 from mcp_functions.model_runtime import (
     ModelInfo,
     ModelRouter,
@@ -105,6 +107,8 @@ from mcp_config.scanner_transcriber_settings import (
     WARM_DEFAULT_MODEL,
 )
 from mcp_routes.core_transcribe_tools import register_core_transcribe_tools
+from mcp_routes.interactive_chat_completion import register_interactive_chat_completion_route
+from mcp_routes.interactive_transcribe_batch import register_interactive_transcribe_batch_route
 from mcp_routes.interactive_transcribe_segment import register_interactive_transcribe_segment_route
 from mcp_routes.location_inference import register_location_inference_tools
 from mcp_routes.route_and_transcribe import register_route_and_transcribe_tool
@@ -120,7 +124,7 @@ LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 _log_fmt = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
 
-_console_handler = logging.StreamHandler()
+_console_handler = logging.StreamHandler(sys.stdout)
 _console_handler.setFormatter(_log_fmt)
 
 _file_handler = logging.handlers.RotatingFileHandler(
@@ -141,6 +145,8 @@ hf_logging.set_verbosity_error()
 # ==========================
 DB_IMPORT_OK = False
 scanner_db = None
+_MANAGED_VLLM = None
+_GPU_MANAGER: Optional[GPUManager] = None
 
 
 def _is_under_allowed_roots(p: Path) -> bool:
@@ -207,6 +213,13 @@ def _build_model_catalog() -> Tuple[Dict[str, ModelInfo], str]:
     )
 
 
+def _load_raw_model_catalog() -> Dict[str, Any]:
+    raw = _json_from_env(MODEL_CATALOG_JSON, MODEL_CATALOG_FILE)
+    if not isinstance(raw, dict):
+        return {}
+    return raw
+
+
 def _build_routing_rules() -> list[RoutingRule]:
     return _build_routing_rules_impl(
         json_from_env_fn=_json_from_env,
@@ -227,6 +240,7 @@ def _build_router() -> ModelRouter:
             rules=rules,
             default_key=default_key,
             max_cached=MODEL_CACHE_LIMIT,
+            gpu_manager=_get_gpu_manager(),
         ),
     )
 
@@ -249,7 +263,7 @@ def load_whisper_model(model_dir: Path = MODEL_DIR, compute_type: str = DEFAULT_
         whisper_model_cls=WhisperModel,
         log=log,
         whisper_state_cls=WhisperState,
-        gpu_gate_cls=GPUGate,
+        gpu_manager=_get_gpu_manager(),
     )
 
 
@@ -314,6 +328,18 @@ async def lifespan(_: FastMCP):
         yield ctx
     finally:
         wal_task.cancel()
+        if router and hasattr(router, "close"):
+            try:
+                router.close()
+            except Exception as exc:
+                log.warning(f"[runtime] Failed to close router GPU reservations: {exc}")
+        elif state and getattr(state, "reservation_id", None):
+            try:
+                _get_gpu_manager().release_reservation(state.reservation_id)
+            except Exception as exc:
+                log.warning(f"[runtime] Failed to release standalone Whisper reservation: {exc}")
+        manager = _get_managed_vllm_manager()
+        manager.stop_all()
 
 mcp = FastMCP("scanner-transcriber", json_response=True, lifespan=lifespan)
 
@@ -382,11 +408,96 @@ def _transcribe_with_state(
     )
 
 
+def _transcribe_batch(
+    *,
+    state: WhisperState,
+    segments: list[Any],
+    source_audio: str,
+    resolved_model_key: str,
+    model_value: Optional[str],
+    profile: str,
+    language: str,
+    write_artifacts: bool,
+    custom_output_dir: str,
+    is_allowed_fn: Callable[[Path], bool],
+    transcribe_settings: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    return _transcribe_batch_impl(
+        state=state,
+        segments=segments,
+        source_audio=source_audio,
+        resolved_model_key=resolved_model_key,
+        model_value=model_value,
+        profile=profile,
+        language=language,
+        write_artifacts=write_artifacts,
+        custom_output_dir=custom_output_dir,
+        is_allowed_fn=is_allowed_fn,
+        get_duration_fn=get_duration,
+        min_duration=MIN_DURATION,
+        is_static_fn=is_static,
+        get_rms_fn=get_rms,
+        rms_threshold=RMS_THRESHOLD,
+        tmp_dir=TMP_DIR,
+        log=log,
+        preprocess_audio_fn=preprocess_audio,
+        build_transcribe_kwargs_fn=_build_transcribe_kwargs,
+        transcribe_settings=transcribe_settings,
+    )
+
+
+def _get_managed_vllm_manager() -> ManagedVLLMManager:
+    global _MANAGED_VLLM
+    if _MANAGED_VLLM is None:
+        _MANAGED_VLLM = ManagedVLLMManager(log=log, gpu_manager=_get_gpu_manager())
+    return _MANAGED_VLLM
+
+
+def _get_gpu_manager() -> GPUManager:
+    global _GPU_MANAGER
+    if _GPU_MANAGER is None:
+        _GPU_MANAGER = get_shared_gpu_manager(log=log)
+    return _GPU_MANAGER
+
+
+def _managed_chat_completion(**kwargs: Any) -> Dict[str, Any]:
+    catalog_entry = kwargs.get("catalog_entry")
+    chat_cfg = catalog_entry.get("chat") if isinstance(catalog_entry, dict) else None
+    if isinstance(chat_cfg, dict) and _coerce_bool(chat_cfg.get("close_whisper_cache_before_start")):
+        runtime = _ensure_runtime()
+        router = runtime.get("router")
+        state: Optional[WhisperState] = runtime.get("state")
+        if router and hasattr(router, "close"):
+            log.info("[managed_vllm] Closing Whisper model cache before chat startup")
+            router.close()
+        elif state and getattr(state, "reservation_id", None):
+            log.info("[managed_vllm] Releasing standalone Whisper reservation before chat startup")
+            _get_gpu_manager().release_reservation(state.reservation_id)
+            runtime.pop("state", None)
+
+    manager = _get_managed_vllm_manager()
+    return manager.chat_completion(**kwargs)
+
+
 register_interactive_transcribe_segment_route(
     mcp=mcp,
     ensure_runtime=_ensure_runtime,
     resolve_model_profile=_resolve_model_profile,
     transcribe_with_state=_transcribe_with_state,
+    interactive_error_status=_interactive_error_status,
+    coerce_bool=_coerce_bool,
+    is_under_interactive_allowed_roots=_is_under_interactive_allowed_roots,
+)
+register_interactive_chat_completion_route(
+    mcp=mcp,
+    load_raw_model_catalog=_load_raw_model_catalog,
+    managed_chat_completion=_managed_chat_completion,
+)
+register_interactive_transcribe_batch_route(
+    mcp=mcp,
+    ensure_runtime=_ensure_runtime,
+    resolve_model_profile=_resolve_model_profile,
+    transcribe_batch=_transcribe_batch,
     interactive_error_status=_interactive_error_status,
     coerce_bool=_coerce_bool,
     is_under_interactive_allowed_roots=_is_under_interactive_allowed_roots,

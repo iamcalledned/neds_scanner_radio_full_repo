@@ -1,7 +1,11 @@
 pip install faster-whisper ctranslate2 transformers
 
-ct2-transformers-converter \
+# Newer Hugging Face Whisper folders often have:
+# - preprocessor_config.json instead of processor_config.json
+# - no tokenizer.json until a fast tokenizer is saved
+#
+# Use the repo wrapper so it normalizes the source model directory first.
+/home/ned/venv_whisper52/bin/python scripts/convert_whisper_to_ct2.py \
   --model /home/ned/models/trained_whisper_small_april_2026 \
   --output_dir /home/ned/models/trained_whisper_small_april_2026_ct2 \
-  --copy_files tokenizer.json processor_config.json \
   --quantization float16

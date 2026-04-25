@@ -12,7 +12,7 @@ import torch
 
 from faster_whisper import WhisperModel
 
-from gpu_gate import GPUGate
+from gpu_manager import GPUManager
 
 
 _log = logging.getLogger("scanner-mcp")
@@ -22,7 +22,14 @@ _log = logging.getLogger("scanner-mcp")
 class WhisperState:
     model: WhisperModel
     device: torch.device
-    gate: GPUGate
+    gate: GPUManager
+    reservation_id: Optional[str] = None
+
+
+@dataclass
+class ModelCacheEntry:
+    model: WhisperModel
+    reservation_id: Optional[str] = None
 
 
 @dataclass
@@ -60,19 +67,28 @@ class ModelRouter:
     Keeps at most `max_cached` models loaded to avoid VRAM thrash.
     """
 
-    def __init__(self, catalog: dict[str, ModelInfo], rules: list[RoutingRule], default_key: str, max_cached: int = 1):
+    def __init__(
+        self,
+        catalog: dict[str, ModelInfo],
+        rules: list[RoutingRule],
+        default_key: str,
+        max_cached: int = 1,
+        gpu_manager: Optional[GPUManager] = None,
+    ):
         self.catalog = catalog
         self.rules = rules
         self.default_key = default_key if default_key in catalog else "default"
-        self.cache: OrderedDict[str, WhisperModel] = OrderedDict()
+        self.cache: OrderedDict[str, ModelCacheEntry] = OrderedDict()
         self.max_cached = max(1, max_cached)
-        self.gate = GPUGate()
+        self.gate = gpu_manager or GPUManager(log=_log)
 
     def _trim_cache(self) -> None:
         while len(self.cache) > self.max_cached:
-            evict_key, evict_model = self.cache.popitem(last=False)
+            evict_key, evict_entry = self.cache.popitem(last=False)
             try:
-                del evict_model
+                if evict_entry.reservation_id:
+                    self.gate.release_reservation(evict_entry.reservation_id)
+                del evict_entry.model
                 torch.cuda.empty_cache()
             except Exception:
                 pass
@@ -85,15 +101,23 @@ class ModelRouter:
 
         if key in self.cache:
             self.cache.move_to_end(key)
-            return self.cache[key]
+            return self.cache[key].model
 
         info = self.catalog[key]
         if info.device != "cuda":
             _log.warning(f"[router] Model '{key}' requested device='{info.device}', but this service is GPU-only. Using cuda.")
         _log.info(f"[router] Loading model '{key}' from {info.model}")
         require_cuda()
-        model = WhisperModel(str(info.model), device="cuda", compute_type=info.compute_type)
-        self.cache[key] = model
+        model, reservation_id = self.gate.load_model(
+            owner=f"whisper-router:{key}",
+            load_fn=lambda: WhisperModel(str(info.model), device="cuda", compute_type=info.compute_type),
+            timeout_s=300,
+            model_key=key,
+            model_value=str(info.model),
+            metadata={"compute_type": info.compute_type, "device": "cuda"},
+            purpose="whisper-model-load",
+        )
+        self.cache[key] = ModelCacheEntry(model=model, reservation_id=reservation_id)
         self._trim_cache()
         return model
 
@@ -113,7 +137,23 @@ class ModelRouter:
     def get_state(self, key: str) -> WhisperState:
         model = self.get_model(key)
         device = torch.device("cuda")
-        return WhisperState(model=model, device=device, gate=self.gate)
+        cache_entry = self.cache.get(key)
+        reservation_id = cache_entry.reservation_id if cache_entry else None
+        return WhisperState(model=model, device=device, gate=self.gate, reservation_id=reservation_id)
+
+    def close(self) -> None:
+        while self.cache:
+            _, evict_entry = self.cache.popitem(last=False)
+            try:
+                if evict_entry.reservation_id:
+                    self.gate.release_reservation(evict_entry.reservation_id)
+                del evict_entry.model
+            except Exception:
+                pass
+        try:
+            torch.cuda.empty_cache()
+        except Exception:
+            pass
 
 
 def require_cuda() -> torch.device:

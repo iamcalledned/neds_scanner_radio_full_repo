@@ -25,5 +25,3 @@ __pycache__/
 # logs
 *.log
 
-# generated icons
-static/icons/*.png
