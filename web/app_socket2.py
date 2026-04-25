@@ -43,6 +43,7 @@ from routes.routes_scanner import scanner_bp, warm_api_cache
 from routes.routes_api_scanner import api_scanner_bp
 from routes.routes_auth import auth_bp
 from routes.routes_push import push_bp
+from routes.routes_chat import chat_bp
 import push_db
 import push_utils
 from push_db import list_loggedin_users as get_loggedin_users_count
@@ -495,6 +496,7 @@ app.register_blueprint(scanner_bp)
 app.register_blueprint(api_scanner_bp, url_prefix="/scanner")
 app.register_blueprint(push_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(chat_bp)
 
 
 # --- 9. Application Routes ---

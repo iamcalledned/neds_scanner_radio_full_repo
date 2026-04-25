@@ -815,12 +815,235 @@ function initAllHomeWaveformPlayers(root) {
     (root || document).querySelectorAll('.home-wave-player').forEach(initHomeWaveformPlayer);
 }
 
+// ==========================================================
+// === ASK NED CHAT =========================================
+// ==========================================================
+const ASK_NED_ENDPOINT = '/scanner/api/chat/local';
+let askNedMessages = [];
+let askNedInitialized = false;
+
+function injectAskNedStyles() {
+    if (document.getElementById('ask-ned-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'ask-ned-styles';
+    style.textContent = `
+    #ask-ned-overlay {
+      color: #e2e8f0;
+    }
+    #ask-ned-panel {
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 24px 80px rgba(2, 6, 23, 0.7);
+      max-height: min(760px, calc(100vh - 24px));
+    }
+    .ask-ned-message {
+      max-width: 86%;
+      border-radius: 14px;
+      padding: 0.7rem 0.85rem;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .ask-ned-message-user {
+      margin-left: auto;
+      background: rgba(14, 165, 233, 0.16);
+      border: 1px solid rgba(56, 189, 248, 0.24);
+      color: #f8fafc;
+    }
+    .ask-ned-message-assistant {
+      margin-right: auto;
+      background: rgba(30, 41, 59, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      color: #e2e8f0;
+    }
+    .ask-ned-citation {
+      display: block;
+      margin-top: 0.5rem;
+      color: #94a3b8;
+      font-size: 0.76rem;
+    }
+    #ask-ned-input {
+      resize: none;
+      min-height: 46px;
+      max-height: 120px;
+    }
+    @media (max-width: 640px) {
+      #ask-ned-panel {
+        width: 100%;
+        height: calc(100vh - env(safe-area-inset-top));
+        max-height: none;
+        border-radius: 18px 18px 0 0;
+      }
+      .ask-ned-message {
+        max-width: 94%;
+      }
+    }
+  `;
+    document.head.appendChild(style);
+}
+
+function ensureAskNedMarkup() {
+    let overlay = document.getElementById('ask-ned-overlay');
+    if (overlay) return overlay;
+
+    overlay = document.createElement('div');
+    overlay.id = 'ask-ned-overlay';
+    overlay.className = 'hidden fixed inset-0 z-[120] flex items-end sm:items-center justify-center';
+    overlay.innerHTML = `
+      <div id="ask-ned-backdrop" class="absolute inset-0 bg-black/65 backdrop-blur-sm"></div>
+      <section id="ask-ned-panel" class="relative flex w-full sm:w-[min(92vw,720px)] flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden">
+        <header class="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3 shrink-0">
+          <div class="min-w-0">
+            <h2 class="text-base font-semibold text-white">Ask Ned</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Scanner questions answered from the local call database.</p>
+          </div>
+          <button id="ask-ned-close" type="button" class="h-9 w-9 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition" aria-label="Close Ask Ned">x</button>
+        </header>
+        <div id="ask-ned-messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-950/35">
+          <div class="ask-ned-message ask-ned-message-assistant">Ask about recent calls, towns, departments, warnings, citations, fire recalls, coverage, addresses, or call IDs.</div>
+        </div>
+        <form id="ask-ned-form" class="border-t border-slate-800 p-3 bg-slate-950/70">
+          <div class="flex items-end gap-2">
+            <textarea id="ask-ned-input" rows="1" class="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-scannerBlue focus:outline-none" placeholder="Ask about scanner calls..."></textarea>
+            <button id="ask-ned-send" type="submit" class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 transition">Send</button>
+          </div>
+          <div id="ask-ned-status" class="mt-2 min-h-[1rem] text-xs text-slate-500"></div>
+        </form>
+      </section>
+    `;
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+function setAskNedOpen(isOpen) {
+    const overlay = ensureAskNedMarkup();
+    overlay.classList.toggle('hidden', !isOpen);
+    document.body.classList.toggle('overflow-hidden', isOpen);
+    if (isOpen) {
+        const input = document.getElementById('ask-ned-input');
+        if (input) setTimeout(() => input.focus(), 0);
+    }
+}
+
+function appendAskNedMessage(role, text, citations) {
+    const messagesEl = document.getElementById('ask-ned-messages');
+    if (!messagesEl) return;
+
+    const bubble = document.createElement('div');
+    bubble.className = `ask-ned-message ${role === 'user' ? 'ask-ned-message-user' : 'ask-ned-message-assistant'}`;
+    bubble.textContent = text || '';
+
+    if (role !== 'user' && Array.isArray(citations) && citations.length) {
+        const citationLine = document.createElement('span');
+        citationLine.className = 'ask-ned-citation';
+        citationLine.textContent = citations
+            .slice(0, 4)
+            .map((citation) => {
+                const id = citation.call_id ? `#${citation.call_id}` : 'call';
+                return citation.timestamp ? `${id} ${citation.timestamp}` : id;
+            })
+            .join(' | ');
+        bubble.appendChild(citationLine);
+    }
+
+    messagesEl.appendChild(bubble);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function setAskNedBusy(isBusy, statusText) {
+    const sendBtn = document.getElementById('ask-ned-send');
+    const input = document.getElementById('ask-ned-input');
+    const status = document.getElementById('ask-ned-status');
+    if (sendBtn) sendBtn.disabled = isBusy;
+    if (input) input.disabled = isBusy;
+    if (status) status.textContent = statusText || '';
+}
+
+function extractAskNedAnswer(data) {
+    if (!data) return 'No response was returned.';
+    if (data.answer) return data.answer;
+    if (data.error) return data.error;
+    if (data.tool_result?.error) return data.tool_result.error;
+    if (data.tool_result) return JSON.stringify(data.tool_result, null, 2);
+    return 'No answer was returned.';
+}
+
+async function submitAskNedQuestion() {
+    const input = document.getElementById('ask-ned-input');
+    if (!input) return;
+    const question = input.value.trim();
+    if (!question) return;
+
+    input.value = '';
+    appendAskNedMessage('user', question);
+    askNedMessages.push({ role: 'user', content: question });
+    setAskNedBusy(true, 'Asking Ned...');
+
+    try {
+        const res = await fetch(ASK_NED_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: askNedMessages.slice(-12) })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false) {
+            throw new Error(data.error || `Chat request failed with status ${res.status}`);
+        }
+
+        const answer = extractAskNedAnswer(data);
+        appendAskNedMessage('assistant', answer, data.citations);
+        askNedMessages.push({ role: 'assistant', content: answer });
+        setAskNedBusy(false, '');
+    } catch (err) {
+        console.warn('[AskNed] Request failed:', err);
+        const message = err?.message || 'Ask Ned is unavailable right now.';
+        appendAskNedMessage('assistant', message);
+        setAskNedBusy(false, '');
+    }
+}
+
+function initAskNedChat() {
+    if (askNedInitialized) return;
+    askNedInitialized = true;
+    injectAskNedStyles();
+    ensureAskNedMarkup();
+
+    document.querySelectorAll('[data-ask-ned-open]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            const menuDropdown = document.getElementById('menu-dropdown');
+            if (menuDropdown) menuDropdown.classList.add('hidden');
+            setAskNedOpen(true);
+        });
+    });
+
+    document.getElementById('ask-ned-close')?.addEventListener('click', () => setAskNedOpen(false));
+    document.getElementById('ask-ned-backdrop')?.addEventListener('click', () => setAskNedOpen(false));
+    document.getElementById('ask-ned-form')?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        submitAskNedQuestion();
+    });
+    document.getElementById('ask-ned-input')?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            submitAskNedQuestion();
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !document.getElementById('ask-ned-overlay')?.classList.contains('hidden')) {
+            setAskNedOpen(false);
+        }
+    });
+}
+
 // --- INIT ---
 window.addEventListener("load", async () => {
     console.log("Window loaded.");
     try {
         injectSocketStyles();
         initHeader();
+        initAskNedChat();
         initSocketIO();
         await checkAuth();
         initScannerHomepage();
