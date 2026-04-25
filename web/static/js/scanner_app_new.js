@@ -35,9 +35,9 @@ const API_CACHE_KEYS = {
 };
 
 const HOME_TOWN_TAB_ACTIVE =
-    'town-filter-tab px-3 py-2 rounded-full text-xs font-semibold text-slate-100 border border-slate-500/60 bg-slate-800/90 transition';
+    'town-filter-tab px-3 py-2 rounded-full text-xs font-semibold text-slate-50 border border-sky-300/30 bg-sky-400/12 shadow-[0_8px_18px_rgba(14,165,233,0.12)] transition';
 const HOME_TOWN_TAB_IDLE =
-    'town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition';
+    'town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition';
 
 function readCache(cacheKey, maxAgeMs) {
     try {
