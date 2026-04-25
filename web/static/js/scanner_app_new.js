@@ -14,7 +14,8 @@ const FEED_TOWN_MAP = {
     mndpd: "Mendon", mndfd: "Mendon",
     uptpd: "Upton", uptfd: "Upton",
     blkpd: "Blackstone", blkfd: "Blackstone",
-    frkpd: "Franklin", frkfd: "Franklin"
+    frkpd: "Franklin", frkfd: "Franklin",
+    mllpd: "Millville", mllfd: "Millville"
 };
 
 const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
@@ -32,6 +33,11 @@ const API_CACHE_KEYS = {
     homeLiveCalls: 'scanner_api_home_live_calls',
     todayCounts: 'scanner_api_today_counts'
 };
+
+const HOME_TOWN_TAB_ACTIVE =
+    'town-filter-tab px-3 py-2 rounded-full text-xs font-semibold text-slate-50 border border-sky-300/35 bg-sky-400/15 shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition';
+const HOME_TOWN_TAB_IDLE =
+    'town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition';
 
 function readCache(cacheKey, maxAgeMs) {
     try {
@@ -353,7 +359,7 @@ function initHeader() {
     const wsUserCountEl = document.getElementById('ws-user-count');
     const activeUserCountEl = document.getElementById('active-user-count');
 
-    if (!wsUserCountEl || !activeUserCountEl) {
+    if (!wsUserCountEl && !activeUserCountEl) {
         console.warn("[Header] User count elements not found.");
         return;
     }
@@ -363,8 +369,12 @@ function initHeader() {
             const res = await fetch('/scanner/api/users');
             if (res.ok) {
                 const data = await res.json();
-                wsUserCountEl.textContent = `${data.connected_users ?? 0} listener${data.connected_users === 1 ? '' : 's'}`;
-                activeUserCountEl.textContent = `${data.active_users ?? 0} Logged-in`;
+                if (wsUserCountEl) {
+                    wsUserCountEl.textContent = `${data.connected_users ?? 0} listener${data.connected_users === 1 ? '' : 's'}`;
+                }
+                if (activeUserCountEl) {
+                    activeUserCountEl.textContent = `${data.active_users ?? 0} Logged-in`;
+                }
                 console.log("[Header] User status updated:", data);
             }
         } catch (e) {
@@ -399,9 +409,9 @@ function initTownFilterTabs() {
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => {
-                t.className = 'town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition';
+                t.className = HOME_TOWN_TAB_IDLE;
             });
-            tab.className = 'town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-scannerBlue/20 text-scannerBlue border border-scannerBlue/40 transition';
+            tab.className = HOME_TOWN_TAB_ACTIVE;
             applyTownFilter(tab.dataset.town);
         });
     });

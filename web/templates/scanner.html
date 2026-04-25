@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Ned’s Scanner Network</title>
+  <title>Ned's Scanner Network</title>
 
-  <meta name="description" content="Live and archived scanner feeds — Hopedale, Milford, Franklin, and more.">
-  <meta name="theme-color" content="#0b0f19">
+  <meta name="description" content="Live dispatch audio, searchable calls, archive playback, and town activity across Ned's scanner network." />
+  <meta name="theme-color" content="#07111f" />
   <link rel="manifest" href="/scanner/manifest.json?v={{ asset_version('manifest.json') }}">
   <link rel="icon" type="image/x-icon" href="/scanner/static/icons/favicon.ico">
   <link rel="apple-touch-icon" href="/scanner/static/icons/icon-192x192.png">
@@ -26,122 +26,96 @@
             bg: '#0b0f19',
             scannerBlue: '#38bdf8'
           },
-          fontFamily: { sans: ['Inter','sans-serif'] }
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace']
+          }
         }
       }
     }
   </script>
+
+  <link rel="stylesheet" href="/scanner/static/css/style.css?v={{ asset_version('css/style.css') }}">
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
   <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
 
   <style>
-    /* === Base visual theme === */
-    body {
-      background: radial-gradient(circle at 20% 15%, rgba(30,41,59,0.55) 0%, rgba(11,15,25,0.92) 55%),
-                  linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(2,6,23,0.98) 100%);
-    }
-    .glass { background: rgba(15,23,42,0.78); border: 1px solid rgba(148,163,184,0.12); box-shadow: 0 20px 40px rgba(2,6,23,0.55); }
-    .glass:hover { border-color: rgba(148,163,184,0.25); transform: translateY(-1px); }
-
-    .panel { background: rgba(15,23,42,0.7); border: 1px solid rgba(148,163,184,0.14); box-shadow: 0 12px 32px rgba(2,6,23,0.45); border-radius: 24px; }
-    .panel-soft { background: rgba(2,6,23,0.55); border: 1px solid rgba(71,85,105,0.35); }
-
-    .section-kicker { font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase; color: #94a3b8; }
-    .section-title { font-size: 1.5rem; font-weight: 600; color: #f8fafc; }
-    .section-subtitle { font-size: 0.85rem; color: #94a3b8; }
-
-    .stat-value { font-size: 2.5rem; font-weight: 700; }
-    .stat-label { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: #94a3b8; }
-
-    /* === Live indicator === */
     .live-indicator {
-      width: 10px; height: 10px; border-radius: 50%;
-      background-color: #64748b; display: inline-block;
-      margin-right: 6px; transition: background-color 0.3s ease;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #64748b;
+      display: inline-block;
+      margin-right: 6px;
+      transition: background-color 0.3s ease;
       vertical-align: middle;
     }
+
     .live-indicator.live {
       background-color: #f87171;
-      animation: pulse-bg 1.5s cubic-bezier(0.4,0,0.6,1) infinite;
+      animation: pulse-bg 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       box-shadow: 0 0 6px #ef4444, 0 0 10px #f87171;
     }
-    
-    /* === UPDATED: Selector is more generic now === */
+
     [data-feed] .live-indicator {
-      position:absolute; top:8px; left:12px; width:8px; height:8px;
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      width: 8px;
+      height: 8px;
     }
 
-    /* === REMOVED: Ticker animation === */
+    #push-btn {
+      font-size: 1rem;
+      line-height: 1;
+    }
 
-    /* === Push notification bell button === */
-    #push-btn { font-size:1.1rem; line-height:1; }
-    #push-btn.push-active { border-color:#38bdf8; color:#38bdf8; }
+    #push-btn.push-active {
+      border-color: rgba(103, 212, 255, 0.45);
+      color: #67d4ff;
+    }
 
-    /* === Notification overlay channel toggles === */
-    .notif-town-header {
-      font-size:0.6rem; letter-spacing:0.28em; text-transform:uppercase;
-      color:#64748b; padding:0.5rem 0.25rem 0.25rem;
-    }
-    .notif-channel-row {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0.55rem 0.5rem; border-radius:0.5rem;
-      transition:background .15s;
-    }
-    .notif-channel-row:hover { background:rgba(255,255,255,0.04); }
-    .notif-channel-label { display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:#e2e8f0; }
-    .notif-type-dot {
-      width:8px; height:8px; border-radius:999px; flex-shrink:0;
-    }
-    .dot-police { background:#38bdf8; }
-    .dot-fire   { background:#fb7185; }
-    /* Toggle switch */
-    .notif-toggle { position:relative; width:36px; height:20px; flex-shrink:0; }
-    .notif-toggle input { opacity:0; width:0; height:0; position:absolute; }
-    .notif-toggle-track {
-      position:absolute; inset:0; border-radius:999px;
-      background:#334155; transition:background .2s; cursor:pointer;
-    }
-    .notif-toggle input:checked + .notif-toggle-track { background:#0284c7; }
-    .notif-toggle-track::after {
-      content:''; position:absolute; top:3px; left:3px;
-      width:14px; height:14px; border-radius:999px;
-      background:white; transition:transform .2s;
-    }
-    .notif-toggle input:checked + .notif-toggle-track::after { transform:translateX(16px); }
-
-    /* === Menu dropdown === */
-    .menu-item {
-      display:block; padding:0.5rem 1rem;
-      color:#cbd5e1; font-size:0.875rem;
-      transition:background .15s,color .15s;
-    }
-    .menu-item:hover { background:#1e293b; color:#38bdf8; }
-
-    /* === Bottom player dock === */
     #player-dock {
-      backdrop-filter: blur(10px);
-      background: rgba(17,24,39,0.95);
-      border-top: 1px solid rgba(71,85,105,0.4);
+      backdrop-filter: blur(14px);
+      background: rgba(7, 13, 25, 0.94);
+      border-top: 1px solid rgba(71, 85, 105, 0.32);
       animation: slideUp 0.4s ease forwards;
     }
-    @keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
 
-    :root {
-      --electric-blue: #38bdf8;
-      --emergency-red: #fb7185;
-      --panel-ink: rgba(3,6,14,0.78);
-      --card-border: rgba(255,255,255,0.1);
+    .home-stat-card {
+      border-radius: 1.25rem;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(9, 17, 31, 0.62);
+      padding: 1rem;
+      min-height: 7rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .home-stat-card .stat-value {
+      font-size: clamp(1.9rem, 3.5vw, 2.8rem);
     }
 
     .call-card-entry {
       opacity: 0;
       transform: translateY(20px);
       animation: fadeUp 0.55s ease forwards;
-      border: 1px solid rgba(148,163,184,0.12);
-      box-shadow: 0 12px 24px rgba(2,6,23,0.45);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      box-shadow: 0 14px 30px rgba(2, 6, 23, 0.36);
       position: relative;
+      overflow: hidden;
+    }
+
+    .call-card-entry::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.8), rgba(251, 113, 133, 0.35), transparent 85%);
+      opacity: 0.8;
     }
 
     .call-card-link {
@@ -156,117 +130,199 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.75rem;
       font-size: 0.65rem;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
       color: #94a3b8;
     }
+
     .call-card-pill {
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
-      padding: 0.2rem 0.65rem;
+      padding: 0.24rem 0.7rem;
       border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.25);
-      background: rgba(148,163,184,0.08);
-      font-weight: 600;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(148, 163, 184, 0.08);
+      font-weight: 700;
     }
-    .pill-police { border-color: rgba(56,189,248,0.35); color: #7dd3fc; background: rgba(14,116,144,0.2); }
-    .pill-fire { border-color: rgba(248,113,113,0.35); color: #fda4af; background: rgba(190,18,60,0.2); }
+
+    .pill-police {
+      border-color: rgba(56, 189, 248, 0.34);
+      color: #7dd3fc;
+      background: rgba(14, 116, 144, 0.18);
+    }
+
+    .pill-fire {
+      border-color: rgba(248, 113, 113, 0.34);
+      color: #fda4af;
+      background: rgba(190, 18, 60, 0.18);
+    }
+
     .call-card-dot {
       width: 6px;
       height: 6px;
       border-radius: 999px;
       background: #38bdf8;
-      box-shadow: 0 0 8px rgba(56,189,248,0.6);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
     }
-    .dot-fire { background: #fb7185; box-shadow: 0 0 8px rgba(248,113,113,0.6); }
+
+    .dot-fire {
+      background: #fb7185;
+      box-shadow: 0 0 8px rgba(248, 113, 113, 0.6);
+    }
 
     .call-card-title {
-      margin-top: 0.9rem;
-      font-size: 1.05rem;
+      margin-top: 0.95rem;
+      font-size: 1.08rem;
       font-weight: 600;
       color: #f8fafc;
     }
+
     .call-card-transcript {
-      margin-top: 0.45rem;
-      font-size: 0.92rem;
-      line-height: 1.5;
-      color: #e2e8f0;
+      margin-top: 0.55rem;
+      font-size: 0.93rem;
+      line-height: 1.58;
+      color: #d9e4f0;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 3.8rem;
+      min-height: 4.1rem;
     }
+
     .call-card-footer {
-      margin-top: 0.85rem;
+      margin-top: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
       color: #94a3b8;
     }
-    .call-card-wave { margin-top: 0.75rem; height: 6px; opacity: 0.75; }
 
-    .call-action {
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.25);
-      padding: 0.45rem 1rem;
-      background: rgba(255,255,255,0.08);
-      text-transform: uppercase;
-      letter-spacing: 0.25em;
-      font-size: 0.65rem;
-      font-weight: 600;
-      color: white;
-      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-    }
-    .call-action:hover,
-    .call-action:focus-visible {
-      transform: translateY(-1px) scale(1.01);
-      background: rgba(14,165,233,0.2);
-      box-shadow: 0 15px 45px rgba(14,165,233,0.25);
-    }
-    .call-action:active {
-      transform: translateY(1px) scale(0.99);
+    .call-card-wave {
+      margin-top: 0.8rem;
+      height: 6px;
+      opacity: 0.78;
     }
 
     .town-tab-active {
       position: relative;
       overflow: hidden;
     }
+
     .town-tab-active::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(120deg, rgba(255,255,255,0), rgba(255,255,255,0.25), rgba(255,255,255,0));
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
       animation: shimmer 2.4s ease-in-out infinite;
       opacity: 0.45;
-    }
-
-    .live-dot {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: radial-gradient(circle, #34d399 0%, #10b981 60%, transparent 75%);
-      box-shadow: 0 0 6px rgba(52,211,153,0.75);
-      animation: pulse 2.5s ease-in-out infinite;
     }
 
     .waveform {
       border-radius: 999px;
       background-size: 200% 100%;
       animation: pulseWave 4s linear infinite;
-      filter: drop-shadow(0 0 6px rgba(14,165,233,0.35));
+      filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.28));
     }
+
     .waveform-fire {
-      background-image: linear-gradient(90deg, rgba(248,113,113,0.75), rgba(220,38,38,0.45));
+      background-image: linear-gradient(90deg, rgba(248, 113, 113, 0.75), rgba(220, 38, 38, 0.45));
     }
+
     .waveform-police {
-      background-image: linear-gradient(90deg, rgba(56,189,248,0.85), rgba(45,212,255,0.45));
+      background-image: linear-gradient(90deg, rgba(56, 189, 248, 0.82), rgba(45, 212, 255, 0.42));
+    }
+
+    .notif-town-header {
+      font-size: 0.62rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #64748b;
+      padding: 0.5rem 0.25rem 0.25rem;
+    }
+
+    .notif-channel-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.5rem;
+      border-radius: 0.75rem;
+      transition: background 0.15s;
+    }
+
+    .notif-channel-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .notif-channel-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #e2e8f0;
+    }
+
+    .notif-type-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    .dot-police {
+      background: #38bdf8;
+    }
+
+    .dot-fire {
+      background: #fb7185;
+    }
+
+    .notif-toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .notif-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .notif-toggle-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: #334155;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .notif-toggle input:checked + .notif-toggle-track {
+      background: #0284c7;
+    }
+
+    .notif-toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: white;
+      transition: transform 0.2s;
+    }
+
+    .notif-toggle input:checked + .notif-toggle-track::after {
+      transform: translateX(16px);
     }
 
     @keyframes fadeUp {
@@ -279,150 +335,216 @@
       100% { transform: translateX(180%); }
     }
 
-    @keyframes pulse {
-      0%, 100% { transform: scale(0.9); opacity: 0.7; }
-      50% { transform: scale(1.15); opacity: 1; }
-    }
-
     @keyframes pulseWave {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
+    @keyframes pulse-bg {
+      0%, 100% { background-color: #f87171; transform: scale(1); }
+      50% { background-color: #dc2626; transform: scale(1.08); }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
   </style>
 </head>
 
-<body class="flex flex-col h-full font-sans selection:bg-slate-600/40 selection:text-white">
+<body class="scanner-page flex flex-col h-full font-sans selection:bg-slate-600/40 selection:text-white">
 
 {% set active_page = 'home' %}
 {% include "_scanner_header.html" %}
 
-<!-- Live Now bar -->
-<div id="live-now-bar" class="sticky top-16 z-40 bg-[#0b0f19]/90 backdrop-blur-sm border-b border-slate-800/60 px-4 py-2 overflow-x-auto">
-  <div class="max-w-6xl mx-auto flex gap-3 items-center min-h-[28px]">
-    <span class="text-slate-600 text-[10px] uppercase tracking-widest shrink-0">Live</span>
+<div id="live-now-bar" class="scanner-live-strip sticky z-40 border-b border-slate-800/80 bg-[#08101d]/80 px-4 py-3 overflow-x-auto">
+  <div class="max-w-6xl mx-auto flex flex-wrap items-center gap-3 min-h-[34px]">
+    <span class="scanner-kicker shrink-0">Live Now</span>
     <div id="live-now-chips" class="flex gap-2 items-center flex-wrap">
-      <span id="live-bar-quiet" class="text-slate-600 text-xs italic">All quiet</span>
+      <span id="live-bar-quiet" class="text-slate-500 text-sm italic">All quiet across the network</span>
     </div>
   </div>
 </div>
 
 <main class="flex-1 overflow-y-auto bg-transparent pb-24">
-  <div class="max-w-6xl mx-auto p-4 space-y-6">
+  <div class="scanner-shell space-y-6">
+    <section class="scanner-home-hero panel scanner-home-hero p-5 sm:p-7">
+      <div class="scanner-home-hero-grid relative">
+        <div class="relative z-[1] flex flex-col justify-between gap-6">
+          <div class="space-y-4">
+            <p class="scanner-kicker">Scanner Network</p>
+            <div class="space-y-3">
+              <h1 class="scanner-home-display">
+                Dispatch, archive,
+                <span>and town pulse.</span>
+              </h1>
+              <p class="scanner-section-copy max-w-2xl text-base sm:text-lg">
+                Keep an eye on live radio traffic, jump into recent calls, and track what each covered town is doing without bouncing between separate tools.
+              </p>
+            </div>
+          </div>
 
-    <section class="panel px-5 py-6 sm:px-7 sm:py-7 overflow-hidden relative">
-      <div class="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-scannerBlue/10 to-transparent pointer-events-none"></div>
-      <div class="relative flex items-center gap-4 sm:gap-5">
-        <img src="/scanner/static/icons/logo-header.png" alt="Ned's Scanner Network" class="h-16 sm:h-20 w-auto drop-shadow-[0_14px_34px_rgba(56,189,248,0.2)]">
-        <div>
-          <p class="text-[0.62rem] tracking-[0.32em] uppercase text-scannerBlue/80">Scanner Network</p>
-          <h2 class="text-2xl sm:text-3xl font-semibold text-white tracking-tight mt-1">Ned's Scanner Network</h2>
-          <p class="text-sm text-slate-400 mt-1.5">Live dispatch audio, town feeds, mapped activity, and searchable archive in one place.</p>
+          <div class="scanner-home-actions">
+            <a href="#call-board" class="scanner-primary-btn">Jump To Live Calls</a>
+            <a href="/scanner/archive" class="scanner-secondary-btn">Open Archive</a>
+            <button type="button" data-ask-ned-open class="scanner-secondary-btn">Ask Ned</button>
+          </div>
+
+          <div class="scanner-towns-marquee">
+            <span class="scanner-town-chip">Hopedale</span>
+            <span class="scanner-town-chip">Milford</span>
+            <span class="scanner-town-chip">Bellingham</span>
+            <span class="scanner-town-chip">Mendon</span>
+            <span class="scanner-town-chip">Upton</span>
+            <span class="scanner-town-chip">Blackstone</span>
+            <span class="scanner-town-chip">Franklin</span>
+          </div>
+        </div>
+
+        <div class="relative z-[1] scanner-signal-stack">
+          <article class="scanner-hero-card panel p-5 sm:p-6">
+            <div class="scanner-section-header mb-5">
+              <div>
+                <p class="scanner-kicker">Today's Network Summary</p>
+                <h2 class="scanner-section-title mt-2">What the system has seen so far.</h2>
+              </div>
+              <span class="text-xs uppercase tracking-[0.22em] text-slate-500">Auto updates</span>
+            </div>
+
+            <article id="stats" class="grid grid-cols-2 gap-3">
+              <div class="home-stat-card">
+                <span class="stat-label">Calls Today</span>
+                <span id="total-calls" class="stat-value text-sky-300">--</span>
+              </div>
+              <div class="home-stat-card">
+                <span class="stat-label">Hooks Today</span>
+                <span id="hooks-today" class="stat-value text-amber-300">--</span>
+              </div>
+              <div class="home-stat-card">
+                <span class="stat-label">Minutes Recorded</span>
+                <span id="active-feeds" class="stat-value text-cyan-200">--</span>
+              </div>
+              <div class="home-stat-card">
+                <span class="stat-label">Listeners</span>
+                <span id="listeners" class="stat-value text-emerald-300">--</span>
+              </div>
+            </article>
+          </article>
+
+          <article class="scanner-hero-card panel p-5 sm:p-6">
+            <div class="scanner-section-header mb-4">
+              <div>
+                <p class="scanner-kicker">Dispatch Pulse</p>
+                <h2 class="scanner-section-title mt-2">Live traffic and fast navigation.</h2>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="scanner-signal-stack">
+                <div class="scanner-signal-bar"></div>
+                <div class="scanner-signal-bar"></div>
+                <div class="scanner-signal-bar"></div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <a href="/scanner/heatmap" class="scanner-link-chip justify-between">View Heat Map <span aria-hidden="true">↗</span></a>
+                <a href="/scanner/review" class="scanner-link-chip justify-between">Review Edits <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- Summary stats -->
-    <article id="stats" class="panel p-5">
-      <div class="grid grid-cols-4 gap-4 text-center">
-        <div class="flex flex-col-reverse">
-          <span id="total-calls" class="stat-value text-scannerBlue">--</span>
-          <span class="stat-label mb-1">Calls Today</span>
+    <section id="call-board" class="panel p-5 sm:p-6 space-y-5">
+      <div class="scanner-section-header">
+        <div>
+          <p class="scanner-kicker">Live Calls</p>
+          <h2 class="scanner-section-title mt-2">Latest activity across the network.</h2>
         </div>
-        <div class="flex flex-col-reverse">
-          <span id="hooks-today" class="stat-value text-amber-400">--</span>
-          <span class="stat-label mb-1">Hooks Today</span>
-        </div>
-        <div class="flex flex-col-reverse">
-          <span id="active-feeds" class="stat-value text-purple-400">--</span>
-          <span class="stat-label mb-1">Minutes Recorded</span>
-        </div>
-        <div class="flex flex-col-reverse">
-          <span id="listeners" class="stat-value text-emerald-400">--</span>
-          <span class="stat-label mb-1">Listeners</span>
-        </div>
-      </div>
-    </article>
-
-    <!-- Call board -->
-    <section id="call-board" class="panel p-5 space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-base font-semibold text-slate-200 tracking-wide">Live Calls</h2>
-        <span class="text-[10px] text-slate-500 uppercase tracking-widest">Latest across all feeds</span>
+        <span class="text-[11px] uppercase tracking-[0.24em] text-slate-500">Realtime board</span>
       </div>
 
-      <!-- Town filter tabs -->
       <div id="town-filter-tabs" class="flex flex-wrap gap-2">
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-scannerBlue/20 text-scannerBlue border border-scannerBlue/40 transition" data-town="all">All</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="hopedale">Hopedale</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="milford">Milford</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="bellingham">Bellingham</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="mendon">Mendon</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="franklin">Franklin</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="blackstone">Blackstone</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="millville">Millville</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-semibold text-slate-50 border border-sky-300/35 bg-sky-400/15 shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition" data-town="all">All</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="hopedale">Hopedale</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="milford">Milford</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="bellingham">Bellingham</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="mendon">Mendon</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="upton">Upton</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="franklin">Franklin</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="blackstone">Blackstone</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="millville">Millville</button>
       </div>
 
       <div id="call-card-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-live="polite">
-        <div id="call-board-empty" data-default-text="Loading live transcripts..." class="col-span-full rounded-2xl border border-slate-800/60 bg-white/5 px-4 py-6 text-center text-sm text-slate-400">
+        <div id="call-board-empty" data-default-text="Loading live transcripts..." class="col-span-full rounded-[1.35rem] border border-slate-800/70 bg-white/[0.03] px-4 py-8 text-center text-sm text-slate-400">
           Loading live transcripts...
         </div>
       </div>
     </section>
 
-    <!-- Town grid (kept for live indicators, hidden visually via the filter tabs above) -->
-    <section id="towns" class="space-y-3">
-      <h2 class="text-base font-semibold text-slate-200 tracking-wide">Towns</h2>
+    <section id="towns" class="panel p-5 sm:p-6 space-y-5">
+      <div class="scanner-section-header">
+        <div>
+          <p class="scanner-kicker">Coverage</p>
+          <h2 class="scanner-section-title mt-2">Jump straight into each local feed.</h2>
+        </div>
+        <a href="/scanner/archive" class="scanner-link-chip">Full archive <span aria-hidden="true">↗</span></a>
+      </div>
       <div id="town-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
+    <section class="scanner-footer-panel panel p-5 sm:p-6">
+      <div class="scanner-section-header">
+        <div>
+          <p class="scanner-kicker">Need More Context?</p>
+          <h2 class="scanner-section-title mt-2">Use the archive, heat map, or Ask Ned to go deeper.</h2>
+        </div>
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/scanner/archive" class="scanner-primary-btn">Browse Archive</a>
+        <a href="/scanner/heatmap" class="scanner-secondary-btn">Open Heat Map</a>
+        <button type="button" data-ask-ned-open class="scanner-secondary-btn">Ask Ned A Question</button>
+      </div>
+    </section>
   </div>
 </main>
 
 <footer id="player-dock" class="hidden fixed bottom-0 left-0 w-full z-40">
-  <div class="max-w-5xl mx-auto flex items-center justify-between p-3">
+  <div class="max-w-5xl mx-auto flex items-center justify-between gap-3 p-3">
     <div id="player-info" class="text-sm text-slate-300">
-      🔊 Listening to <span class="text-blue-400" id="dock-feed"></span>
+      Listening to <span class="text-sky-300" id="dock-feed"></span>
     </div>
     <div class="flex gap-3 text-lg text-slate-400">
-      <button id="dock-play" class="hover:text-scannerBlue">▶️</button>
-      <button id="dock-pause" class="hover:text-scannerBlue">⏸️</button>
-      <button id="dock-stop" class="hover:text-scannerBlue">⏹️</button>
+      <button id="dock-play" class="hover:text-scannerBlue" aria-label="Play">▶</button>
+      <button id="dock-pause" class="hover:text-scannerBlue" aria-label="Pause">⏸</button>
+      <button id="dock-stop" class="hover:text-scannerBlue" aria-label="Stop">⏹</button>
     </div>
   </div>
 </footer>
 
-<!-- ===== Notifications Settings Overlay ===== -->
 <div id="notif-overlay" class="hidden fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
-  <!-- Backdrop -->
-  <div id="notif-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+  <div id="notif-backdrop" class="absolute inset-0 bg-black/65 backdrop-blur-sm"></div>
 
-  <!-- Panel -->
-  <div class="relative w-full sm:max-w-md mx-auto bg-[#111827] border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
-
-    <!-- Header -->
-    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700 shrink-0">
+  <div class="relative w-full sm:max-w-md mx-auto bg-[#0c1525] border border-slate-700/70 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700/70 shrink-0">
       <div>
-        <h2 class="text-base font-semibold text-white">🔔 Notification Channels</h2>
-        <p class="text-xs text-slate-400 mt-0.5">Choose which feeds send you alerts.</p>
+        <h2 class="text-base font-semibold text-white">Notification Channels</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Choose which feeds send alerts to this device.</p>
       </div>
       <button id="notif-close" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
     </div>
 
-    <!-- Permission banner (shown when permission isn't granted yet) -->
-    <div id="notif-permission-banner" class="hidden mx-4 mt-3 px-4 py-3 rounded-lg bg-amber-900/40 border border-amber-700/50 text-amber-300 text-sm shrink-0">
+    <div id="notif-permission-banner" class="hidden mx-4 mt-3 px-4 py-3 rounded-lg bg-amber-900/30 border border-amber-700/50 text-amber-300 text-sm shrink-0">
       <strong>Permission required.</strong> Enable browser notifications to receive alerts.
       <button id="notif-grant-btn" class="ml-2 underline hover:text-white">Grant permission</button>
     </div>
 
-    <!-- Channel list -->
     <div id="notif-channel-list" class="overflow-y-auto px-4 py-3 space-y-1 flex-1">
-      <p class="text-slate-400 text-sm">Loading channels…</p>
+      <p class="text-slate-400 text-sm">Loading channels...</p>
     </div>
 
-    <!-- Footer -->
-    <div class="px-5 py-4 border-t border-slate-700 flex items-center justify-between gap-3 shrink-0">
+    <div class="px-5 py-4 border-t border-slate-700/70 flex items-center justify-between gap-3 shrink-0">
       <div class="flex gap-2">
         <button id="notif-select-all" class="text-xs text-sky-400 hover:text-sky-300 underline">All</button>
         <span class="text-slate-600">|</span>
@@ -437,31 +559,10 @@
 </div>
 
 <script>
-function showPlayerDock(feedName){
-  document.getElementById('dock-feed').textContent=feedName;
+function showPlayerDock(feedName) {
+  document.getElementById('dock-feed').textContent = feedName;
   document.getElementById('player-dock').classList.remove('hidden');
 }
-</script>
-<script>
-let deferredPrompt;
-const installBtn = document.getElementById('install-btn');
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); 
-  deferredPrompt = e; 
-  installBtn.classList.remove('hidden');
-});
-installBtn.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  console.log(`User response to the install prompt: ${outcome}`);
-  deferredPrompt = null; 
-  installBtn.classList.add('hidden');
-});
-window.addEventListener('appinstalled', () => {
-  console.log('✅ App installed');
-  installBtn.classList.add('hidden');
-});
 </script>
 
 </body>

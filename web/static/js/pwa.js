@@ -43,22 +43,29 @@ window.addEventListener('beforeinstallprompt', (event) => {
     deferredInstallPrompt = event;
     const installButton = document.getElementById('install-btn');
     if (installButton) {
-        installButton.style.display = 'block'; 
-        installButton.addEventListener('click', async () => {
-            if (!deferredInstallPrompt) return;
-            deferredInstallPrompt.prompt();
-            const { outcome } = await deferredInstallPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
-            deferredInstallPrompt = null;
-            installButton.style.display = 'none';
-        });
+        installButton.style.display = 'inline-flex';
     }
 });
 window.addEventListener('appinstalled', () => {
     console.log('PWA was installed');
     deferredInstallPrompt = null;
     const installButton = document.getElementById('install-btn');
-    if (installButton) installButton.style.display = 'none';
+    if (installButton) {
+        installButton.style.display = 'none';
+        installButton.classList.add('hidden');
+    }
+});
+
+document.addEventListener('click', async (event) => {
+    const installButton = event.target.closest('#install-btn');
+    if (!installButton || !deferredInstallPrompt) return;
+
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    deferredInstallPrompt = null;
+    installButton.style.display = 'none';
+    installButton.classList.add('hidden');
 });
 
 // --- iOS "Add to Home Screen" Banner ---
@@ -74,6 +81,7 @@ window.addEventListener('appinstalled', () => {
         <span>Install this app: tap the <strong>Share</strong> button &#x2197; then <strong>"Add to Home Screen"</strong></span>
         <button id="ios-install-dismiss" aria-label="Dismiss">&times;</button>
     `;
+    banner.className = 'scanner-ios-banner';
     Object.assign(banner.style, {
         position: 'fixed',
         bottom: '0',
@@ -85,12 +93,14 @@ window.addEventListener('appinstalled', () => {
         justifyContent: 'space-between',
         gap: '12px',
         padding: '14px 16px',
-        background: '#1e293b',
-        borderTop: '1px solid #38bdf8',
+        background: '#0b1525',
+        borderTop: '1px solid rgba(103, 212, 255, 0.35)',
         color: '#e2e8f0',
         fontSize: '14px',
         lineHeight: '1.4',
-        boxShadow: '0 -2px 12px rgba(0,0,0,0.5)',
+        boxShadow: '0 -12px 32px rgba(0,0,0,0.42)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)'
     });
     const btn = banner.querySelector('#ios-install-dismiss');
     Object.assign(btn.style, {
@@ -276,8 +286,52 @@ window.addEventListener('load', _initAll, { once: true });
 // Notifications Settings Overlay
 // ----------------------------------------------------------------
 
+function ensureNotifOverlayMarkup() {
+    let overlay = document.getElementById('notif-overlay');
+    if (overlay) return overlay;
+
+    overlay = document.createElement('div');
+    overlay.id = 'notif-overlay';
+    overlay.className = 'hidden fixed inset-0 z-[100] flex items-end sm:items-center justify-center';
+    overlay.innerHTML = `
+        <div id="notif-backdrop" class="absolute inset-0 bg-black/65 backdrop-blur-sm"></div>
+        <div class="relative w-full sm:max-w-md mx-auto bg-[#0c1525] border border-slate-700/70 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700/70 shrink-0">
+                <div>
+                    <h2 class="text-base font-semibold text-white">Notification Channels</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Choose which feeds send alerts to this device.</p>
+                </div>
+                <button id="notif-close" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+            </div>
+
+            <div id="notif-permission-banner" class="hidden mx-4 mt-3 px-4 py-3 rounded-lg bg-amber-900/30 border border-amber-700/50 text-amber-300 text-sm shrink-0">
+                <strong>Permission required.</strong> Enable browser notifications to receive alerts.
+                <button id="notif-grant-btn" class="ml-2 underline hover:text-white">Grant permission</button>
+            </div>
+
+            <div id="notif-channel-list" class="overflow-y-auto px-4 py-3 space-y-1 flex-1">
+                <p class="text-slate-400 text-sm">Loading channels...</p>
+            </div>
+
+            <div class="px-5 py-4 border-t border-slate-700/70 flex items-center justify-between gap-3 shrink-0">
+                <div class="flex gap-2">
+                    <button id="notif-select-all" class="text-xs text-sky-400 hover:text-sky-300 underline">All</button>
+                    <span class="text-slate-600">|</span>
+                    <button id="notif-select-none" class="text-xs text-sky-400 hover:text-sky-300 underline">None</button>
+                </div>
+                <div class="flex gap-2">
+                    <button id="notif-save" class="px-4 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium transition">Save</button>
+                    <button id="notif-cancel" class="px-4 py-1.5 rounded-md border border-slate-600 text-slate-300 hover:text-white text-sm transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
 async function initNotifOverlay() {
-    const overlay      = document.getElementById('notif-overlay');
+    const overlay      = ensureNotifOverlayMarkup();
     const openBtn      = document.getElementById('notif-settings-btn');
     const mobileOpenBtn = document.getElementById('notif-settings-btn-mobile');
 

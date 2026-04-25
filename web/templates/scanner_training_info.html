@@ -5,7 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Training Info | Ned's Scanner Network</title>
 
+  <meta name="description" content="Training comparisons and evaluation reports for Ned's Scanner Network models." />
+  <meta name="theme-color" content="#07111f" />
+  <link rel="manifest" href="/scanner/manifest.json?v={{ asset_version('manifest.json') }}">
+  <link rel="icon" type="image/x-icon" href="/scanner/static/icons/favicon.ico">
+  <link rel="apple-touch-icon" href="/scanner/static/icons/icon-192x192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Scanner">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <link rel="stylesheet" href="/scanner/static/css/style.css?v={{ asset_version('css/style.css') }}">
+  <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
+  <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
   <style>
     body {
       background: radial-gradient(circle at 20% 15%, rgba(30,41,59,0.55) 0%, rgba(11,15,25,0.92) 55%),

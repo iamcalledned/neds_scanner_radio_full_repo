@@ -32,6 +32,8 @@
     }
   </script>
 
+  <link rel="stylesheet" href="/scanner/static/css/style.css?v={{ asset_version('css/style.css') }}">
+
   <!-- Chart.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <!-- Socket.IO Client Library -->
@@ -40,6 +42,7 @@
   <!-- Shared App Logic & Page Specific Logic -->
   <!-- Using scanner_app_new.js for auth -->
   <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
+  <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
   <script src="/scanner/static/js/scanner_stats.js?v={{ asset_version('js/scanner_stats.js') }}" defer></script>
 
   <style>

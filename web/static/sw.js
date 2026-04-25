@@ -1,6 +1,6 @@
 // In: sw.js (Your complete, corrected file)
 
-const CACHE_NAME = 'scanner-cache-v20260421-ask-ned';
+const CACHE_NAME = 'scanner-cache-v20260424-shell-refresh';
 const OFFLINE_URL = 'offline.html';
 
 // Use relative paths so this worker works under /scanner/ when installed there.
@@ -11,17 +11,18 @@ const ASSETS_TO_CACHE = [
   'manifest.json',
   'static/icons/icon-192x192.png',
   'static/icons/icon-512x512.png',
-  'static/icons/icon-192x192-v2.png',
-  'static/icons/icon-512x512-v2.png',
   'static/icons/logo-header.png',
   'static/icons/favicon.ico',
+  'static/css/style.css',
 
   // Add all critical JS/CSS (without ?v)
   'static/js/scanner_app_new.js',
   'static/js/scanner_view.js',
   'static/js/scanner_archive.js',
   'static/js/scanner_heatmap.js',
-  'static/js/pwa.js'
+  'static/js/pwa.js',
+  'static/js/scanner_review.js',
+  'static/js/scanner_stats.js'
 ];
 
 

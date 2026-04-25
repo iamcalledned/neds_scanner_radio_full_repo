@@ -27,3 +27,6 @@ __pycache__/
 
 # generated icons
 static/icons/*.png
+!static/icons/icon-192x192.png
+!static/icons/icon-512x512.png
+!static/icons/logo-header.png

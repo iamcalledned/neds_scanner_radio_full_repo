@@ -3,14 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Offline - Scanner</title>
-  <style>body{background:#0f172a;color:#fff;font-family:system-ui,Arial,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style>
+  <title>Offline - Ned's Scanner Network</title>
+  <link rel="stylesheet" href="/scanner/static/css/style.css">
 </head>
-<body>
-  <div style="text-align:center;max-width:28rem;padding:1rem">
-    <h1 style="font-size:1.25rem;margin-bottom:.5rem">You're offline</h1>
-    <p style="color:#9ca3af;margin-bottom:1rem">Some features require a network connection. Try reconnecting or return to the home page.</p>
-    <a href="/" style="background:#1f2937;color:#fff;padding:.5rem 1rem;border-radius:.5rem;text-decoration:none">Go home</a>
+<body class="scanner-page" style="display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:1rem;">
+  <div class="scanner-offline-card panel" style="padding:2rem 1.5rem;text-align:center;">
+    <p class="scanner-kicker">Offline</p>
+    <h1 class="scanner-section-title" style="font-size:1.7rem;margin-top:0.75rem;">The scanner app needs a connection right now.</h1>
+    <p class="scanner-section-copy" style="margin:1rem 0 1.5rem;">
+      Cached pages will still open when available, but live radio traffic, fresh calls, and account actions need the network back.
+    </p>
+    <a href="/scanner/" class="scanner-primary-btn">Return To Scanner</a>
   </div>
 </body>
 </html>
