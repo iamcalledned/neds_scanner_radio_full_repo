@@ -84,27 +84,214 @@
       animation: slideUp 0.4s ease forwards;
     }
 
-    .home-stat-card {
-      border-radius: 1.25rem;
-      border: 1px solid rgba(148, 163, 184, 0.12);
-      background: rgba(9, 17, 31, 0.62);
+    .home-console-panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(120, 139, 163, 0.18);
+      background:
+        linear-gradient(180deg, rgba(11, 19, 31, 0.96) 0%, rgba(6, 12, 22, 0.98) 100%);
+      box-shadow: 0 18px 38px rgba(2, 6, 23, 0.38);
+    }
+
+    .home-console-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(120, 139, 163, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120, 139, 163, 0.03) 1px, transparent 1px);
+      background-size: 72px 72px;
+      opacity: 0.35;
+      mask-image: linear-gradient(180deg, black, rgba(0, 0, 0, 0.25));
+    }
+
+    .home-console-grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .home-console-copy {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .home-console-title {
+      font-size: clamp(1.85rem, 3vw, 2.65rem);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      font-weight: 700;
+      color: #f8fafc;
+      max-width: 12ch;
+    }
+
+    .home-console-summary {
+      color: #c0cede;
+      font-size: 1rem;
+      line-height: 1.65;
+      max-width: 42rem;
+    }
+
+    .home-console-list {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .home-console-row {
+      display: grid;
+      grid-template-columns: minmax(7rem, 8rem) minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: start;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(71, 85, 105, 0.34);
+    }
+
+    .home-console-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .home-console-label {
+      font-size: 0.72rem;
+      font-family: 'Roboto Mono', monospace;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #7e92aa;
+    }
+
+    .home-console-value {
+      color: #dbe7f3;
+      line-height: 1.55;
+    }
+
+    .home-console-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .home-console-status {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .home-status-card {
+      border-radius: 1.1rem;
+      border: 1px solid rgba(120, 139, 163, 0.18);
+      background: rgba(7, 14, 25, 0.88);
       padding: 1rem;
-      min-height: 7rem;
+    }
+
+    .home-status-card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .home-status-title {
+      font-size: 0.78rem;
+      font-family: 'Roboto Mono', monospace;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #93a8bf;
+    }
+
+    .home-status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.62rem;
+      border-radius: 999px;
+      border: 1px solid rgba(52, 211, 153, 0.22);
+      background: rgba(5, 46, 22, 0.38);
+      color: #9ae6b4;
+      font-size: 0.68rem;
+      font-family: 'Roboto Mono', monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .home-status-chip::before {
+      content: '';
+      width: 0.42rem;
+      height: 0.42rem;
+      border-radius: 999px;
+      background: #34d399;
+      box-shadow: 0 0 8px rgba(52, 211, 153, 0.45);
+    }
+
+    .home-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .home-stat-card {
+      border-radius: 0.95rem;
+      border: 1px solid rgba(120, 139, 163, 0.16);
+      background: rgba(10, 19, 32, 0.74);
+      padding: 0.95rem;
+      min-height: 6.4rem;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
 
     .home-stat-card .stat-value {
-      font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+      font-size: clamp(1.7rem, 3vw, 2.45rem);
+      font-family: 'Roboto Mono', monospace;
+      letter-spacing: -0.04em;
+    }
+
+    .home-coverage-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .home-coverage-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(120, 139, 163, 0.16);
+      background: rgba(9, 17, 29, 0.74);
+      color: #d7e3ef;
+      font-size: 0.76rem;
+      font-family: 'Roboto Mono', monospace;
+      letter-spacing: 0.03em;
+    }
+
+    .home-coverage-chip::before {
+      content: '';
+      width: 0.42rem;
+      height: 0.42rem;
+      border-radius: 999px;
+      background: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.35);
+    }
+
+    .home-subtle-note {
+      color: #91a3b8;
+      font-size: 0.9rem;
+      line-height: 1.6;
     }
 
     .call-card-entry {
       opacity: 0;
       transform: translateY(20px);
       animation: fadeUp 0.55s ease forwards;
-      border: 1px solid rgba(148, 163, 184, 0.12);
-      box-shadow: 0 14px 30px rgba(2, 6, 23, 0.36);
+      border: 1px solid rgba(120, 139, 163, 0.16);
+      box-shadow: 0 12px 24px rgba(2, 6, 23, 0.28);
       position: relative;
       overflow: hidden;
     }
@@ -114,8 +301,8 @@
       position: absolute;
       inset: 0 0 auto;
       height: 1px;
-      background: linear-gradient(90deg, rgba(56, 189, 248, 0.8), rgba(251, 113, 133, 0.35), transparent 85%);
-      opacity: 0.8;
+      background: linear-gradient(90deg, rgba(148, 163, 184, 0.22), transparent 70%);
+      opacity: 1;
     }
 
     .call-card-link {
@@ -218,16 +405,16 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(120deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
-      animation: shimmer 2.4s ease-in-out infinite;
-      opacity: 0.45;
+      border: 1px solid rgba(248, 250, 252, 0.1);
+      border-radius: inherit;
+      opacity: 1;
     }
 
     .waveform {
       border-radius: 999px;
       background-size: 200% 100%;
-      animation: pulseWave 4s linear infinite;
-      filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.28));
+      animation: pulseWave 7s linear infinite;
+      filter: none;
     }
 
     .waveform-fire {
@@ -330,11 +517,6 @@
       100% { opacity: 1; transform: translate3d(0, 0, 0); }
     }
 
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(180%); }
-    }
-
     @keyframes pulseWave {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -349,6 +531,24 @@
     @keyframes slideUp {
       from { transform: translateY(100%); }
       to { transform: translateY(0); }
+    }
+
+    @media (min-width: 1024px) {
+      .home-console-grid {
+        grid-template-columns: minmax(0, 1.25fr) minmax(20rem, 0.9fr);
+        align-items: start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .home-console-row {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+      }
+
+      .home-stat-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
   </style>
 </head>
@@ -369,61 +569,68 @@
 
 <main class="flex-1 overflow-y-auto bg-transparent pb-24">
   <div class="scanner-shell space-y-6">
-    <section class="scanner-home-hero panel scanner-home-hero p-5 sm:p-7">
-      <div class="scanner-home-hero-grid relative">
-        <div class="relative z-[1] flex flex-col justify-between gap-6">
+    <section class="home-console-panel p-5 sm:p-7">
+      <div class="home-console-grid">
+        <div class="home-console-copy">
           <div class="space-y-4">
-            <p class="scanner-kicker">Scanner Network</p>
-            <div class="space-y-3">
-              <h1 class="scanner-home-display">
-                Dispatch, archive,
-                <span>and town pulse.</span>
-              </h1>
-              <p class="scanner-section-copy max-w-2xl text-base sm:text-lg">
-                Keep an eye on live radio traffic, jump into recent calls, and track what each covered town is doing without bouncing between separate tools.
-              </p>
+            <p class="scanner-kicker">Local Scanner Service</p>
+            <h1 class="home-console-title">Live scanner audio capture for local police, fire, and EMS traffic.</h1>
+            <p class="home-console-summary">
+              This is the front desk for the network: active audio monitoring, searchable recent calls, archived playback, and town-by-town feed access for the communities you actually care about.
+            </p>
+          </div>
+
+          <div class="home-console-list">
+            <div class="home-console-row">
+              <span class="home-console-label">Coverage</span>
+              <span class="home-console-value">Hopedale, Milford, Bellingham, Mendon, Upton, Blackstone, Franklin, and Millville feeds when available.</span>
+            </div>
+            <div class="home-console-row">
+              <span class="home-console-label">What You Get</span>
+              <span class="home-console-value">Live listening, transcript-backed recent activity, searchable archive playback, and hooks for the calls worth revisiting.</span>
+            </div>
+            <div class="home-console-row">
+              <span class="home-console-label">Best Use</span>
+              <span class="home-console-value">Start with the live board below, then jump into a town feed or the archive when you need context around a specific incident or address.</span>
             </div>
           </div>
 
-          <div class="scanner-home-actions">
-            <a href="#call-board" class="scanner-primary-btn">Jump To Live Calls</a>
-            <a href="/scanner/archive" class="scanner-secondary-btn">Open Archive</a>
+          <div class="home-console-actions">
+            <a href="#call-board" class="scanner-primary-btn">Open Live Board</a>
+            <a href="/scanner/archive" class="scanner-secondary-btn">Browse Archive</a>
             <button type="button" data-ask-ned-open class="scanner-secondary-btn">Ask Ned</button>
           </div>
 
-          <div class="scanner-towns-marquee">
-            <span class="scanner-town-chip">Hopedale</span>
-            <span class="scanner-town-chip">Milford</span>
-            <span class="scanner-town-chip">Bellingham</span>
-            <span class="scanner-town-chip">Mendon</span>
-            <span class="scanner-town-chip">Upton</span>
-            <span class="scanner-town-chip">Blackstone</span>
-            <span class="scanner-town-chip">Franklin</span>
+          <div class="home-coverage-strip">
+            <span class="home-coverage-chip">PD</span>
+            <span class="home-coverage-chip">Fire</span>
+            <span class="home-coverage-chip">EMS Traffic</span>
+            <span class="home-coverage-chip">Call Archive</span>
+            <span class="home-coverage-chip">PWA Alerts</span>
           </div>
         </div>
 
-        <div class="relative z-[1] scanner-signal-stack">
-          <article class="scanner-hero-card panel p-5 sm:p-6">
-            <div class="scanner-section-header mb-5">
+        <div class="home-console-status">
+          <article class="home-status-card">
+            <div class="home-status-card-header">
               <div>
-                <p class="scanner-kicker">Today's Network Summary</p>
-                <h2 class="scanner-section-title mt-2">What the system has seen so far.</h2>
+                <p class="home-status-title">Operations Summary</p>
               </div>
-              <span class="text-xs uppercase tracking-[0.22em] text-slate-500">Auto updates</span>
+              <span class="home-status-chip">Monitoring</span>
             </div>
 
-            <article id="stats" class="grid grid-cols-2 gap-3">
+            <article id="stats" class="home-stat-grid">
               <div class="home-stat-card">
                 <span class="stat-label">Calls Today</span>
-                <span id="total-calls" class="stat-value text-sky-300">--</span>
+                <span id="total-calls" class="stat-value text-slate-100">--</span>
               </div>
               <div class="home-stat-card">
-                <span class="stat-label">Hooks Today</span>
+                <span class="stat-label">Hooks Saved</span>
                 <span id="hooks-today" class="stat-value text-amber-300">--</span>
               </div>
               <div class="home-stat-card">
                 <span class="stat-label">Minutes Recorded</span>
-                <span id="active-feeds" class="stat-value text-cyan-200">--</span>
+                <span id="active-feeds" class="stat-value text-slate-100">--</span>
               </div>
               <div class="home-stat-card">
                 <span class="stat-label">Listeners</span>
@@ -432,22 +639,15 @@
             </article>
           </article>
 
-          <article class="scanner-hero-card panel p-5 sm:p-6">
-            <div class="scanner-section-header mb-4">
-              <div>
-                <p class="scanner-kicker">Dispatch Pulse</p>
-                <h2 class="scanner-section-title mt-2">Live traffic and fast navigation.</h2>
-              </div>
+          <article class="home-status-card">
+            <div class="home-status-card-header">
+              <p class="home-status-title">How To Use This Page</p>
             </div>
-            <div class="space-y-4">
-              <div class="scanner-signal-stack">
-                <div class="scanner-signal-bar"></div>
-                <div class="scanner-signal-bar"></div>
-                <div class="scanner-signal-bar"></div>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <a href="/scanner/heatmap" class="scanner-link-chip justify-between">View Heat Map <span aria-hidden="true">↗</span></a>
-                <a href="/scanner/review" class="scanner-link-chip justify-between">Review Edits <span aria-hidden="true">↗</span></a>
+            <div class="space-y-3">
+              <p class="home-subtle-note">Use the live board for what is happening now. Use the town grid for direct feed access. Use the archive when you need to go back and review an incident in full.</p>
+              <div class="grid grid-cols-1 gap-2 text-sm">
+                <a href="/scanner/heatmap" class="scanner-link-chip justify-between">Open Heat Map <span aria-hidden="true">↗</span></a>
+                <a href="/scanner/review" class="scanner-link-chip justify-between">Review Edited Calls <span aria-hidden="true">↗</span></a>
               </div>
             </div>
           </article>
@@ -458,22 +658,22 @@
     <section id="call-board" class="panel p-5 sm:p-6 space-y-5">
       <div class="scanner-section-header">
         <div>
-          <p class="scanner-kicker">Live Calls</p>
-          <h2 class="scanner-section-title mt-2">Latest activity across the network.</h2>
+          <p class="scanner-kicker">Recent Activity</p>
+          <h2 class="scanner-section-title mt-2">Latest captured calls across all monitored feeds.</h2>
         </div>
-        <span class="text-[11px] uppercase tracking-[0.24em] text-slate-500">Realtime board</span>
+        <span class="text-[11px] uppercase tracking-[0.24em] text-slate-500">Live board</span>
       </div>
 
       <div id="town-filter-tabs" class="flex flex-wrap gap-2">
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-semibold text-slate-50 border border-sky-300/35 bg-sky-400/15 shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition" data-town="all">All</button>
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="hopedale">Hopedale</button>
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="milford">Milford</button>
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="bellingham">Bellingham</button>
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="mendon">Mendon</button>
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="upton">Upton</button>
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="franklin">Franklin</button>
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="blackstone">Blackstone</button>
-        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-700/80 bg-slate-900/65 hover:text-slate-100 hover:border-slate-500/70 hover:bg-slate-800/80 transition" data-town="millville">Millville</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-semibold text-slate-100 border border-slate-500/60 bg-slate-800/90 transition" data-town="all">All</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition" data-town="hopedale">Hopedale</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition" data-town="milford">Milford</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition" data-town="bellingham">Bellingham</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition" data-town="mendon">Mendon</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition" data-town="upton">Upton</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition" data-town="franklin">Franklin</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition" data-town="blackstone">Blackstone</button>
+        <button class="town-filter-tab px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-slate-800 bg-slate-950/70 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-900/80 transition" data-town="millville">Millville</button>
       </div>
 
       <div id="call-card-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-live="polite">
@@ -486,8 +686,8 @@
     <section id="towns" class="panel p-5 sm:p-6 space-y-5">
       <div class="scanner-section-header">
         <div>
-          <p class="scanner-kicker">Coverage</p>
-          <h2 class="scanner-section-title mt-2">Jump straight into each local feed.</h2>
+          <p class="scanner-kicker">Town Feeds</p>
+          <h2 class="scanner-section-title mt-2">Open a local feed or head into its archive.</h2>
         </div>
         <a href="/scanner/archive" class="scanner-link-chip">Full archive <span aria-hidden="true">↗</span></a>
       </div>
@@ -497,14 +697,14 @@
     <section class="scanner-footer-panel panel p-5 sm:p-6">
       <div class="scanner-section-header">
         <div>
-          <p class="scanner-kicker">Need More Context?</p>
-          <h2 class="scanner-section-title mt-2">Use the archive, heat map, or Ask Ned to go deeper.</h2>
+          <p class="scanner-kicker">Next Step</p>
+          <h2 class="scanner-section-title mt-2">Need to follow up on a call or check a location?</h2>
         </div>
       </div>
       <div class="mt-5 flex flex-wrap gap-3">
-        <a href="/scanner/archive" class="scanner-primary-btn">Browse Archive</a>
-        <a href="/scanner/heatmap" class="scanner-secondary-btn">Open Heat Map</a>
-        <button type="button" data-ask-ned-open class="scanner-secondary-btn">Ask Ned A Question</button>
+        <a href="/scanner/archive" class="scanner-primary-btn">Search The Archive</a>
+        <a href="/scanner/heatmap" class="scanner-secondary-btn">Check The Heat Map</a>
+        <button type="button" data-ask-ned-open class="scanner-secondary-btn">Ask Ned About A Call</button>
       </div>
     </section>
   </div>
