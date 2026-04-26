@@ -23,11 +23,15 @@ const CALL_BOARD_REFRESH_INTERVAL = 45000; // 45 seconds
 const CALL_BOARD_MIN_REFRESH = 20000; // Debounce frequent socket updates
 let lastCallBoardRefresh = 0;
 let callBoardIntervalId = null;
+const LISTENER_HEARTBEAT_INTERVAL_MS = 45000;
+const LISTENER_CLIENT_ID_KEY = 'scanner_listener_client_id';
+let listenerHeartbeatTimer = null;
+let listenerHeartbeatStarted = false;
 
 const API_CACHE_DEFAULT_TTL = 30000;
 const API_CACHE_KEYS = {
     stats: 'scanner_api_stats',
-    wsUsers: 'scanner_api_ws_users',
+    wsUsers: 'scanner_api_listeners',
     latest: 'scanner_api_latest',
     homeLiveCalls: 'scanner_api_home_live_calls',
     todayCounts: 'scanner_api_today_counts'
@@ -68,6 +72,57 @@ async function fetchJsonWithCache(url, cacheKey, ttlMs, onData) {
     } catch (err) {
         console.warn(`[Cache] Network fetch failed for ${url}:`, err);
     }
+}
+
+function getListenerClientId() {
+    try {
+        let clientId = localStorage.getItem(LISTENER_CLIENT_ID_KEY);
+        if (!clientId) {
+            clientId = (window.crypto && typeof window.crypto.randomUUID === 'function')
+                ? window.crypto.randomUUID()
+                : `listener-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            localStorage.setItem(LISTENER_CLIENT_ID_KEY, clientId);
+        }
+        return clientId;
+    } catch (err) {
+        return `listener-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+}
+
+async function sendListenerHeartbeat(active = true) {
+    try {
+        await fetch('/scanner/_heartbeat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            keepalive: true,
+            body: JSON.stringify({
+                client_id: getListenerClientId(),
+                page: `${window.location.pathname}${window.location.search}`,
+                active
+            })
+        });
+    } catch (err) {
+        console.warn('[Presence] Heartbeat failed:', err);
+    }
+}
+
+function initListenerHeartbeat() {
+    if (listenerHeartbeatStarted) return;
+    listenerHeartbeatStarted = true;
+
+    sendListenerHeartbeat(true);
+    listenerHeartbeatTimer = window.setInterval(() => {
+        sendListenerHeartbeat(true);
+    }, LISTENER_HEARTBEAT_INTERVAL_MS);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            sendListenerHeartbeat(true);
+        }
+    });
+
+    window.addEventListener('focus', () => sendListenerHeartbeat(true));
 }
 
 // --- Inject CSS for shared styles (live indicators) ---
@@ -353,18 +408,23 @@ function initHeader() {
     const wsUserCountEl = document.getElementById('ws-user-count');
     const activeUserCountEl = document.getElementById('active-user-count');
 
-    if (!wsUserCountEl || !activeUserCountEl) {
-        console.warn("[Header] User count elements not found.");
+    if (!wsUserCountEl) {
+        console.warn("[Header] Listener count element not found.");
         return;
     }
+    initListenerHeartbeat();
     console.log("[Header] Initializing live user counts.");
     const updateHeaderCounts = async () => {
         try {
-            const res = await fetch('/scanner/api/users');
+            await sendListenerHeartbeat(true);
+            const res = await fetch('/scanner/api/listeners', { cache: 'no-store' });
             if (res.ok) {
                 const data = await res.json();
-                wsUserCountEl.textContent = `${data.connected_users ?? 0} listener${data.connected_users === 1 ? '' : 's'}`;
-                activeUserCountEl.textContent = `${data.active_users ?? 0} Logged-in`;
+                const listenerCount = data.connected_users ?? data.active_count ?? 0;
+                wsUserCountEl.textContent = `${listenerCount} listener${listenerCount === 1 ? '' : 's'}`;
+                if (activeUserCountEl) {
+                    activeUserCountEl.textContent = `${data.active_users ?? 0} Logged-in`;
+                }
                 console.log("[Header] User status updated:", data);
             }
         } catch (e) {
@@ -435,8 +495,9 @@ async function loadHomepageSummary() {
         if (hooksTodayEl) hooksTodayEl.textContent = stats.total_hooks_today ?? '--';
     });
 
-    fetchJsonWithCache("/scanner/api/ws_users", API_CACHE_KEYS.wsUsers, API_CACHE_DEFAULT_TTL, (wsData) => {
-        listenersEl.textContent = wsData.connected_users ?? 0;
+    initListenerHeartbeat();
+    fetchJsonWithCache("/scanner/api/listeners", API_CACHE_KEYS.wsUsers, 15000, (wsData) => {
+        listenersEl.textContent = wsData.connected_users ?? wsData.active_count ?? 0;
     });
 }
 

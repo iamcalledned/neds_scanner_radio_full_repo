@@ -39,7 +39,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 # --- 3. Local Application Imports ---
 from sockets import socketio, init_sockets
-from routes.routes_scanner import scanner_bp, warm_api_cache
+from routes.routes_scanner import scanner_bp, warm_api_cache, get_active_listener_state
 from routes.routes_api_scanner import api_scanner_bp
 from routes.routes_auth import auth_bp
 from routes.routes_push import push_bp
@@ -419,8 +419,8 @@ def calculate_all_stats():
     final_stats["last_updated"] = datetime.now().isoformat()
 
     try:
-        # Get the live listener count from the socketio server
-        final_stats["listeners"] = len(socketio.server.eio.sockets)
+        # Use browser heartbeats so one person doesn't get overcounted by reconnects.
+        final_stats["listeners"] = get_active_listener_state()["active_count"]
     except Exception as e:
         logger.warning("stats.calculate.listener_count_failed error=%s", e)
         final_stats["listeners"] = 0
@@ -566,8 +566,13 @@ def api_users_alias():
 @app.route('/scanner/api/ws_users')
 def api_ws_users():
     try:
-        active_connections = len(socketio.server.eio.sockets)
-        return jsonify({"connected_users": active_connections})
+        snapshot = get_active_listener_state()
+        raw_socket_connections = len(socketio.server.eio.sockets)
+        return jsonify({
+            "connected_users": snapshot["active_count"],
+            "active_count": snapshot["active_count"],
+            "raw_socket_connections": raw_socket_connections,
+        })
     except Exception as e:
         logger.error(f"Error getting websocket user count: {e}")
         return jsonify({"connected_users": 0, "error": str(e)}), 500

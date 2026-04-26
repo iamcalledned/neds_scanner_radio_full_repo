@@ -81,6 +81,28 @@ API_CACHE_TTL = {
 API_CACHE_PREFIX = "scanner_api_cache:"
 
 
+def get_active_listener_state():
+    """Return active listener presence derived from recent browser heartbeats."""
+    cutoff = time.time() - ACTIVE_TIMEOUT
+    with ACTIVE_LOCK:
+        stale = [k for k, v in ACTIVE_USERS.items() if v["last_seen"] < cutoff]
+        for key in stale:
+            del ACTIVE_USERS[key]
+
+        active = [
+            {
+                "client_id": key,
+                "ip": value["ip"],
+                "ua": value["ua"],
+                "page": value.get("page", ""),
+                "last_seen": value["last_seen"],
+            }
+            for key, value in ACTIVE_USERS.items()
+        ]
+
+    return {"active_count": len(active), "active": active}
+
+
 def _get_redis_client():
     try:
         return redis.from_url(REDIS_URL, decode_responses=True)
@@ -1036,16 +1058,20 @@ def scanner_heartbeat():
     """Receive periodic heartbeats from clients to mark them active."""
     data = request.get_json(silent=True) or {}
     client_id = data.get('client_id') or str(uuid.uuid4())
+    is_active = data.get('active', True)
     page = data.get('page', '')
     ua = request.headers.get('User-Agent', '')
     now = time.time()
     with ACTIVE_LOCK:
-        ACTIVE_USERS[client_id] = {
-            'last_seen': now,
-            'ip': request.remote_addr,
-            'ua': ua,
-            'page': page,
-        }
+        if not is_active:
+            ACTIVE_USERS.pop(client_id, None)
+        else:
+            ACTIVE_USERS[client_id] = {
+                'last_seen': now,
+                'ip': request.remote_addr,
+                'ua': ua,
+                'page': page,
+            }
     return jsonify({'success': True, 'client_id': client_id})
 
 
@@ -1065,28 +1091,22 @@ def scanner_login():
 @scanner_bp.route('/scanner/admin/active')
 def scanner_active():
     """Return currently active clients seen within ACTIVE_TIMEOUT seconds."""
-    cutoff = time.time() - ACTIVE_TIMEOUT
-    with ACTIVE_LOCK:
-        # remove stale entries to keep memory small
-        stale = [k for k, v in ACTIVE_USERS.items() if v['last_seen'] < cutoff]
-        for k in stale:
-            del ACTIVE_USERS[k]
-        active = [
-            {
-                'client_id': k,
-                'ip': v['ip'],
-                'ua': v['ua'],
-                'page': v.get('page', ''),
-                'last_seen': v['last_seen']
-            }
-            for k, v in ACTIVE_USERS.items()
-        ]
-    return jsonify({'active_count': len(active), 'active': active})
+    return jsonify(get_active_listener_state())
 
 @scanner_bp.route('/scanner/api/logged_in_users')
 def logged_in_users_api():
     """Alias for /scanner/admin/active for header consistency."""
     return scanner_active()
+
+
+@scanner_bp.route('/scanner/api/listeners')
+def scanner_listener_count():
+    """Return the current heartbeat-based listener count."""
+    snapshot = get_active_listener_state()
+    return jsonify({
+        "connected_users": snapshot["active_count"],
+        "active_count": snapshot["active_count"],
+    })
 
 
 @scanner_bp.route("/scanner/api/new_counts")
@@ -1216,14 +1236,12 @@ def scanner_home_live_calls():
 @scanner_bp.route('/scanner/api/user_count')
 def get_user_count():
     """
-    Returns the current number of connected Socket.IO clients.
+    Returns the current number of active listeners.
     """
     try:
-        # This dictionary holds all active Engine.IO clients
-        client_count = len(socketio.server.eio.clients)
-        
+        snapshot = get_active_listener_state()
         return jsonify({
-            "connected_users": client_count
+            "connected_users": snapshot["active_count"]
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
