@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#07101d] text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>{% block page_title %}Ned's Scanner Network{% endblock %}</title>
+
+  <meta name="description" content="{% block meta_description %}Live and archived scanner radio feeds across the Ned's Scanner Network.{% endblock %}">
+  <meta name="theme-color" content="#07101d">
+
+  <link rel="manifest" href="/scanner/manifest.json?v={{ asset_version('manifest.json') }}">
+  <link rel="icon" type="image/x-icon" href="/scanner/static/icons/favicon.ico">
+  <link rel="apple-touch-icon" href="/scanner/static/icons/icon-192x192-v2.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Scanner">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/scanner/static/css/style.css?v={{ asset_version('css/style.css') }}">
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRCK642NXJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FRCK642NXJ');
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pd: '#1e3a8a',
+            fd: '#7f1d1d',
+            bg: '#07101d',
+            scannerBlue: '#38bdf8',
+            scannerGlow: '#7dd3fc',
+            scannerRed: '#fb7185'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace'],
+            display: ['Space Grotesk', 'sans-serif']
+          },
+          boxShadow: {
+            scanner: '0 20px 48px rgba(2, 8, 23, 0.45)'
+          }
+        }
+      }
+    };
+  </script>
+
+  {% block head_extra %}{% endblock %}
+  {% block head_pre_scripts %}{% endblock %}
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
+  <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
+  {% block head_scripts %}{% endblock %}
+</head>
+
+<body class="scanner-app-body flex min-h-full flex-col font-sans selection:bg-sky-500/25 selection:text-white {% block body_classes %}{% endblock %}" data-page="{% block page_key %}home{% endblock %}">
+{% set active_page = self.page_key()|trim %}
+{% set show_listener_count_value %}{% block show_listener_count %}true{% endblock %}{% endset %}
+{% set show_listener_count = show_listener_count_value|trim != 'false' %}
+{% include "_scanner_header.html" %}
+
+{% block body_before_main %}{% endblock %}
+
+<main class="{% block main_classes %}scanner-main main-content-area flex-1 overflow-y-auto pb-20{% endblock %}">
+  {% block content %}{% endblock %}
+</main>
+
+{% block body_after_main %}{% endblock %}
+</body>
+</html>

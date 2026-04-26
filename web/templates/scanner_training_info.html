@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0b0f19] text-slate-100">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Training Info | Ned's Scanner Network</title>
+{% extends "scanner_base.html" %}
 
-  <script src="https://cdn.tailwindcss.com"></script>
+{% block page_title %}Training Info | Ned's Scanner Network{% endblock %}
+{% block meta_description %}Model comparison reports and evaluation summaries for scanner transcription training runs.{% endblock %}
+{% block page_key %}training{% endblock %}
+{% block show_listener_count %}false{% endblock %}
+
+{% block head_extra %}
   <style>
-    body {
-      background: radial-gradient(circle at 20% 15%, rgba(30,41,59,0.55) 0%, rgba(11,15,25,0.92) 55%),
-                  linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(2,6,23,0.98) 100%);
-    }
     .panel {
       background: rgba(15,23,42,0.74);
       border: 1px solid rgba(148,163,184,0.15);
@@ -69,17 +65,13 @@
       font-size: 0.875rem;
       transition: background .15s,color .15s;
     }
-    .menu-item:hover {
-      background: #1e293b;
-      color: #38bdf8;
-    }
   </style>
-</head>
-<body class="h-full font-sans">
-{% set active_page = 'training' %}
-{% include "_scanner_header.html" %}
+{% endblock %}
 
-<main class="max-w-[1600px] mx-auto px-4 py-6 space-y-6">
+{% block main_classes %}scanner-main flex-1 overflow-y-auto pb-16{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-[1600px] px-4 py-6 space-y-6">
   <section class="panel p-5 sm:p-7">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
       <div>
@@ -150,8 +142,10 @@
       </div>
     {% endif %}
   </section>
-</main>
+</div>
+{% endblock %}
 
+{% block body_after_main %}
 <script>
   (function () {
     const iframe = document.getElementById('training-report-frame');
@@ -210,5 +204,4 @@
     });
   })();
 </script>
-</body>
-</html>
+{% endblock %}

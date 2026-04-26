@@ -1,47 +1,12 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0b0f19] text-slate-100">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Ned’s Scanner Network</title>
+{% extends "scanner_base.html" %}
 
-  <meta name="description" content="Live and archived scanner feeds — Hopedale, Milford, Franklin, and more.">
-  <meta name="theme-color" content="#0b0f19">
-  <link rel="manifest" href="/scanner/manifest.json?v={{ asset_version('manifest.json') }}">
-  <link rel="icon" type="image/x-icon" href="/scanner/static/icons/favicon.ico">
-  <link rel="apple-touch-icon" href="/scanner/static/icons/icon-192x192.png">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Scanner">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+{% block page_title %}Ned's Scanner Network{% endblock %}
+{% block meta_description %}Live and archived scanner feeds for local towns, with instant listening, search, and archive access in one installable app.{% endblock %}
+{% block page_key %}home{% endblock %}
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            pd: '#1e3a8a',
-            fd: '#7f1d1d',
-            bg: '#0b0f19',
-            scannerBlue: '#38bdf8'
-          },
-          fontFamily: { sans: ['Inter','sans-serif'] }
-        }
-      }
-    }
-  </script>
-
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
-  <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
-
+{% block head_extra %}
   <style>
     /* === Base visual theme === */
-    body {
-      background: radial-gradient(circle at 20% 15%, rgba(30,41,59,0.55) 0%, rgba(11,15,25,0.92) 55%),
-                  linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(2,6,23,0.98) 100%);
-    }
     .glass { background: rgba(15,23,42,0.78); border: 1px solid rgba(148,163,184,0.12); box-shadow: 0 20px 40px rgba(2,6,23,0.55); }
     .glass:hover { border-color: rgba(148,163,184,0.25); transform: translateY(-1px); }
 
@@ -291,15 +256,12 @@
     }
 
   </style>
-</head>
+{% endblock %}
 
-<body class="flex flex-col h-full font-sans selection:bg-slate-600/40 selection:text-white">
-
-{% set active_page = 'home' %}
-{% include "_scanner_header.html" %}
+{% block body_before_main %}
 
 <!-- Live Now bar -->
-<div id="live-now-bar" class="sticky top-16 z-40 bg-[#0b0f19]/90 backdrop-blur-sm border-b border-slate-800/60 px-4 py-2 overflow-x-auto">
+<div id="live-now-bar" class="scanner-live-now-bar px-4 py-2 overflow-x-auto">
   <div class="max-w-6xl mx-auto flex gap-3 items-center min-h-[28px]">
     <span class="text-slate-600 text-[10px] uppercase tracking-widest shrink-0">Live</span>
     <div id="live-now-chips" class="flex gap-2 items-center flex-wrap">
@@ -307,14 +269,16 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-<main class="flex-1 overflow-y-auto bg-transparent pb-24">
-  <div class="max-w-6xl mx-auto p-4 space-y-6">
+{% block main_classes %}scanner-main flex-1 overflow-y-auto pb-24{% endblock %}
 
+{% block content %}
+  <div class="scanner-page-shell space-y-6">
     <section class="panel px-5 py-6 sm:px-7 sm:py-7 overflow-hidden relative">
       <div class="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-scannerBlue/10 to-transparent pointer-events-none"></div>
       <div class="relative flex items-center gap-4 sm:gap-5">
-        <img src="/scanner/static/icons/logo-header.png" alt="Ned's Scanner Network" class="h-16 sm:h-20 w-auto drop-shadow-[0_14px_34px_rgba(56,189,248,0.2)]">
+        <img src="/scanner/static/icons/icon-192x192-v2.png" alt="Ned's Scanner Network" class="h-16 w-16 rounded-3xl border border-sky-300/10 bg-slate-950/50 p-2 shadow-[0_14px_34px_rgba(56,189,248,0.2)] sm:h-20 sm:w-20">
         <div>
           <p class="text-[0.62rem] tracking-[0.32em] uppercase text-scannerBlue/80">Scanner Network</p>
           <h2 class="text-2xl sm:text-3xl font-semibold text-white tracking-tight mt-1">Ned's Scanner Network</h2>
@@ -376,10 +340,10 @@
       <h2 class="text-base font-semibold text-slate-200 tracking-wide">Towns</h2>
       <div id="town-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
-
   </div>
-</main>
+{% endblock %}
 
+{% block body_after_main %}
 <footer id="player-dock" class="hidden fixed bottom-0 left-0 w-full z-40">
   <div class="max-w-5xl mx-auto flex items-center justify-between p-3">
     <div id="player-info" class="text-sm text-slate-300">
@@ -442,27 +406,4 @@ function showPlayerDock(feedName){
   document.getElementById('player-dock').classList.remove('hidden');
 }
 </script>
-<script>
-let deferredPrompt;
-const installBtn = document.getElementById('install-btn');
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); 
-  deferredPrompt = e; 
-  installBtn.classList.remove('hidden');
-});
-installBtn.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  console.log(`User response to the install prompt: ${outcome}`);
-  deferredPrompt = null; 
-  installBtn.classList.add('hidden');
-});
-window.addEventListener('appinstalled', () => {
-  console.log('✅ App installed');
-  installBtn.classList.add('hidden');
-});
-</script>
-
-</body>
-</html>
+{% endblock %}

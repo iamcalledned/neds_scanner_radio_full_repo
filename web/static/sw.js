@@ -1,6 +1,4 @@
-// In: sw.js (Your complete, corrected file)
-
-const CACHE_NAME = 'scanner-cache-v20260421-ask-ned';
+const CACHE_NAME = 'scanner-cache-v20260425-shell';
 const OFFLINE_URL = 'offline.html';
 
 // Use relative paths so this worker works under /scanner/ when installed there.
@@ -9,18 +7,19 @@ const ASSETS_TO_CACHE = [
   './',
   OFFLINE_URL,
   'manifest.json',
-  'static/icons/icon-192x192.png',
-  'static/icons/icon-512x512.png',
   'static/icons/icon-192x192-v2.png',
   'static/icons/icon-512x512-v2.png',
-  'static/icons/logo-header.png',
   'static/icons/favicon.ico',
+  'static/css/style.css',
 
   // Add all critical JS/CSS (without ?v)
   'static/js/scanner_app_new.js',
   'static/js/scanner_view.js',
   'static/js/scanner_archive.js',
   'static/js/scanner_heatmap.js',
+  'static/js/scanner_review.js',
+  'static/js/scanner_stats.js',
+  'static/js/scanner_town.js',
   'static/js/pwa.js'
 ];
 
@@ -73,7 +72,7 @@ self.addEventListener('fetch', (event) => {
   // HTML navigations: network-first with offline fallback
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(OFFLINE_URL))
+      fetch(event.request).catch(() => caches.match(new URL(OFFLINE_URL, self.location).href))
     );
     return;
   }
@@ -145,8 +144,8 @@ self.addEventListener('push', function(event) {
   const title = (payload && payload.title) || 'Scanner';
   const options = {
     body: (payload && payload.message) || '',
-    icon: 'static/icons/icon-192x192.png',
-    badge: 'static/icons/icon-192x192.png',
+    icon: 'static/icons/icon-192x192-v2.png',
+    badge: 'static/icons/icon-192x192-v2.png',
     data: payload.data || {}
   };
 
@@ -157,7 +156,8 @@ self.addEventListener('push', function(event) {
 // Handle notification click
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  const urlToOpen = new URL('/scanner/', self.location.origin).href;
+  const targetUrl = event.notification.data && event.notification.data.url ? event.notification.data.url : '/scanner/';
+  const urlToOpen = new URL(targetUrl, self.location.origin).href;
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then( windowClients => {
       for (let i = 0; i < windowClients.length; i++) {

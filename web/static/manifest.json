@@ -1,11 +1,14 @@
 {
   "name": "Ned's Scanner Network",
   "short_name": "Scanner",
-  "start_url": "/scanner/?v=6",
+  "id": "/scanner/",
+  "start_url": "/scanner/",
+  "scope": "/scanner/",
   "display": "standalone",
-  "background_color": "#0b0f19",
-  "theme_color": "#0b0f19",
-  "description": "Live and archived scanner radio feeds for Hopedale, Milford, and Bellingham.",
+  "display_override": ["standalone", "browser"],
+  "background_color": "#07101d",
+  "theme_color": "#07101d",
+  "description": "Live and archived scanner radio feeds, stats, archive tools, and training review in one installable app.",
   "icons": [
     {
       "src": "/scanner/static/icons/icon-192x192-v2.png",

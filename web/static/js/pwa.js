@@ -1,3 +1,27 @@
+let deferredInstallPrompt = null;
+
+function isStandalonePwa() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function setInstallButtonState(isReady) {
+    const installButton = document.getElementById('install-btn');
+    if (!installButton) return;
+
+    const shouldHide = isStandalonePwa() || !isReady;
+    installButton.classList.toggle('hidden', shouldHide);
+    installButton.classList.toggle('is-ready', !shouldHide);
+    installButton.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+}
+
+async function handleInstallButtonClick() {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    console.log(`[PWA] Install prompt outcome: ${outcome}`);
+    deferredInstallPrompt = null;
+    setInstallButtonState(false);
+}
 
 // --- Service Worker Registration ---
 // Register on every page load so push works in both web and PWA contexts.
@@ -41,24 +65,13 @@ function swReady(timeoutMs = 10000) {
 window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     deferredInstallPrompt = event;
-    const installButton = document.getElementById('install-btn');
-    if (installButton) {
-        installButton.style.display = 'block'; 
-        installButton.addEventListener('click', async () => {
-            if (!deferredInstallPrompt) return;
-            deferredInstallPrompt.prompt();
-            const { outcome } = await deferredInstallPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
-            deferredInstallPrompt = null;
-            installButton.style.display = 'none';
-        });
-    }
+    setInstallButtonState(true);
 });
 window.addEventListener('appinstalled', () => {
-    console.log('PWA was installed');
+    console.log('[PWA] App installed');
     deferredInstallPrompt = null;
-    const installButton = document.getElementById('install-btn');
-    if (installButton) installButton.style.display = 'none';
+    document.body.classList.add('pwa-standalone');
+    setInstallButtonState(false);
 });
 
 // --- iOS "Add to Home Screen" Banner ---
@@ -74,35 +87,7 @@ window.addEventListener('appinstalled', () => {
         <span>Install this app: tap the <strong>Share</strong> button &#x2197; then <strong>"Add to Home Screen"</strong></span>
         <button id="ios-install-dismiss" aria-label="Dismiss">&times;</button>
     `;
-    Object.assign(banner.style, {
-        position: 'fixed',
-        bottom: '0',
-        left: '0',
-        right: '0',
-        zIndex: '9999',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        padding: '14px 16px',
-        background: '#1e293b',
-        borderTop: '1px solid #38bdf8',
-        color: '#e2e8f0',
-        fontSize: '14px',
-        lineHeight: '1.4',
-        boxShadow: '0 -2px 12px rgba(0,0,0,0.5)',
-    });
     const btn = banner.querySelector('#ios-install-dismiss');
-    Object.assign(btn.style, {
-        flexShrink: '0',
-        background: 'none',
-        border: 'none',
-        color: '#94a3b8',
-        fontSize: '20px',
-        cursor: 'pointer',
-        padding: '0 4px',
-        lineHeight: '1',
-    });
 
     document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(banner);
@@ -259,6 +244,15 @@ async function initPushButton() {
 // Use both DOMContentLoaded AND window load as a fallback so initNotifOverlay
 // always runs regardless of which defer script executes first.
 function _initAll() {
+    const installButton = document.getElementById('install-btn');
+    if (installButton && installButton.dataset.installBound !== '1') {
+        installButton.dataset.installBound = '1';
+        installButton.addEventListener('click', handleInstallButtonClick);
+    }
+    if (isStandalonePwa()) {
+        document.body.classList.add('pwa-standalone');
+    }
+    setInstallButtonState(!!deferredInstallPrompt);
     initPushButton();
     initNotifOverlay();
 }

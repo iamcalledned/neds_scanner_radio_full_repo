@@ -1,55 +1,12 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0b0f19] text-slate-100">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Review Edited Calls — Scanner</title>
+{% extends "scanner_base.html" %}
 
-  <meta name="description" content="Review and approve edited scanner radio call transcripts.">
-  <meta name="theme-color" content="#0b0f19">
+{% block page_title %}Review Edited Calls - Ned's Scanner Network{% endblock %}
+{% block meta_description %}Review and approve edited scanner call transcripts to improve training quality and dataset confidence.{% endblock %}
+{% block page_key %}review{% endblock %}
+{% block show_listener_count %}false{% endblock %}
 
-  <link rel="manifest" href="/scanner/manifest.json?v={{ asset_version('manifest.json') }}">
-  <link rel="icon" type="image/x-icon" href="/scanner/static/icons/favicon.ico">
-  <link rel="apple-touch-icon" href="/scanner/static/icons/icon-192x192.png">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Scanner">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter','sans-serif'], mono: ['Roboto Mono','monospace'] },
-          colors: { pd: '#1e3a8a', fd: '#7f1d1d', bg: '#0b0f19', scannerBlue: '#38bdf8' }
-        }
-      }
-    };
-  </script>
-
-  <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
-  <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
-  <script src="/scanner/static/js/scanner_review.js?v={{ asset_version('js/scanner_review.js') }}" defer></script>
-
+{% block head_extra %}
   <style>
-    /* === Scrollbar === */
-    .main-content-area::-webkit-scrollbar { width: 6px; }
-    .main-content-area::-webkit-scrollbar-track { background: #1e293b; }
-    .main-content-area::-webkit-scrollbar-thumb { background: #475569; }
-    .main-content-area::-webkit-scrollbar-thumb:hover { background: #64748b; }
-
-    /* === Menu === */
-    .menu-item {
-      display:block; padding:0.5rem 1rem;
-      color:#cbd5e1; font-size:0.875rem;
-      transition:background .15s,color .15s;
-    }
-    .menu-item:hover { background:#1e293b; color:#38bdf8; }
 
     /* === Call Card === */
     .review-call-card {
@@ -179,27 +136,23 @@
     .loading-spinner { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   </style>
-</head>
+{% endblock %}
 
-<body class="flex flex-col h-full overflow-hidden text-slate-100 font-sans selection:bg-blue-600 selection:text-white">
+{% block body_classes %}overflow-hidden{% endblock %}
 
-<!-- ===== Header ===== -->
-{% set active_page = 'review' %}
-{% set show_listener_count = false %}
-{% include "_scanner_header.html" %}
+{% block head_scripts %}
+  <script src="/scanner/static/js/scanner_review.js?v={{ asset_version('js/scanner_review.js') }}" defer></script>
+{% endblock %}
 
-<main class="flex-1 overflow-y-auto main-content-area pb-16"
-      style="background: radial-gradient(circle at 20% 15%, rgba(30,58,138,0.10) 0%, transparent 50%),
-             radial-gradient(circle at 80% 80%, rgba(127,29,29,0.07) 0%, transparent 50%),
-             #0b0f19;">
-
-  <div class="max-w-3xl mx-auto p-4 space-y-6">
+{% block content %}
+  <div class="scanner-page-shell max-w-3xl space-y-6">
 
     <!-- === Page Header === -->
-    <div class="pt-2">
-      <h1 class="text-2xl font-bold text-white tracking-tight">Review Edited Calls</h1>
-      <p class="text-slate-400 text-sm mt-1">All calls with edited transcripts since January 2026. Approve or re-edit.</p>
-    </div>
+    <section class="scanner-page-hero">
+      <p class="scanner-eyebrow">Training Workflow</p>
+      <h1 class="scanner-title">Review Edited Calls</h1>
+      <p class="scanner-subtitle">Audit corrected transcripts, approve strong samples, and keep the training corpus clean before promotion.</p>
+    </section>
 
     <!-- === Count badge (JS fills) === -->
     <div id="review-count-row" class="hidden flex items-center gap-2 text-slate-500 text-xs">
@@ -231,7 +184,4 @@
     <div id="review-end" class="hidden text-center text-slate-600 text-xs pb-4">— end of edited calls —</div>
 
   </div>
-</main>
-
-</body>
-</html>
+{% endblock %}

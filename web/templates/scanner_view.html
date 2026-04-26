@@ -1,78 +1,17 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0b0f19] text-slate-100">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Scanner Archive</title>
+{% extends "scanner_base.html" %}
 
-  <meta name="description" content="Live and archived scanner radio feeds for local towns — Hopedale, Milford, Franklin, and more.">
-  <meta name="theme-color" content="#0b0f19">
+{% block page_title %}Scanner Archive - Ned's Scanner Network{% endblock %}
+{% block meta_description %}Detailed feed view for archived and recent scanner calls, with waveform playback, transcript review, and training actions.{% endblock %}
+{% block page_key %}archive{% endblock %}
 
-  <link rel="manifest" href="/scanner/manifest.json?v={{ asset_version('manifest.json') }}">
-  <link rel="icon" type="image/x-icon" href="/scanner/static/icons/favicon.ico">
-  <link rel="apple-touch-icon" href="/scanner/static/icons/icon-192x192.png">
-
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Scanner">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
+{% block head_pre_scripts %}
   <script>
     window.initialCallsCount = {{ initial_call_count | default(0) }};
   </script>
+{% endblock %}
 
-  <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
-  <script src="/scanner/static/js/scanner_view.js?v={{ asset_version('js/scanner_view.js') }}" defer></script>
-  <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
-
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRCK642NXJ"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-FRCK642NXJ');
-  </script>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['Roboto Mono', 'monospace'],
-          },
-          colors: {
-            pd: '#1e3a8a',
-            fd: '#7f1d1d',
-            bg: '#0b0f19',
-            scannerBlue: '#38bdf8',
-          }
-        },
-      },
-    };
-  </script>
-
+{% block head_extra %}
   <style>
-    /* === Scrollbar === */
-    .main-content-area::-webkit-scrollbar { width: 6px; }
-    .main-content-area::-webkit-scrollbar-track { background: #1e293b; }
-    .main-content-area::-webkit-scrollbar-thumb { background: #475569; }
-    .main-content-area::-webkit-scrollbar-thumb:hover { background: #64748b; }
-
-    /* === Menu === */
-    .menu-item {
-      display:block; padding:0.5rem 1rem;
-      color:#cbd5e1; font-size:0.875rem;
-      transition:background .15s,color .15s;
-    }
-    .menu-item:hover { background:#1e293b; color:#38bdf8; }
 
     /* === Glass & Panel (matches scanner.html / town.html) === */
     .glass {
@@ -297,31 +236,26 @@
       border-color: rgba(139,92,246,0.5);
     }
   </style>
-</head>
+{% endblock %}
 
-<body class="flex flex-col h-full overflow-hidden text-slate-100 font-sans selection:bg-blue-600 selection:text-white">
+{% block body_classes %}overflow-hidden{% endblock %}
 
-<!-- ===== Header ===== -->
-{% set active_page = 'archive' %}
-{% set show_listener_count = true %}
-{% include "_scanner_header.html" %}
+{% block head_scripts %}
+  <script src="/scanner/static/js/scanner_view.js?v={{ asset_version('js/scanner_view.js') }}" defer></script>
+{% endblock %}
 
-<main class="flex-1 overflow-y-auto main-content-area pb-16"
-      style="background: radial-gradient(circle at 20% 15%, rgba(30,58,138,0.10) 0%, transparent 50%),
-             radial-gradient(circle at 80% 80%, rgba(127,29,29,0.07) 0%, transparent 50%),
-             #0b0f19;">
-
+{% block content %}
   <!-- Pull-to-refresh indicator -->
   <div id="pull-to-refresh-indicator">
     <span>Pull to refresh</span>
   </div>
 
-  <div class="max-w-3xl mx-auto p-4 space-y-6">
+  <div class="scanner-page-shell max-w-3xl space-y-6">
 
     <!-- === Feed Header === -->
-    <div id="page-header" class="pt-2">
+    <section id="page-header" class="scanner-page-hero">
       <!-- JS fills this with feed title + live badge -->
-    </div>
+    </section>
 
     <!-- === Stats Panel === -->
     <article id="feed-stats-panel" class="panel p-5">
@@ -545,9 +479,10 @@
     </div>
     {% endif %}
   </div>
-</main>
+{% endblock %}
 
 <!-- Address Lookup Modal -->
+{% block body_after_main %}
 <div id="address-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
   <div class="panel p-6 w-full max-w-md relative text-slate-200 mx-4">
     <button id="close-modal" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl transition">&times;</button>
@@ -574,6 +509,4 @@
     <div id="lookup-result" class="mt-4 text-sm text-slate-300 hidden"></div>
   </div>
 </div>
-
-</body>
-</html>
+{% endblock %}
