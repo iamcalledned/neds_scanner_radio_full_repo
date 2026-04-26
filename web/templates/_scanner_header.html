@@ -28,7 +28,10 @@
           <a href="/scanner/heatmap" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'heatmap' else '' }}">Heat Map</a>
           <a href="/scanner/training" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'training' else '' }}">Training</a>
           <a href="/scanner/review" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'review' else '' }}">Review</a>
-          <button type="button" data-ask-ned-open class="scanner-nav-link">Ask Ned</button>
+          <button type="button" data-ask-ned-open class="scanner-nav-link scanner-nav-link-chat">
+            <span class="scanner-chat-pip"></span>
+            Chat
+          </button>
         </nav>
       </div>
 
@@ -78,7 +81,7 @@
           <a href="/scanner/heatmap" class="menu-item">Heat Map</a>
           <a href="/scanner/training" class="menu-item">Training Info</a>
           <a href="/scanner/review" class="menu-item">Review Edits</a>
-          <button type="button" data-ask-ned-open class="menu-item">Ask Ned</button>
+          <button type="button" data-ask-ned-open class="menu-item">Open Chatbot</button>
           <div class="my-1 border-t border-slate-700/80"></div>
           <button id="notif-settings-btn-mobile" class="menu-item flex items-center gap-2">
             <span>🔔</span> Notifications
@@ -92,6 +95,10 @@
     <nav class="scanner-mobile-strip md:hidden">
       <a href="/scanner/" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'home' else '' }}">Home</a>
       <a href="/scanner/archive" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'archive' else '' }}">Archive</a>
+      <button type="button" data-ask-ned-open class="scanner-nav-link scanner-nav-link-chat">
+        <span class="scanner-chat-pip"></span>
+        Chat
+      </button>
       <a href="/scanner/stats" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'stats' else '' }}">Stats</a>
       <a href="/scanner/heatmap" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'heatmap' else '' }}">Map</a>
       <a href="/scanner/training" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'training' else '' }}">Training</a>

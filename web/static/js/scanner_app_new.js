@@ -883,6 +883,12 @@ function initAllHomeWaveformPlayers(root) {
 // === ASK NED CHAT =========================================
 // ==========================================================
 const ASK_NED_ENDPOINT = '/scanner/api/chat/local';
+const ASK_NED_SUGGESTIONS = [
+    'What happened in Derry today?',
+    'Show recent fire calls near Londonderry.',
+    'Any recalls or citations tonight?',
+    'Summarize the latest EMS activity.'
+];
 let askNedMessages = [];
 let askNedInitialized = false;
 
@@ -893,63 +899,241 @@ function injectAskNedStyles() {
     style.textContent = `
     #ask-ned-overlay {
       color: #e2e8f0;
+      padding: 12px;
+      padding-top: max(12px, env(safe-area-inset-top));
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
     }
     #ask-ned-panel {
-      background: rgba(15, 23, 42, 0.98);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      box-shadow: 0 24px 80px rgba(2, 6, 23, 0.7);
-      max-height: min(760px, calc(100vh - 24px));
+      width: min(480px, calc(100vw - 24px));
+      height: min(78vh, 760px);
+      background:
+        linear-gradient(180deg, rgba(7, 12, 22, 0.98) 0%, rgba(10, 18, 32, 0.98) 22%, rgba(12, 21, 37, 0.99) 100%);
+      border: 1px solid rgba(125, 211, 252, 0.14);
+      box-shadow: 0 32px 90px rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .ask-ned-header {
+      background:
+        linear-gradient(180deg, rgba(8, 47, 73, 0.35) 0%, rgba(8, 47, 73, 0.08) 100%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(15, 23, 42, 0.88) 100%);
+    }
+    .ask-ned-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #67e8f9;
+    }
+    .ask-ned-kicker::before {
+      content: '';
+      width: 0.46rem;
+      height: 0.46rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #67e8f9, #38bdf8);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.55);
+    }
+    .ask-ned-close {
+      background: rgba(15, 23, 42, 0.72);
+    }
+    .ask-ned-dayline {
+      align-self: center;
+      padding: 0.32rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(30, 41, 59, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      color: #94a3b8;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .ask-ned-message-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.7rem;
+    }
+    .ask-ned-message-row-user {
+      justify-content: flex-end;
+    }
+    .ask-ned-avatar {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(14, 116, 144, 0.34), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      color: #e0f2fe;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .ask-ned-avatar-user {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.5), rgba(8, 47, 73, 0.92));
+      border-color: rgba(56, 189, 248, 0.22);
+      color: #f8fafc;
+      order: 2;
+    }
+    .ask-ned-bubble-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-width: min(82%, 420px);
+    }
+    .ask-ned-message-row-user .ask-ned-bubble-stack {
+      align-items: flex-end;
+    }
+    .ask-ned-message-meta {
+      font-size: 0.72rem;
+      color: #94a3b8;
     }
     .ask-ned-message {
-      max-width: 86%;
-      border-radius: 14px;
-      padding: 0.7rem 0.85rem;
-      font-size: 0.9rem;
-      line-height: 1.45;
+      border-radius: 20px;
+      padding: 0.8rem 0.95rem;
+      font-size: 0.93rem;
+      line-height: 1.55;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
     .ask-ned-message-user {
-      margin-left: auto;
-      background: rgba(14, 165, 233, 0.16);
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.28), rgba(8, 47, 73, 0.88));
       border: 1px solid rgba(56, 189, 248, 0.24);
       color: #f8fafc;
+      border-bottom-right-radius: 0.45rem;
     }
     .ask-ned-message-assistant {
-      margin-right: auto;
-      background: rgba(30, 41, 59, 0.72);
+      background: rgba(15, 23, 42, 0.82);
       border: 1px solid rgba(148, 163, 184, 0.14);
       color: #e2e8f0;
+      border-bottom-left-radius: 0.45rem;
     }
     .ask-ned-citation {
       display: block;
-      margin-top: 0.5rem;
+      margin-top: 0.7rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.14);
       color: #94a3b8;
-      font-size: 0.76rem;
+      font-size: 0.74rem;
+      line-height: 1.4;
+    }
+    .ask-ned-suggestion-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      padding-left: 2.7rem;
+      padding-top: 0.15rem;
+    }
+    .ask-ned-suggestion {
+      appearance: none;
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      background: rgba(8, 47, 73, 0.2);
+      border-radius: 999px;
+      padding: 0.5rem 0.78rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.8rem;
+      line-height: 1.2;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+    .ask-ned-suggestion:hover,
+    .ask-ned-suggestion:focus-visible {
+      background: rgba(8, 145, 178, 0.22);
+      border-color: rgba(103, 232, 249, 0.28);
+      color: #f8fafc;
+      transform: translateY(-1px);
+    }
+    .ask-ned-suggestion:disabled {
+      opacity: 0.48;
+      cursor: default;
+      transform: none;
+    }
+    #ask-ned-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overscroll-behavior: contain;
+      background:
+        radial-gradient(circle at top, rgba(14, 116, 144, 0.08), transparent 34%),
+        linear-gradient(180deg, rgba(2, 6, 23, 0.22), rgba(2, 6, 23, 0.08));
+    }
+    .ask-ned-composer {
+      background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(8, 15, 26, 0.98) 100%);
+    }
+    .ask-ned-input-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.75rem;
+      border-radius: 1.15rem;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(2, 6, 23, 0.82);
+      padding: 0.75rem;
     }
     #ask-ned-input {
       resize: none;
-      min-height: 46px;
-      max-height: 120px;
+      min-height: 1.55rem;
+      max-height: 8.5rem;
+      border: 0;
+      background: transparent;
+      padding: 0;
+    }
+    #ask-ned-input:focus {
+      outline: none;
+    }
+    #ask-ned-send {
+      min-width: 4.4rem;
+    }
+    #ask-ned-status {
+      color: #64748b;
+    }
+    #ask-ned-status.is-busy {
+      color: #7dd3fc;
     }
     @media (max-width: 640px) {
+      #ask-ned-overlay {
+        padding: 0;
+      }
       #ask-ned-panel {
         width: 100%;
-        height: calc(100vh - env(safe-area-inset-top));
+        height: calc(100dvh - env(safe-area-inset-top));
         max-height: none;
-        border-radius: 18px 18px 0 0;
+        border-radius: 22px 22px 0 0;
       }
-      .ask-ned-message {
-        max-width: 94%;
+      .ask-ned-bubble-stack {
+        max-width: calc(100% - 2.7rem);
+      }
+      .ask-ned-suggestion-row {
+        padding-left: 0;
+      }
+      .ask-ned-input-wrap {
+        gap: 0.65rem;
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
       }
     }
   `;
     document.head.appendChild(style);
 }
 
+function autosizeAskNedInput() {
+    const input = document.getElementById('ask-ned-input');
+    if (!input) return;
+    input.style.height = 'auto';
+    input.style.height = `${Math.min(input.scrollHeight, 136)}px`;
+}
+
 function ensureAskNedMarkup() {
     let overlay = document.getElementById('ask-ned-overlay');
     if (overlay) return overlay;
+
+    const suggestionButtons = ASK_NED_SUGGESTIONS
+        .map((suggestion, index) => `<button type="button" class="ask-ned-suggestion" data-ask-ned-suggestion="${index}">${suggestion}</button>`)
+        .join('');
 
     overlay = document.createElement('div');
     overlay.id = 'ask-ned-overlay';
@@ -957,22 +1141,33 @@ function ensureAskNedMarkup() {
     overlay.innerHTML = `
       <div id="ask-ned-backdrop" class="absolute inset-0 bg-black/65 backdrop-blur-sm"></div>
       <section id="ask-ned-panel" class="relative flex w-full sm:w-[min(92vw,720px)] flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden">
-        <header class="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3 shrink-0">
+        <header class="ask-ned-header flex items-center justify-between gap-3 border-b border-slate-800/90 px-4 py-4 shrink-0">
           <div class="min-w-0">
-            <h2 class="text-base font-semibold text-white">Ask Ned</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Scanner questions answered from the local call database.</p>
+            <div class="ask-ned-kicker">Scanner Chat</div>
+            <h2 class="mt-1 text-lg font-semibold text-white">Open a local call conversation</h2>
+            <p class="text-xs text-slate-400 mt-1">Ask about recent calls, towns, addresses, coverage, recalls, and call IDs.</p>
           </div>
-          <button id="ask-ned-close" type="button" class="h-9 w-9 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition" aria-label="Close Ask Ned">x</button>
+          <button id="ask-ned-close" type="button" class="ask-ned-close h-10 w-10 rounded-full border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition" aria-label="Close scanner chat">X</button>
         </header>
-        <div id="ask-ned-messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-950/35">
-          <div class="ask-ned-message ask-ned-message-assistant">Ask about recent calls, towns, departments, warnings, citations, fire recalls, coverage, addresses, or call IDs.</div>
-        </div>
-        <form id="ask-ned-form" class="border-t border-slate-800 p-3 bg-slate-950/70">
-          <div class="flex items-end gap-2">
-            <textarea id="ask-ned-input" rows="1" class="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-scannerBlue focus:outline-none" placeholder="Ask about scanner calls..."></textarea>
-            <button id="ask-ned-send" type="submit" class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 transition">Send</button>
+        <div id="ask-ned-messages" class="flex-1 overflow-y-auto px-4 py-4">
+          <div class="ask-ned-dayline">Local scanner database</div>
+          <div class="ask-ned-message-row">
+            <div class="ask-ned-avatar">NS</div>
+            <div class="ask-ned-bubble-stack">
+              <div class="ask-ned-message-meta">Scanner Chat</div>
+              <div class="ask-ned-message ask-ned-message-assistant">I can search the local call database and answer in plain language. Try a town, a street, a department, or a recent incident.</div>
+            </div>
           </div>
-          <div id="ask-ned-status" class="mt-2 min-h-[1rem] text-xs text-slate-500"></div>
+          <div class="ask-ned-suggestion-row">
+            ${suggestionButtons}
+          </div>
+        </div>
+        <form id="ask-ned-form" class="ask-ned-composer border-t border-slate-800/90 p-3">
+          <div class="ask-ned-input-wrap">
+            <textarea id="ask-ned-input" rows="1" class="flex-1 text-sm text-slate-100 placeholder:text-slate-500" placeholder="Message Scanner Chat..."></textarea>
+            <button id="ask-ned-send" type="submit" class="rounded-full bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 transition">Send</button>
+          </div>
+          <div id="ask-ned-status" class="mt-2 min-h-[1rem] text-xs text-slate-500">Enter to send. Shift+Enter adds a new line.</div>
         </form>
       </section>
     `;
@@ -987,13 +1182,32 @@ function setAskNedOpen(isOpen) {
     document.querySelector('.main-content-area')?.classList.toggle('overflow-hidden', isOpen);
     if (isOpen) {
         const input = document.getElementById('ask-ned-input');
-        if (input) setTimeout(() => input.focus(), 0);
+        if (input) {
+            setTimeout(() => {
+                autosizeAskNedInput();
+                input.focus();
+            }, 0);
+        }
     }
 }
 
 function appendAskNedMessage(role, text, citations) {
     const messagesEl = document.getElementById('ask-ned-messages');
     if (!messagesEl) return;
+
+    const row = document.createElement('div');
+    row.className = `ask-ned-message-row ${role === 'user' ? 'ask-ned-message-row-user' : ''}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `ask-ned-avatar ${role === 'user' ? 'ask-ned-avatar-user' : ''}`;
+    avatar.textContent = role === 'user' ? 'YOU' : 'NS';
+
+    const stack = document.createElement('div');
+    stack.className = 'ask-ned-bubble-stack';
+
+    const meta = document.createElement('div');
+    meta.className = 'ask-ned-message-meta';
+    meta.textContent = role === 'user' ? 'You' : 'Scanner Chat';
 
     const bubble = document.createElement('div');
     bubble.className = `ask-ned-message ${role === 'user' ? 'ask-ned-message-user' : 'ask-ned-message-assistant'}`;
@@ -1012,7 +1226,17 @@ function appendAskNedMessage(role, text, citations) {
         bubble.appendChild(citationLine);
     }
 
-    messagesEl.appendChild(bubble);
+    stack.appendChild(meta);
+    stack.appendChild(bubble);
+    if (role === 'user') {
+        row.appendChild(stack);
+        row.appendChild(avatar);
+    } else {
+        row.appendChild(avatar);
+        row.appendChild(stack);
+    }
+
+    messagesEl.appendChild(row);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
@@ -1020,9 +1244,15 @@ function setAskNedBusy(isBusy, statusText) {
     const sendBtn = document.getElementById('ask-ned-send');
     const input = document.getElementById('ask-ned-input');
     const status = document.getElementById('ask-ned-status');
+    document.querySelectorAll('[data-ask-ned-suggestion]').forEach((button) => {
+        button.disabled = isBusy;
+    });
     if (sendBtn) sendBtn.disabled = isBusy;
     if (input) input.disabled = isBusy;
-    if (status) status.textContent = statusText || '';
+    if (status) {
+        status.textContent = statusText || 'Enter to send. Shift+Enter adds a new line.';
+        status.classList.toggle('is-busy', isBusy);
+    }
 }
 
 function extractAskNedAnswer(data) {
@@ -1034,16 +1264,18 @@ function extractAskNedAnswer(data) {
     return 'No answer was returned.';
 }
 
-async function submitAskNedQuestion() {
+async function submitAskNedQuestion(prefilledQuestion) {
     const input = document.getElementById('ask-ned-input');
     if (!input) return;
-    const question = input.value.trim();
+    if (input.disabled) return;
+    const question = (prefilledQuestion ?? input.value).trim();
     if (!question) return;
 
     input.value = '';
+    autosizeAskNedInput();
     appendAskNedMessage('user', question);
     askNedMessages.push({ role: 'user', content: question });
-    setAskNedBusy(true, 'Asking Ned...');
+    setAskNedBusy(true, 'Searching local call history...');
 
     try {
         const res = await fetch(ASK_NED_ENDPOINT, {
@@ -1059,12 +1291,12 @@ async function submitAskNedQuestion() {
         const answer = extractAskNedAnswer(data);
         appendAskNedMessage('assistant', answer, data.citations);
         askNedMessages.push({ role: 'assistant', content: answer });
-        setAskNedBusy(false, '');
+        setAskNedBusy(false, 'Enter to send. Shift+Enter adds a new line.');
     } catch (err) {
         console.warn('[AskNed] Request failed:', err);
-        const message = err?.message || 'Ask Ned is unavailable right now.';
+        const message = err?.message || 'Scanner Chat is unavailable right now.';
         appendAskNedMessage('assistant', message);
-        setAskNedBusy(false, '');
+        setAskNedBusy(false, 'Enter to send. Shift+Enter adds a new line.');
     }
 }
 
@@ -1089,17 +1321,26 @@ function initAskNedChat() {
         event.preventDefault();
         submitAskNedQuestion();
     });
+    document.querySelectorAll('[data-ask-ned-suggestion]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const suggestion = ASK_NED_SUGGESTIONS[Number(button.dataset.askNedSuggestion)] || button.textContent || '';
+            submitAskNedQuestion(suggestion);
+        });
+    });
     document.getElementById('ask-ned-input')?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             submitAskNedQuestion();
         }
     });
+    document.getElementById('ask-ned-input')?.addEventListener('input', autosizeAskNedInput);
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !document.getElementById('ask-ned-overlay')?.classList.contains('hidden')) {
             setAskNedOpen(false);
         }
     });
+    setAskNedBusy(false);
+    autosizeAskNedInput();
 }
 
 // --- INIT ---
