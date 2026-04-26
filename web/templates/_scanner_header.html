@@ -9,9 +9,15 @@
             class="scanner-brand-mark"
           >
           <div class="min-w-0">
-            <div class="scanner-brand-kicker">PWA Dispatch</div>
+            <div class="scanner-brand-kicker">Live Dispatch</div>
             <div class="scanner-brand-name">Ned's Scanner Network</div>
-            <div class="scanner-brand-meta">Live feeds, archive, analytics, and review tools in one app</div>
+            <div class="scanner-brand-meta">Live feeds, archive, analytics, and review tools in one place</div>
+            {% if show_listener_count %}
+            <div class="scanner-live-inline md:hidden" title="Live listeners">
+              <span class="scanner-live-dot"></span>
+              <span data-listener-count>--</span>
+            </div>
+            {% endif %}
           </div>
         </a>
 
@@ -30,7 +36,7 @@
         {% if show_listener_count %}
         <div class="scanner-live-badge hidden md:inline-flex" title="Live listeners">
           <span class="scanner-live-dot"></span>
-          <span id="ws-user-count">--</span>
+          <span data-listener-count>--</span>
         </div>
         {% endif %}
 

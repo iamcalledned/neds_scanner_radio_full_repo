@@ -186,6 +186,15 @@ body {
   color: var(--scanner-muted);
 }
 
+.scanner-live-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  margin-top: 0.28rem;
+  font-size: 0.73rem;
+  color: #94a3b8;
+}
+
 .scanner-nav-link {
   display: inline-flex;
   align-items: center;
@@ -411,6 +420,10 @@ body {
 
   .scanner-brand-meta {
     display: none;
+  }
+
+  .scanner-live-inline {
+    font-size: 0.7rem;
   }
 }
 

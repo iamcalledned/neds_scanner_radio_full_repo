@@ -405,10 +405,10 @@ function initHeader() {
         console.warn("[Header] Menu button or dropdown not found.");
     }
 
-    const wsUserCountEl = document.getElementById('ws-user-count');
+    const wsUserCountEls = Array.from(document.querySelectorAll('[data-listener-count]'));
     const activeUserCountEl = document.getElementById('active-user-count');
 
-    if (!wsUserCountEl) {
+    if (!wsUserCountEls.length) {
         console.warn("[Header] Listener count element not found.");
         return;
     }
@@ -421,7 +421,10 @@ function initHeader() {
             if (res.ok) {
                 const data = await res.json();
                 const listenerCount = data.connected_users ?? data.active_count ?? 0;
-                wsUserCountEl.textContent = `${listenerCount} listener${listenerCount === 1 ? '' : 's'}`;
+                const listenerLabel = `${listenerCount} listener${listenerCount === 1 ? '' : 's'}`;
+                wsUserCountEls.forEach((el) => {
+                    el.textContent = listenerLabel;
+                });
                 if (activeUserCountEl) {
                     activeUserCountEl.textContent = `${data.active_users ?? 0} Logged-in`;
                 }
