@@ -883,14 +883,11 @@ function initAllHomeWaveformPlayers(root) {
 // === ASK NED CHAT =========================================
 // ==========================================================
 const ASK_NED_ENDPOINT = '/scanner/api/chat/local';
-const ASK_NED_SUGGESTIONS = [
-    'What happened in Derry today?',
-    'Show recent fire calls near Londonderry.',
-    'Any recalls or citations tonight?',
-    'Summarize the latest EMS activity.'
-];
+const ASK_NED_PRESETS_ENDPOINT = '/scanner/api/chat/local/presets';
 let askNedMessages = [];
 let askNedInitialized = false;
+let askNedPresetCatalog = null;
+let askNedSelectedTownSlug = '';
 
 function injectAskNedStyles() {
     if (document.getElementById('ask-ned-styles')) return;
@@ -905,7 +902,7 @@ function injectAskNedStyles() {
     }
     #ask-ned-panel {
       width: min(480px, calc(100vw - 24px));
-      height: min(78vh, 760px);
+      height: min(82vh, 760px);
       background:
         linear-gradient(180deg, rgba(7, 12, 22, 0.98) 0%, rgba(10, 18, 32, 0.98) 22%, rgba(12, 21, 37, 0.99) 100%);
       border: 1px solid rgba(125, 211, 252, 0.14);
@@ -922,7 +919,7 @@ function injectAskNedStyles() {
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -959,8 +956,8 @@ function injectAskNedStyles() {
       justify-content: flex-end;
     }
     .ask-ned-avatar {
-      width: 2rem;
-      height: 2rem;
+      width: 1.8rem;
+      height: 1.8rem;
       border-radius: 999px;
       flex: 0 0 auto;
       display: inline-flex;
@@ -969,7 +966,7 @@ function injectAskNedStyles() {
       background: linear-gradient(135deg, rgba(14, 116, 144, 0.34), rgba(15, 23, 42, 0.9));
       border: 1px solid rgba(125, 211, 252, 0.18);
       color: #e0f2fe;
-      font-size: 0.7rem;
+      font-size: 0.63rem;
       font-weight: 700;
       letter-spacing: 0.08em;
     }
@@ -983,7 +980,7 @@ function injectAskNedStyles() {
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
-      max-width: min(82%, 420px);
+      max-width: min(84%, 420px);
     }
     .ask-ned-message-row-user .ask-ned-bubble-stack {
       align-items: flex-end;
@@ -993,10 +990,10 @@ function injectAskNedStyles() {
       color: #94a3b8;
     }
     .ask-ned-message {
-      border-radius: 20px;
-      padding: 0.8rem 0.95rem;
-      font-size: 0.93rem;
-      line-height: 1.55;
+      border-radius: 18px;
+      padding: 0.72rem 0.88rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
@@ -1021,32 +1018,72 @@ function injectAskNedStyles() {
       font-size: 0.74rem;
       line-height: 1.4;
     }
+    .ask-ned-suggestion-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding-left: 2.35rem;
+      padding-top: 0.05rem;
+    }
+    .ask-ned-suggestion-heading {
+      font-size: 0.72rem;
+      color: #7dd3fc;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .ask-ned-town-row,
     .ask-ned-suggestion-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.55rem;
-      padding-left: 2.7rem;
-      padding-top: 0.15rem;
+      gap: 0.45rem;
     }
+    .ask-ned-town-pill,
     .ask-ned-suggestion {
       appearance: none;
-      border: 1px solid rgba(56, 189, 248, 0.16);
-      background: rgba(8, 47, 73, 0.2);
-      border-radius: 999px;
-      padding: 0.5rem 0.78rem;
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      background: rgba(15, 23, 42, 0.74);
+      border-radius: 1rem;
+      padding: 0.5rem 0.72rem;
       color: #cbd5e1;
       cursor: pointer;
       font: inherit;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       line-height: 1.2;
       transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
     }
+    .ask-ned-town-pill {
+      padding: 0.42rem 0.7rem;
+      color: #94a3b8;
+    }
+    .ask-ned-town-pill.is-active {
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.24), rgba(8, 47, 73, 0.9));
+      border-color: rgba(103, 232, 249, 0.28);
+      color: #f8fafc;
+    }
     .ask-ned-suggestion:hover,
-    .ask-ned-suggestion:focus-visible {
+    .ask-ned-suggestion:focus-visible,
+    .ask-ned-town-pill:hover,
+    .ask-ned-town-pill:focus-visible {
       background: rgba(8, 145, 178, 0.22);
       border-color: rgba(103, 232, 249, 0.28);
       color: #f8fafc;
       transform: translateY(-1px);
+    }
+    .ask-ned-suggestion {
+      text-align: left;
+      background: linear-gradient(135deg, rgba(8, 47, 73, 0.22), rgba(15, 23, 42, 0.82));
+      border-color: rgba(56, 189, 248, 0.16);
+    }
+    .ask-ned-suggestion-label {
+      display: block;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .ask-ned-suggestion-note {
+      display: block;
+      margin-top: 0.18rem;
+      font-size: 0.7rem;
+      color: #94a3b8;
     }
     .ask-ned-suggestion:disabled {
       opacity: 0.48;
@@ -1101,15 +1138,51 @@ function injectAskNedStyles() {
       }
       #ask-ned-panel {
         width: 100%;
-        height: calc(100dvh - env(safe-area-inset-top));
+        height: 100dvh;
         max-height: none;
-        border-radius: 22px 22px 0 0;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+      }
+      .ask-ned-header {
+        padding-top: calc(0.9rem + env(safe-area-inset-top));
+      }
+      .ask-ned-header h2 {
+        font-size: 1rem;
+      }
+      .ask-ned-header p {
+        display: none;
+      }
+      .ask-ned-dayline {
+        font-size: 0.66rem;
+      }
+      .ask-ned-message-row {
+        gap: 0.5rem;
+      }
+      .ask-ned-avatar {
+        width: 1.55rem;
+        height: 1.55rem;
+        font-size: 0.54rem;
       }
       .ask-ned-bubble-stack {
-        max-width: calc(100% - 2.7rem);
+        max-width: calc(100% - 2.05rem);
       }
-      .ask-ned-suggestion-row {
+      .ask-ned-message {
+        padding: 0.65rem 0.78rem;
+        font-size: 0.86rem;
+      }
+      .ask-ned-suggestion-group {
         padding-left: 0;
+        gap: 0.42rem;
+      }
+      .ask-ned-suggestion-heading {
+        font-size: 0.68rem;
+      }
+      .ask-ned-town-pill,
+      .ask-ned-suggestion {
+        font-size: 0.75rem;
+        padding: 0.42rem 0.64rem;
       }
       .ask-ned-input-wrap {
         gap: 0.65rem;
@@ -1127,13 +1200,115 @@ function autosizeAskNedInput() {
     input.style.height = `${Math.min(input.scrollHeight, 136)}px`;
 }
 
+function getAskNedTownName(townSlug) {
+    const towns = askNedPresetCatalog?.towns || [];
+    return towns.find((town) => town.slug === townSlug)?.name || '';
+}
+
+function formatAskNedPresetPrompt(preset, townSlug) {
+    if (!preset) return '';
+    const townName = getAskNedTownName(townSlug);
+    return (preset.prompt_template || '').replace('{town}', townName);
+}
+
+function getInitialAskNedTownSlug() {
+    const towns = askNedPresetCatalog?.towns || [];
+    if (!towns.length) return '';
+
+    const townFromUrl = new URLSearchParams(window.location.search).get('town');
+    if (townFromUrl) {
+        const normalized = townFromUrl.trim().toLowerCase();
+        if (towns.some((town) => town.slug === normalized)) return normalized;
+    }
+
+    const currentFeed = document.querySelector('[data-feed]')?.dataset.feed;
+    const townFromFeed = currentFeed ? Object.entries(FEED_TOWN_MAP).find(([feedId]) => feedId === currentFeed)?.[1] : '';
+    if (townFromFeed) {
+        const normalizedFeedTown = townFromFeed.toLowerCase();
+        const matchedTown = towns.find((town) => town.name.toLowerCase() === normalizedFeedTown);
+        if (matchedTown) return matchedTown.slug;
+    }
+
+    return towns[0].slug;
+}
+
+function renderAskNedPresetCatalog() {
+    const townRow = document.getElementById('ask-ned-town-row');
+    const suggestionRow = document.getElementById('ask-ned-suggestion-row');
+    const suggestionHeading = document.getElementById('ask-ned-suggestion-heading');
+    if (!townRow || !suggestionRow || !suggestionHeading) return;
+
+    const catalog = askNedPresetCatalog;
+    if (!catalog?.towns?.length || !catalog?.presets?.length) {
+        townRow.innerHTML = '';
+        suggestionRow.innerHTML = '';
+        suggestionHeading.textContent = 'Quick prompts unavailable';
+        return;
+    }
+
+    if (!askNedSelectedTownSlug || !catalog.towns.some((town) => town.slug === askNedSelectedTownSlug)) {
+        askNedSelectedTownSlug = getInitialAskNedTownSlug();
+    }
+
+    townRow.innerHTML = '';
+    catalog.towns.forEach((town) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `ask-ned-town-pill ${town.slug === askNedSelectedTownSlug ? 'is-active' : ''}`;
+        button.dataset.askNedTown = town.slug;
+        button.textContent = town.name;
+        button.addEventListener('click', () => {
+            askNedSelectedTownSlug = town.slug;
+            renderAskNedPresetCatalog();
+        });
+        townRow.appendChild(button);
+    });
+
+    const activeTownName = getAskNedTownName(askNedSelectedTownSlug);
+    suggestionHeading.textContent = activeTownName ? `Quick prompts for ${activeTownName}` : 'Quick prompts';
+    suggestionRow.innerHTML = '';
+    catalog.presets.forEach((preset) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ask-ned-suggestion';
+        button.dataset.askNedPresetId = preset.id;
+        button.innerHTML = `
+          <span class="ask-ned-suggestion-label">${escapeHTML(preset.label || 'Preset')}</span>
+          <span class="ask-ned-suggestion-note">${escapeHTML(preset.teaser || '')}</span>
+        `;
+        button.addEventListener('click', () => {
+            submitAskNedPreset(preset.id);
+        });
+        suggestionRow.appendChild(button);
+    });
+}
+
+async function loadAskNedPresetCatalog() {
+    if (askNedPresetCatalog) {
+        renderAskNedPresetCatalog();
+        return askNedPresetCatalog;
+    }
+
+    try {
+        const res = await fetch(ASK_NED_PRESETS_ENDPOINT, { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false) {
+            throw new Error(data.error || `Preset catalog failed with status ${res.status}`);
+        }
+        askNedPresetCatalog = data;
+        renderAskNedPresetCatalog();
+        return askNedPresetCatalog;
+    } catch (err) {
+        console.warn('[AskNed] Failed to load preset catalog:', err);
+        askNedPresetCatalog = { towns: [], presets: [] };
+        renderAskNedPresetCatalog();
+        return askNedPresetCatalog;
+    }
+}
+
 function ensureAskNedMarkup() {
     let overlay = document.getElementById('ask-ned-overlay');
     if (overlay) return overlay;
-
-    const suggestionButtons = ASK_NED_SUGGESTIONS
-        .map((suggestion, index) => `<button type="button" class="ask-ned-suggestion" data-ask-ned-suggestion="${index}">${suggestion}</button>`)
-        .join('');
 
     overlay = document.createElement('div');
     overlay.id = 'ask-ned-overlay';
@@ -1158,8 +1333,10 @@ function ensureAskNedMarkup() {
               <div class="ask-ned-message ask-ned-message-assistant">I can search the local call database and answer in plain language. Try a town, a street, a department, or a recent incident.</div>
             </div>
           </div>
-          <div class="ask-ned-suggestion-row">
-            ${suggestionButtons}
+          <div class="ask-ned-suggestion-group">
+            <div id="ask-ned-suggestion-heading" class="ask-ned-suggestion-heading">Quick prompts</div>
+            <div id="ask-ned-town-row" class="ask-ned-town-row"></div>
+            <div id="ask-ned-suggestion-row" class="ask-ned-suggestion-row"></div>
           </div>
         </div>
         <form id="ask-ned-form" class="ask-ned-composer border-t border-slate-800/90 p-3">
@@ -1188,6 +1365,7 @@ function setAskNedOpen(isOpen) {
                 input.focus();
             }, 0);
         }
+        loadAskNedPresetCatalog();
     }
 }
 
@@ -1244,7 +1422,7 @@ function setAskNedBusy(isBusy, statusText) {
     const sendBtn = document.getElementById('ask-ned-send');
     const input = document.getElementById('ask-ned-input');
     const status = document.getElementById('ask-ned-status');
-    document.querySelectorAll('[data-ask-ned-suggestion]').forEach((button) => {
+    document.querySelectorAll('[data-ask-ned-preset-id], [data-ask-ned-town]').forEach((button) => {
         button.disabled = isBusy;
     });
     if (sendBtn) sendBtn.disabled = isBusy;
@@ -1262,6 +1440,45 @@ function extractAskNedAnswer(data) {
     if (data.tool_result?.error) return data.tool_result.error;
     if (data.tool_result) return JSON.stringify(data.tool_result, null, 2);
     return 'No answer was returned.';
+}
+
+async function submitAskNedPreset(presetId) {
+    if (!presetId || !askNedSelectedTownSlug) return;
+
+    const preset = askNedPresetCatalog?.presets?.find((item) => item.id === presetId);
+    if (!preset) return;
+
+    const prompt = formatAskNedPresetPrompt(preset, askNedSelectedTownSlug);
+    if (!prompt) return;
+
+    appendAskNedMessage('user', prompt);
+    askNedMessages.push({ role: 'user', content: prompt });
+    setAskNedBusy(true, 'Running saved scanner prompt...');
+
+    try {
+        const res = await fetch(ASK_NED_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                preset_id: presetId,
+                town_slug: askNedSelectedTownSlug
+            })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false) {
+            throw new Error(data.error || `Preset request failed with status ${res.status}`);
+        }
+
+        const answer = extractAskNedAnswer(data);
+        appendAskNedMessage('assistant', answer, data.citations);
+        askNedMessages.push({ role: 'assistant', content: answer });
+        setAskNedBusy(false, 'Enter to send. Shift+Enter adds a new line.');
+    } catch (err) {
+        console.warn('[AskNed] Preset request failed:', err);
+        const message = err?.message || 'Scanner Chat could not run that preset right now.';
+        appendAskNedMessage('assistant', message);
+        setAskNedBusy(false, 'Enter to send. Shift+Enter adds a new line.');
+    }
 }
 
 async function submitAskNedQuestion(prefilledQuestion) {
@@ -1321,12 +1538,6 @@ function initAskNedChat() {
         event.preventDefault();
         submitAskNedQuestion();
     });
-    document.querySelectorAll('[data-ask-ned-suggestion]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const suggestion = ASK_NED_SUGGESTIONS[Number(button.dataset.askNedSuggestion)] || button.textContent || '';
-            submitAskNedQuestion(suggestion);
-        });
-    });
     document.getElementById('ask-ned-input')?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
@@ -1341,6 +1552,7 @@ function initAskNedChat() {
     });
     setAskNedBusy(false);
     autosizeAskNedInput();
+    loadAskNedPresetCatalog();
 }
 
 // --- INIT ---

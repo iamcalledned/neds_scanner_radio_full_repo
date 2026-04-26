@@ -6,6 +6,7 @@ import requests
 from flask import Blueprint, jsonify, request
 
 import chatbot.app as chatbot_app
+from scanner_config import build_chat_preset_tool_call, get_chat_preset_catalog
 
 
 chat_bp = Blueprint("scanner_chat", __name__)
@@ -111,7 +112,35 @@ def _answer_from_tool_result(tool_result: Dict[str, Any]) -> str:
 @chat_bp.route("/scanner/api/chat/local", methods=["POST"])
 def api_chat_local():
     payload = request.get_json(silent=True) or {}
+    preset_id = (payload.get("preset_id") or "").strip()
+    town_slug = (payload.get("town_slug") or "").strip().lower()
     user_messages = payload.get("messages")
+
+    if preset_id:
+        preset = build_chat_preset_tool_call(preset_id, town_slug)
+        if not preset:
+            return jsonify({"ok": False, "error": "Unknown preset or town."}), 400
+
+        try:
+            tool_result = chatbot_app.execute_tool_call_from_dict(preset["tool_call"])
+            answer = _answer_from_tool_result(tool_result)
+            status = 200 if tool_result.get("ok") else 500
+            return jsonify(
+                {
+                    "ok": tool_result.get("ok", False),
+                    "answer": answer,
+                    "citations": tool_result.get("citations", []),
+                    "tool_result": tool_result,
+                    "preset_id": preset["preset_id"],
+                    "preset_label": preset["preset_label"],
+                    "prompt": preset["prompt"],
+                    "town_slug": preset["town_slug"],
+                    "town_name": preset["town_name"],
+                }
+            ), status
+        except Exception as exc:
+            logger.exception("chat.local.preset_failed preset=%s town=%s", preset_id, town_slug)
+            return jsonify({"ok": False, "error": f"Preset request failed: {str(exc)}"}), 500
 
     if not isinstance(user_messages, list) or not user_messages:
         return jsonify({"ok": False, "error": "Body must include a non-empty 'messages' list."}), 400
@@ -150,3 +179,9 @@ def api_chat_local_health():
 @chat_bp.route("/scanner/api/chat/local/tools", methods=["GET"])
 def api_chat_local_tools():
     return jsonify({"ok": True, "tools": chatbot_app.TOOLS})
+
+
+@chat_bp.route("/scanner/api/chat/local/presets", methods=["GET"])
+def api_chat_local_presets():
+    catalog = get_chat_preset_catalog()
+    return jsonify({"ok": True, **catalog})

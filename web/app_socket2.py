@@ -44,6 +44,7 @@ from routes.routes_api_scanner import api_scanner_bp
 from routes.routes_auth import auth_bp
 from routes.routes_push import push_bp
 from routes.routes_chat import chat_bp
+from scanner_config import TOWNS
 import push_db
 import push_utils
 from push_db import list_loggedin_users as get_loggedin_users_count
@@ -163,17 +164,6 @@ ARCHIVE_BASE = os.environ.get("ARCHIVE_BASE", "/home/ned/data/scanner_calls/scan
 CLEAN_ARCHIVE_DIR = os.path.join(ARCHIVE_BASE, 'clean') # Specific dir for clean audio
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
 REDIS_STATS_KEY = "scanner:api:stats" # The key we will use for caching
-
-# --- Feed & Town Definitions ---
-TOWNS = {
-    "hopedale": {"name": "Hopedale", "departments": ["pd", "fd"]},
-    "milford": {"name": "Milford", "departments": ["mpd", "mfd"]},
-    "bellingham": {"name": "Bellingham", "departments": ["bpd", "bfd"]},
-    "mendon": {"name": "Mendon", "departments": ["mndpd", "mndfd"]},
-    "upton": {"name": "Upton", "departments": ["uptpd", "uptfd"]},
-    "blackstone": {"name": "Blackstone", "departments": ["blkpd", "blkfd"]},
-    "franklin": {"name": "Franklin", "departments": ["frkpd", "frkfd"]},
-}
 
 ALL_FEEDS_LIST = [ # Renamed from ALL_FEEDS to avoid confusion with FEEDS dict
     'pd', 'fd', 'mpd', 'mfd', 'bpd', 'bfd', 'mndpd', 'mndfd',
