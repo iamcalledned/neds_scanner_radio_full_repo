@@ -919,7 +919,8 @@ function ensureAskNedMarkup() {
 function setAskNedOpen(isOpen) {
     const overlay = ensureAskNedMarkup();
     overlay.classList.toggle('hidden', !isOpen);
-    document.body.classList.toggle('overflow-hidden', isOpen);
+    document.body.classList.toggle('scanner-overlay-open', isOpen);
+    document.querySelector('.main-content-area')?.classList.toggle('overflow-hidden', isOpen);
     if (isOpen) {
         const input = document.getElementById('ask-ned-input');
         if (input) setTimeout(() => input.focus(), 0);
