@@ -888,6 +888,7 @@ let askNedMessages = [];
 let askNedInitialized = false;
 let askNedPresetCatalog = null;
 let askNedSelectedTownSlug = '';
+let askNedComposerTouchY = null;
 
 function injectAskNedStyles() {
     if (document.getElementById('ask-ned-styles')) return;
@@ -1146,7 +1147,7 @@ function injectAskNedStyles() {
       }
       #ask-ned-panel {
         width: 100%;
-        height: 100dvh;
+        height: var(--ask-ned-mobile-height, 100dvh);
         max-height: none;
         min-height: 0;
         border-radius: 0;
@@ -1207,6 +1208,45 @@ function autosizeAskNedInput() {
     if (!input) return;
     input.style.height = 'auto';
     input.style.height = `${Math.min(input.scrollHeight, 136)}px`;
+}
+
+function updateAskNedViewportHeight() {
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    if (!viewportHeight) return;
+    document.documentElement.style.setProperty('--ask-ned-mobile-height', `${Math.round(viewportHeight)}px`);
+}
+
+function handleAskNedComposerTouchMove(event) {
+    if (event.touches.length !== 1 || askNedComposerTouchY === null) return;
+
+    const messagesEl = document.getElementById('ask-ned-messages');
+    if (!messagesEl) return;
+
+    const currentY = event.touches[0].clientY;
+    const deltaY = askNedComposerTouchY - currentY;
+    if (Math.abs(deltaY) < 2) return;
+
+    messagesEl.scrollTop += deltaY;
+    askNedComposerTouchY = currentY;
+    event.preventDefault();
+}
+
+function initAskNedComposerScrollBridge() {
+    const inputWrap = document.querySelector('.ask-ned-input-wrap');
+    if (!inputWrap || inputWrap.dataset.scrollBridgeReady === 'true') return;
+
+    inputWrap.dataset.scrollBridgeReady = 'true';
+    inputWrap.addEventListener('touchstart', (event) => {
+        if (event.touches.length === 1) {
+            askNedComposerTouchY = event.touches[0].clientY;
+        }
+    }, { passive: true });
+    inputWrap.addEventListener('touchmove', handleAskNedComposerTouchMove, { passive: false });
+    ['touchend', 'touchcancel'].forEach((eventName) => {
+        inputWrap.addEventListener(eventName, () => {
+            askNedComposerTouchY = null;
+        }, { passive: true });
+    });
 }
 
 function getAskNedTownName(townSlug) {
@@ -1367,6 +1407,7 @@ function setAskNedOpen(isOpen) {
     document.body.classList.toggle('scanner-overlay-open', isOpen);
     document.querySelector('.main-content-area')?.classList.toggle('overflow-hidden', isOpen);
     if (isOpen) {
+        updateAskNedViewportHeight();
         const input = document.getElementById('ask-ned-input');
         if (input) {
             setTimeout(() => {
@@ -1531,6 +1572,8 @@ function initAskNedChat() {
     askNedInitialized = true;
     injectAskNedStyles();
     ensureAskNedMarkup();
+    updateAskNedViewportHeight();
+    initAskNedComposerScrollBridge();
 
     document.querySelectorAll('[data-ask-ned-open]').forEach((button) => {
         button.addEventListener('click', (event) => {
@@ -1554,6 +1597,9 @@ function initAskNedChat() {
         }
     });
     document.getElementById('ask-ned-input')?.addEventListener('input', autosizeAskNedInput);
+    window.visualViewport?.addEventListener('resize', updateAskNedViewportHeight);
+    window.visualViewport?.addEventListener('scroll', updateAskNedViewportHeight);
+    window.addEventListener('resize', updateAskNedViewportHeight);
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !document.getElementById('ask-ned-overlay')?.classList.contains('hidden')) {
             setAskNedOpen(false);
