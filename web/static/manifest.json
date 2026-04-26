@@ -2,7 +2,7 @@
   "name": "Ned's Scanner Network",
   "short_name": "Scanner",
   "id": "/scanner/",
-  "start_url": "/scanner/",
+  "start_url": "/scanner/?pv=20260425-2",
   "scope": "/scanner/",
   "display": "standalone",
   "display_override": ["standalone", "browser"],

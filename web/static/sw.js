@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scanner-cache-v20260425-shell';
+const CACHE_NAME = 'scanner-cache-v20260425-shell-r2';
 const OFFLINE_URL = 'offline.html';
 
 // Use relative paths so this worker works under /scanner/ when installed there.
