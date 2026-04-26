@@ -903,6 +903,7 @@ function injectAskNedStyles() {
     #ask-ned-panel {
       width: min(480px, calc(100vw - 24px));
       height: min(82vh, 760px);
+      min-height: 0;
       background:
         linear-gradient(180deg, rgba(7, 12, 22, 0.98) 0%, rgba(10, 18, 32, 0.98) 22%, rgba(12, 21, 37, 0.99) 100%);
       border: 1px solid rgba(125, 211, 252, 0.14);
@@ -1091,8 +1092,14 @@ function injectAskNedStyles() {
       transform: none;
     }
     #ask-ned-messages {
+      flex: 1 1 auto;
       display: flex;
       flex-direction: column;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y pinch-zoom;
       gap: 1rem;
       overscroll-behavior: contain;
       background:
@@ -1100,6 +1107,7 @@ function injectAskNedStyles() {
         linear-gradient(180deg, rgba(2, 6, 23, 0.22), rgba(2, 6, 23, 0.08));
     }
     .ask-ned-composer {
+      flex: 0 0 auto;
       background:
         linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(8, 15, 26, 0.98) 100%);
     }
@@ -1140,6 +1148,7 @@ function injectAskNedStyles() {
         width: 100%;
         height: 100dvh;
         max-height: none;
+        min-height: 0;
         border-radius: 0;
         border-left: 0;
         border-right: 0;
