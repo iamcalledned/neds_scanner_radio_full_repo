@@ -15,8 +15,8 @@
         "temperature": 0.0
       }
     },
-    "stage_3_ct2": {
-      "model": "stage_3_ct2",
+    "whisper_medium_v101_scanner_ct2": {
+      "model": "whisper_medium_v101_scanner_ct2",
       "compute_type": "float16",
       "device": "cuda",
       "transcribe": {
