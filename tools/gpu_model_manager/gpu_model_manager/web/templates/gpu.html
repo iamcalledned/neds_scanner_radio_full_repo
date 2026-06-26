@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}GPU — GPU Model Manager{% endblock %}
+{% block heading %}GPU Hardware{% endblock %}
+
+{% block content %}
+
+<!-- GPU Stats -->
+<div class="card-grid card-grid-2">
+  <div class="card">
+    <div class="card-title">Hardware</div>
+    {% if gpu.available %}
+    <table class="stat-table">
+      <tr><th>Name</th><td>{{ gpu.name }}</td></tr>
+      <tr><th>Driver</th><td>{{ gpu.driver_version }}</td></tr>
+      <tr><th>Temperature</th><td>{{ gpu.temperature_c }}°C</td></tr>
+      <tr><th>Utilization</th><td>{{ gpu.utilization_pct }}%</td></tr>
+      {% if gpu.power_draw_w %}<tr><th>Power</th><td>{{ gpu.power_draw_w }}W / {{ gpu.power_limit_w }}W</td></tr>{% endif %}
+    </table>
+    {% else %}
+    <div class="text-red">{{ gpu.error or "nvidia-smi unavailable" }}</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-title">VRAM</div>
+    {% if gpu.available %}
+    <div class="vram-big">{{ gpu.memory_used_mb | round(0) | int }} / {{ gpu.memory_total_mb | round(0) | int }} MB</div>
+    <div class="vram-bar-wrap vram-bar-large">
+      <div class="vram-bar" style="width: {{ (gpu.memory_used_mb / gpu.memory_total_mb * 100) | round(1) }}%"></div>
+    </div>
+    <div class="card-meta">
+      Free: {{ gpu.memory_free_mb | round(0) | int }} MB
+      ({{ (gpu.memory_free_mb / gpu.memory_total_mb * 100) | round(1) }}%)
+    </div>
+    {% else %}
+    <div class="text-red">VRAM data unavailable</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Process Table -->
+<div class="card" style="margin-top: 1rem;">
+  <div class="card-title">GPU Compute Processes ({{ processes | length }})</div>
+  {% if processes %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>PID</th>
+        <th>Process Name</th>
+        <th>VRAM Used (MB)</th>
+        <th>Classification</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in processes %}
+      <tr>
+        <td>{{ p.pid }}</td>
+        <td>{{ p.process_name }}</td>
+        <td>{{ p.used_memory_mb | round(0) | int }}</td>
+        <td><span class="classify-badge classify-{{ p.classification }}">{{ p.classification }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">No GPU compute processes detected.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

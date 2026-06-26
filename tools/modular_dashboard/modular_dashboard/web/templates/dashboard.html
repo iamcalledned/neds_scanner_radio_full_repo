@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Scanner Control Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Dashboard</h1>
+  <div class="toolbar">
+    <button onclick="refreshPage()" class="btn btn-secondary">↻ Refresh</button>
+    <label class="auto-refresh-label">
+      <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh(this)"> Auto-refresh (10s)
+    </label>
+  </div>
+</div>
+
+<!-- Overall health banner -->
+<div class="health-banner status-{{ health.overall.value }}">
+  <span class="health-icon">
+    {% if health.overall.value == 'healthy' %}✅
+    {% elif health.overall.value == 'warning' %}⚠️
+    {% elif health.overall.value == 'critical' %}🔴
+    {% else %}❓{% endif %}
+  </span>
+  <span class="health-overall-label">{{ health.overall.value | upper }}</span>
+  <span class="health-summary">{{ health.summary }}</span>
+</div>
+
+{% if health.problems %}
+<div class="problems-box">
+  <h3>Detected Problems</h3>
+  <ul>
+    {% for p in health.problems %}<li>{{ p }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<!-- Status cards -->
+<section class="cards-section">
+  <h2>Service Status</h2>
+  <div class="card-grid">
+    {% for svc in health.services.services %}
+    <div class="card status-card state-{{ svc.active_state.value }} clickable-service-card"
+         data-service="{{ svc.name }}" title="Click for details" style="cursor:pointer">
+      <div class="card-title">{{ svc.name }}</div>
+      <div class="card-state badge-{{ svc.active_state.value }}">{{ svc.active_state.value }}</div>
+      {% if svc.description %}<div class="card-desc">{{ svc.description }}</div>{% endif %}
+      {% if svc.since %}<div class="card-since">Since: {{ svc.since }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Infrastructure cards -->
+<section class="cards-section">
+  <h2>Infrastructure</h2>
+  <div class="card-grid">
+    <!-- Redis -->
+    <div class="card status-card {% if health.redis and health.redis.reachable %}state-active{% else %}state-critical{% endif %}">
+      <div class="card-title">Redis</div>
+      <div class="card-state {% if health.redis and health.redis.reachable %}badge-active{% else %}badge-critical{% endif %}">
+        {% if health.redis and health.redis.reachable %}reachable{% else %}unreachable{% endif %}
+      </div>
+      {% if health.redis and health.redis.error %}
+      <div class="card-desc text-error">{{ health.redis.error }}</div>
+      {% endif %}
+      {% if health.redis and health.redis.server_info.get('redis_version') %}
+      <div class="card-desc">v{{ health.redis.server_info.redis_version }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Queue/Backlog -->
+    {% if health.queue %}
+    <div class="card status-card state-{{ health.queue.backlog_health.value }}">
+      <div class="card-title">Queue / Backlog</div>
+      <div class="card-state badge-{{ health.queue.backlog_health.value }}">{{ health.queue.backlog_health.value }}</div>
+      {% if health.queue.stream_length is not none %}
+      <div class="card-desc">Stream length: {{ health.queue.stream_length }}</div>
+      {% endif %}
+      {% if health.queue.pending_count is not none %}
+      <div class="card-desc">Pending: {{ health.queue.pending_count }}</div>
+      {% endif %}
+      {% if health.queue.oldest_pending_age_seconds is not none %}
+      <div class="card-desc">Oldest age: {{ health.queue.oldest_pending_age_seconds | int }}s</div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Path status -->
+<section class="cards-section">
+  <h2>Paths</h2>
+  <div class="card-grid">
+    {% for ps in health.paths %}
+    <div class="card status-card {% if ps.exists %}state-active{% else %}state-warning{% endif %}">
+      <div class="card-title">{{ ps.label }}</div>
+      <div class="card-state {% if ps.exists %}badge-active{% else %}badge-warning{% endif %}">
+        {% if ps.exists %}exists{% else %}missing{% endif %}
+      </div>
+      <div class="card-desc">{{ ps.path }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="timestamp-line">Last updated: {{ health.timestamp }}</div>
+
+<!-- Service Detail Modal -->
+<div id="svcDetailModal" class="modal-overlay" style="display:none" onclick="closeServiceModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span id="svcDetailTitle" class="modal-title"></span>
+      <div class="modal-header-actions">
+        <button class="btn btn-sm btn-success" onclick="svcAction('start')">▶ Start</button>
+        <button class="btn btn-sm btn-warning" onclick="svcAction('stop')">■ Stop</button>
+        <button class="btn btn-sm btn-secondary" onclick="svcAction('restart')">↻ Restart</button>
+        <button class="modal-close" onclick="closeServiceModal()">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="svcDetailMeta" class="svc-meta-grid"></div>
+      <div id="svcDetailActionMsg" class="svc-action-msg" style="display:none"></div>
+      <div class="svc-detail-tabs">
+        <button class="svc-tab active" onclick="switchTab('journal')">Journal Logs</button>
+        <button class="svc-tab" onclick="switchTab('status')">systemctl status</button>
+        <button class="svc-tab" onclick="switchTab('props')">Properties</button>
+      </div>
+      <div id="tabJournal" class="svc-tab-pane active"><pre id="svcDetailLogs" class="log-pre">Loading…</pre></div>
+      <div id="tabStatus"  class="svc-tab-pane"><pre id="svcDetailStatus" class="log-pre"></pre></div>
+      <div id="tabProps"   class="svc-tab-pane"><table id="svcDetailPropsTable" class="props-table"></table></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let autoRefreshTimer = null;
+function toggleAutoRefresh(cb) {
+  if (cb.checked) {
+    autoRefreshTimer = setInterval(() => location.reload(), 10000);
+  } else {
+    clearInterval(autoRefreshTimer);
+  }
+}
+
+// ---- Service Detail Modal ---- //
+let _currentService = null;
+
+document.querySelectorAll('.clickable-service-card').forEach(card => {
+  card.addEventListener('click', () => openServiceDetail(card.dataset.service));
+});
+
+function switchTab(tab) {
+  document.querySelectorAll('.svc-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.svc-tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  event.target.classList.add('active');
+}
+
+async function openServiceDetail(name) {
+  _currentService = name;
+  document.getElementById('svcDetailTitle').textContent = name;
+  document.getElementById('svcDetailLogs').textContent = 'Loading…';
+  document.getElementById('svcDetailStatus').textContent = '';
+  document.getElementById('svcDetailPropsTable').innerHTML = '';
+  document.getElementById('svcDetailMeta').innerHTML = '';
+  document.getElementById('svcDetailActionMsg').style.display = 'none';
+  // reset to first tab
+  document.querySelectorAll('.svc-tab').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.querySelectorAll('.svc-tab-pane').forEach((p,i) => p.classList.toggle('active', i===0));
+  document.getElementById('svcDetailModal').style.display = 'flex';
+
+  try {
+    const data = await fetch(`/api/scanner/service/${encodeURIComponent(name)}/detail`).then(r => r.json());
+
+    // Meta row
+    const classColor = data.classification === 'required' ? 'var(--red)' : data.classification === 'optional' ? 'var(--yellow)' : 'var(--slate)';
+    document.getElementById('svcDetailMeta').innerHTML = `
+      <div class="meta-item"><span class="meta-label">State</span><span class="badge-${data.active_state}">${data.active_state} / ${data.sub_state}</span></div>
+      <div class="meta-item"><span class="meta-label">Classification</span><span style="color:${classColor}">${data.classification}</span></div>
+      ${data.pid ? `<div class="meta-item"><span class="meta-label">PID</span><span>${data.pid}</span></div>` : ''}
+      ${data.since ? `<div class="meta-item"><span class="meta-label">Since</span><span>${data.since}</span></div>` : ''}
+      ${data.description ? `<div class="meta-item meta-desc"><span class="meta-label">Description</span><span>${data.description}</span></div>` : ''}
+    `;
+
+    // Journal logs
+    document.getElementById('svcDetailLogs').textContent =
+      data.journal_logs || (data.journal_error ? `Error: ${data.journal_error}` : '(no journal output)');
+
+    // systemctl status
+    document.getElementById('svcDetailStatus').textContent = data.systemctl_status || '(no output)';
+
+    // Properties table
+    const tbl = document.getElementById('svcDetailPropsTable');
+    tbl.innerHTML = '';
+    for (const [k, v] of Object.entries(data.properties || {})) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="prop-key">${k}</td><td class="prop-val">${v}</td>`;
+      tbl.appendChild(tr);
+    }
+  } catch(e) {
+    document.getElementById('svcDetailLogs').textContent = `Failed to fetch details: ${e}`;
+  }
+}
+
+function closeServiceModal(event) {
+  if (event && event.target !== document.getElementById('svcDetailModal') && event.type === 'click') return;
+  document.getElementById('svcDetailModal').style.display = 'none';
+  _currentService = null;
+}
+
+async function svcAction(action) {
+  if (!_currentService) return;
+  const msgEl = document.getElementById('svcDetailActionMsg');
+  msgEl.style.display = 'block';
+  msgEl.className = 'svc-action-msg info';
+  msgEl.textContent = `Sending ${action} to ${_currentService}…`;
+  try {
+    const resp = await fetch(`/api/scanner/service/${encodeURIComponent(_currentService)}/${action}`, {method:'POST'});
+    const data = await resp.json();
+    msgEl.className = 'svc-action-msg ' + (data.success ? 'success' : 'error');
+    msgEl.textContent = data.message || (data.success ? 'Done.' : 'Failed.');
+    setTimeout(() => openServiceDetail(_currentService), 1500);
+  } catch(e) {
+    msgEl.className = 'svc-action-msg error';
+    msgEl.textContent = `Error: ${e}`;
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeServiceModal();
+});
+</script>
+{% endblock %}

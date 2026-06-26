@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block title %}Redis / Queue — Scanner Control Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Redis / Queue</h1>
+  <div class="toolbar">
+    <label class="auto-refresh-label">
+      <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh(this)"> Auto-refresh (15s)
+    </label>
+    <button onclick="location.reload()" class="btn btn-secondary">↻ Refresh</button>
+  </div>
+</div>
+
+{% if not data.reachable %}
+<div class="health-banner status-critical">
+  <span class="health-icon">🔴</span>
+  <span class="health-overall-label">REDIS UNREACHABLE</span>
+  <span class="health-summary">{{ data.error or 'Cannot connect to Redis' }}</span>
+</div>
+{% else %}
+
+{# ── Summary strip ─────────────────────────────────────────────────── #}
+<div class="redis-summary-strip">
+  <div class="rs-item">
+    <span class="rs-label">Redis</span>
+    <span class="rs-value badge-active">● Connected</span>
+  </div>
+  {% if data.server_info.get('redis_version') %}
+  <div class="rs-item">
+    <span class="rs-label">Version</span>
+    <span class="rs-value">v{{ data.server_info.redis_version }}</span>
+  </div>
+  {% endif %}
+  {% if data.today_stats.get('total_calls_today') is not none %}
+  <div class="rs-item rs-highlight">
+    <span class="rs-label">Calls Today</span>
+    <span class="rs-value">{{ data.today_stats.total_calls_today }}</span>
+  </div>
+  {% endif %}
+  {% if data.today_stats.get('total_calls_all_time') is not none %}
+  <div class="rs-item">
+    <span class="rs-label">All-Time</span>
+    <span class="rs-value">{{ "{:,}".format(data.today_stats.total_calls_all_time | int) }}</span>
+  </div>
+  {% endif %}
+  {% if data.today_stats.get('total_minutes') is not none %}
+  <div class="rs-item">
+    <span class="rs-label">Min Today</span>
+    <span class="rs-value">{{ "%.1f"|format(data.today_stats.total_minutes | float) }}</span>
+  </div>
+  {% endif %}
+  <div class="rs-item {% if data.pending_count > 0 %}rs-warn{% endif %}">
+    <span class="rs-label">Pending</span>
+    <span class="rs-value">{{ data.pending_count }}</span>
+  </div>
+  {% if data.stream_length is not none %}
+  <div class="rs-item">
+    <span class="rs-label">Stream</span>
+    <span class="rs-value">{{ "{:,}".format(data.stream_length) }}</span>
+  </div>
+  {% endif %}
+  {% if data.today_stats.get('total_disk_usage_readable') %}
+  <div class="rs-item">
+    <span class="rs-label">Disk</span>
+    <span class="rs-value">{{ data.today_stats.total_disk_usage_readable }}</span>
+  </div>
+  {% endif %}
+</div>
+
+{# ── Tabs ──────────────────────────────────────────────────────────── #}
+<div class="redis-tabs">
+  <button class="redis-tab active" onclick="showTab('transcribed',this)">
+    📋 Recent Calls
+    {% if data.recent_transcribed %}<span class="tab-badge">{{ data.recent_transcribed|length }}</span>{% endif %}
+  </button>
+  <button class="redis-tab" onclick="showTab('pending',this)">
+    ⏳ Pending
+    <span class="tab-badge {% if data.pending_count > 0 %}tab-badge-warn{% endif %}">{{ data.pending_count }}</span>
+  </button>
+  <button class="redis-tab" onclick="showTab('feeds',this)">📡 Feeds</button>
+  <button class="redis-tab" onclick="showTab('stream',this)">🔧 Stream Info</button>
+</div>
+
+{# ── Recent Calls tab ──────────────────────────────────────────────── #}
+<div id="tab-transcribed" class="redis-tab-pane active">
+  {% if data.recent_transcribed %}
+  {% set from_stream = data.recent_transcribed[0].get('source') == 'stream' %}
+  {% if from_stream %}
+  <div class="cache-notice">
+    ⚠️ Transcript cache is between refreshes — showing raw stream entries. Transcripts appear when the scanner API is active.
+  </div>
+  {% endif %}
+  <div class="call-search-bar">
+    <input type="text" id="callSearchInput" placeholder="Filter by transcript, feed, town…"
+           oninput="filterCalls()" class="call-search-input">
+    <div class="feed-filter-pills" id="feedFilterPills"></div>
+  </div>
+  <div id="callList" class="call-list">
+    {% for call in data.recent_transcribed %}
+    <div class="call-card"
+         data-feed="{{ call.feed }}"
+         data-search="{{ (call.transcript ~ ' ' ~ call.edited_transcript ~ ' ' ~ call.feed ~ ' ' ~ call.file ~ ' ' ~ call.town) | lower | trim }}">
+      <div class="call-card-header">
+        <span class="call-feed-badge feed-tag-{{ call.feed }}">{{ call.feed | upper }}</span>
+        {% if call.town %}<span class="call-town">{{ call.town }}{% if call.dept %} · {{ call.dept | upper }}{% endif %}</span>{% endif %}
+        <span class="call-time">{{ call.timestamp_human or call.timestamp[:16] }}</span>
+        {% if call.duration %}<span class="call-duration">{{ call.duration }}s</span>{% endif %}
+      </div>
+      <div class="call-transcript">
+        {% set display = call.edited_transcript or call.enhanced_transcript or call.transcript %}
+        {% if display %}{{ display }}{% else %}<em class="text-muted">no transcript</em>{% endif %}
+      </div>
+      <div class="call-file mono small text-muted">{{ call.file }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p>No recent transcribed calls in cache.</p>
+  </div>
+  {% endif %}
+</div>
+
+{# ── Pending tab ───────────────────────────────────────────────────── #}
+<div id="tab-pending" class="redis-tab-pane">
+  {% if data.last_processed_ts %}
+  <div class="stream-info-row">
+    <span class="si-label">Last processed at</span>
+    <span class="si-val">{{ data.last_processed_ts }}</span>
+    <span class="si-id mono text-muted">{{ data.last_processed_id }}</span>
+  </div>
+  {% endif %}
+  {% if data.pending_calls %}
+  <div class="pending-note">{{ data.pending_count }} call{{ 's' if data.pending_count != 1 }} awaiting transcription.</div>
+  <div class="call-list">
+    {% for call in data.pending_calls %}
+    <div class="call-card call-card-pending">
+      <div class="call-card-header">
+        <span class="call-feed-badge feed-tag-{{ call.tag }}">{{ (call.tag or '?') | upper }}</span>
+        <span class="call-time">{{ call.time }}</span>
+        <span class="mono text-muted small">{{ call._id }}</span>
+      </div>
+      <div class="call-file mono small">{{ call.file }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state empty-state-good">
+    <span style="font-size:2rem">✅</span>
+    <p>Queue is clear — no pending calls.</p>
+    {% if data.last_processed_ts %}<p class="text-muted small">Last processed: {{ data.last_processed_ts }}</p>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{# ── Feeds tab ─────────────────────────────────────────────────────── #}
+<div id="tab-feeds" class="redis-tab-pane">
+  {% if data.feed_activity %}
+  <div class="feed-grid">
+    {% for feed in data.feed_activity %}
+    {% set latest = data.latest_per_feed.get(feed.feed) or {} %}
+    <div class="feed-card {% if feed.count == 0 %}feed-card-inactive{% endif %}">
+      <div class="feed-card-header">
+        <span class="call-feed-badge feed-tag-{{ feed.feed }}">{{ feed.feed | upper }}</span>
+        <span class="feed-count">{{ feed.count }} <span class="text-muted small">today</span></span>
+      </div>
+      {% if feed.latest_time %}
+      <div class="small text-muted">Last: {{ feed.latest_time[:16] | replace('T',' ') }}</div>
+      {% endif %}
+      {% if latest.get('transcript') %}
+      <div class="feed-latest-transcript">{{ latest.transcript[:180] }}{% if latest.transcript|length > 180 %}…{% endif %}</div>
+      {% if latest.get('file') %}<div class="mono small text-muted">{{ latest.file }}</div>{% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><p>No feed activity data.</p></div>
+  {% endif %}
+</div>
+
+{# ── Stream Info tab ───────────────────────────────────────────────── #}
+<div id="tab-stream" class="redis-tab-pane">
+  <table class="info-table">
+    <tr><th>Stream Key</th><td class="mono">{{ data.stream_key }}</td></tr>
+    <tr><th>Stream Length</th><td>{{ "{:,}".format(data.stream_length) if data.stream_length is not none else '—' }}</td></tr>
+    <tr><th>Last Processed ID</th><td class="mono">{{ data.last_processed_id or '—' }}</td></tr>
+    <tr><th>Last Processed Time</th><td>{{ data.last_processed_ts or '—' }}</td></tr>
+    <tr><th>Pending Calls</th>
+      <td {% if data.pending_count > 0 %}class="text-warn"{% endif %}>{{ data.pending_count }}</td></tr>
+    <tr><th>Redis URL</th><td class="mono">{{ data.url }}</td></tr>
+    {% for k, v in data.server_info.items() %}
+    <tr><th>{{ k | replace('_',' ') | title }}</th><td>{{ v }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let _autoTimer = null;
+function toggleAutoRefresh(cb) {
+  clearInterval(_autoTimer);
+  if (cb.checked) _autoTimer = setInterval(() => location.reload(), 15000);
+}
+function showTab(name, btn) {
+  document.querySelectorAll('.redis-tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.redis-tab').forEach(b => b.classList.remove('active'));
+  const pane = document.getElementById('tab-' + name);
+  if (pane) pane.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+function filterCalls() {
+  const q = document.getElementById('callSearchInput').value.toLowerCase();
+  document.querySelectorAll('#callList .call-card').forEach(card => {
+    card.style.display = (card.dataset.search || '').includes(q) ? '' : 'none';
+  });
+}
+
+// Build feed-filter pills dynamically
+(function buildPills() {
+  const cards = document.querySelectorAll('#callList .call-card');
+  const feeds = [...new Set([...cards].map(c => c.dataset.feed).filter(Boolean))].sort();
+  const container = document.getElementById('feedFilterPills');
+  if (!container || feeds.length <= 1) return;
+  const allBtn = document.createElement('button');
+  allBtn.className = 'feed-pill active';
+  allBtn.textContent = 'All';
+  allBtn.onclick = () => { setActivePill(allBtn); showFeed(null); };
+  container.appendChild(allBtn);
+  feeds.forEach(feed => {
+    const btn = document.createElement('button');
+    btn.className = 'feed-pill feed-pill-' + feed;
+    btn.textContent = feed.toUpperCase();
+    btn.onclick = () => { setActivePill(btn); showFeed(feed); };
+    container.appendChild(btn);
+  });
+})();
+
+function showFeed(feed) {
+  document.querySelectorAll('#callList .call-card').forEach(card => {
+    card.style.display = (!feed || card.dataset.feed === feed) ? '' : 'none';
+  });
+}
+function setActivePill(btn) {
+  document.querySelectorAll('.feed-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}

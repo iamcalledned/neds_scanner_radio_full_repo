@@ -9,6 +9,7 @@ from mcp.server.fastmcp import Context
 def register_core_transcribe_tools(
     *,
     mcp: Any,
+    default_profile: str,
     process_analyze_audio_fn: Callable[..., dict[str, Any]],
     is_under_allowed_fn: Callable[[Path], bool],
     min_duration: float,
@@ -35,7 +36,7 @@ def register_core_transcribe_tools(
     def transcribe_file(
         ctx: Context,
         path: str,
-        profile: str = "default",
+        profile: str = "",
         language: str = "en",
         write_artifacts: bool = True,
         insert_db: bool = True,
@@ -55,12 +56,14 @@ def register_core_transcribe_tools(
           delete_source_raw: if True, deletes the source raw WAV after success
         """
         state = get_state_fn(ctx)
+        selected_profile = profile or default_profile
+        print(f"Transcribing {path} with profile '{selected_profile}'")
         return transcribe_with_state_fn(
             ctx,
             state,
             path=path,
             model_key="",
-            profile=profile,
+            profile=selected_profile,
             language=language,
             write_artifacts=write_artifacts,
             insert_db=insert_db,
@@ -73,7 +76,7 @@ def register_core_transcribe_tools(
     def retranscribe_file(
         ctx: Context,
         path: str,
-        profile: str = "radio",
+        profile: str = "",
         language: str = "en",
     ) -> dict[str, Any]:
         """
@@ -82,7 +85,7 @@ def register_core_transcribe_tools(
         return transcribe_file(
             ctx,
             path=path,
-            profile=profile,
+            profile=profile or default_profile,
             language=language,
             write_artifacts=True,
             insert_db=True,

@@ -1,0 +1,15 @@
+[Unit]
+Description=GPU Model Manager Web Server
+After=network.target
+
+[Service]
+Type=simple
+User=ned
+WorkingDirectory=/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/tools/gpu_model_manager
+ExecStart=/home/ned/venv/bin/python -m gpu_model_manager.scripts.run_web
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

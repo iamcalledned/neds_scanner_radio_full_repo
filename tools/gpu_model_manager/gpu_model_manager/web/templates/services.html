@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Services — GPU Model Manager{% endblock %}
+{% block heading %}Model Services{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-title">Discovered Model Services</div>
+  {% if services %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Active State</th>
+        <th>Sub State</th>
+        <th>PID</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for svc in services %}
+      {% set is_protected = (svc.name == "scanner-mcp.service") %}
+      <tr class="{% if is_protected %}runtime-protected{% endif %}">
+        <td>
+          {{ svc.name }}
+          {% if is_protected %}<span class="badge-protected">PROTECTED</span>{% endif %}
+        </td>
+        <td>
+          <span class="state-badge state-{{ svc.active_state }}">{{ svc.active_state }}</span>
+        </td>
+        <td>{{ svc.sub_state }}</td>
+        <td>{{ svc.pid or "—" }}</td>
+        <td class="action-cell">
+          <button class="btn-sm btn-green" onclick="serviceAction('{{ svc.name }}','start')">Start</button>
+          {% if is_protected %}
+            <button class="btn-sm btn-red" onclick="confirmProtectedStop('{{ svc.name }}')">Stop ⚠</button>
+            <button class="btn-sm btn-yellow" onclick="confirmProtectedRestart('{{ svc.name }}')">Restart ⚠</button>
+          {% else %}
+            <button class="btn-sm btn-red" onclick="serviceAction('{{ svc.name }}','stop')">Stop</button>
+            <button class="btn-sm btn-yellow" onclick="serviceAction('{{ svc.name }}','restart')">Restart</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">No model-related services discovered. Services matching scanner, mcp, whisper, llm, vllm, llama, model, transcriber will appear here.</div>
+  {% endif %}
+</div>
+
+<div id="svc-result" class="card" style="display:none; margin-top:1rem;">
+  <div class="card-title">Action Result</div>
+  <pre id="svc-result-text" class="log-pre"></pre>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function serviceAction(name, action, confirmProtected=false) {
+  const resultDiv = document.getElementById('svc-result');
+  const resultText = document.getElementById('svc-result-text');
+  resultDiv.style.display = 'block';
+  resultText.textContent = `Running ${action} on ${name}...`;
+
+  // Find runtime key by service name
+  try {
+    const runtimes = await (await fetch('/api/runtimes')).json();
+    let runtimeKey = null;
+    for (const [key, r] of Object.entries(runtimes.runtimes)) {
+      if (r.service_name === name) { runtimeKey = key; break; }
+    }
+    if (!runtimeKey) {
+      resultText.textContent = `No runtime found for service ${name}`;
+      return;
+    }
+    const resp = await fetch(`/api/runtime/${runtimeKey}/${action}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({confirm_protected: confirmProtected})
+    });
+    const data = await resp.json();
+    resultText.textContent = JSON.stringify(data, null, 2);
+    resultText.className = 'log-pre ' + (data.success ? 'text-green' : 'text-red');
+    setTimeout(() => location.reload(), 2000);
+  } catch(e) {
+    resultText.textContent = 'Error: ' + e;
+    resultText.className = 'log-pre text-red';
+  }
+}
+
+function confirmProtectedStop(name) {
+  if (confirm(`WARNING: ${name} is PROTECTED (scanner transcription).\nAre you absolutely sure you want to stop it?`)) {
+    serviceAction(name, 'stop', true);
+  }
+}
+
+function confirmProtectedRestart(name) {
+  if (confirm(`WARNING: ${name} is PROTECTED (scanner transcription).\nAre you absolutely sure you want to restart it?`)) {
+    serviceAction(name, 'restart', true);
+  }
+}
+</script>
+{% endblock %}

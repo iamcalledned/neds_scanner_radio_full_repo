@@ -9,6 +9,7 @@ from starlette.responses import JSONResponse, Response
 def register_interactive_transcribe_segment_route(
     *,
     mcp: Any,
+    default_profile: str,
     ensure_runtime: Callable[[], dict[str, Any]],
     resolve_model_profile: Callable[[Optional[Any], str], tuple[str, Optional[Any]]],
     transcribe_with_state: Callable[..., dict[str, Any]],
@@ -66,7 +67,7 @@ def register_interactive_transcribe_segment_route(
                 status_code=interactive_error_status("missing_path"),
             )
 
-        profile = str(payload.get("profile") or "default").strip() or "default"
+        profile = str(payload.get("profile") or default_profile).strip() or default_profile
         language = str(payload.get("language") or "en").strip() or "en"
         model_key = str(payload.get("model_key") or "").strip()
         write_artifacts = coerce_bool(payload.get("write_artifacts"), default=False)

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Logs — Scanner Control Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Dashboard Logs</h1>
+  <div class="toolbar">
+    <div class="log-level-btns">
+      <button class="log-lvl-btn active" data-level="ALL"      onclick="setLevel('ALL',this)">All</button>
+      <button class="log-lvl-btn" data-level="ERROR"   onclick="setLevel('ERROR',this)">Error</button>
+      <button class="log-lvl-btn" data-level="WARNING" onclick="setLevel('WARNING',this)">Warning</button>
+      <button class="log-lvl-btn" data-level="INFO"    onclick="setLevel('INFO',this)">Info</button>
+      <button class="log-lvl-btn" data-level="DEBUG"   onclick="setLevel('DEBUG',this)">Debug</button>
+    </div>
+    <input type="text" id="logSearch" placeholder="Search…" oninput="filterLog()" class="log-search-input">
+    <button onclick="location.reload()" class="btn btn-secondary">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="log-meta-bar">
+  <span class="text-muted small">{{ log_file }}</span>
+  {% if log_lines %}<span class="text-muted small">— {{ log_lines|length }} lines (last 500)</span>{% endif %}
+</div>
+
+{% if error %}
+<div class="panel problems-box"><p class="text-error">{{ error }}</p></div>
+{% endif %}
+
+{% if log_lines %}
+<div class="log-box2" id="logBox">
+  {% for entry in log_lines %}
+  <div class="log-entry log-lvl-{{ entry.level }}" data-level="{{ entry.level }}" data-search="{{ entry.raw | lower }}">
+    {% if entry.ts %}
+    <span class="log-ts">{{ entry.ts[11:19] if entry.ts|length > 10 else entry.ts }}</span>
+    {% endif %}
+    <span class="log-level-badge lvl-{{ entry.level }}">{{ entry.level }}</span>
+    {% if entry.logger %}<span class="log-logger">{{ entry.logger }}</span>{% endif %}
+    <span class="log-msg">{{ entry.msg }}</span>
+  </div>
+  {% endfor %}
+</div>
+<div class="log-no-results" id="logNoResults" style="display:none">
+  <p class="text-muted">No matching log entries.</p>
+</div>
+{% else %}
+<div class="panel"><p class="text-muted">No log lines available.</p></div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let _currentLevel = 'ALL';
+
+function setLevel(level, btn) {
+  _currentLevel = level;
+  document.querySelectorAll('.log-lvl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterLog();
+}
+
+function filterLog() {
+  const q = document.getElementById('logSearch').value.toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('#logBox .log-entry').forEach(row => {
+    const levelMatch = _currentLevel === 'ALL' || row.dataset.level === _currentLevel;
+    const textMatch  = !q || (row.dataset.search || '').includes(q);
+    const show = levelMatch && textMatch;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('logNoResults').style.display = visible === 0 ? 'block' : 'none';
+}
+
+// Auto-scroll to bottom on load
+window.addEventListener('DOMContentLoaded', () => {
+  const box = document.getElementById('logBox');
+  if (box) box.scrollTop = box.scrollHeight;
+});
+</script>
+{% endblock %}

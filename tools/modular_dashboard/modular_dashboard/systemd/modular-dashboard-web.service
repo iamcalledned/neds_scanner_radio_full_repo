@@ -1,0 +1,29 @@
+[Unit]
+Description=Modular Scanner Dashboard — Web App (FastAPI)
+After=network.target redis.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/tools/modular_dashboard
+
+# ── Python environment ──────────────────────────────────────────────────────
+# pyscan activates ~/venv. The Python executable is at /home/ned/venv/bin/python3.
+# If your venv path is different, update ExecStart accordingly.
+ExecStart=/home/ned/venv/bin/python3 -m uvicorn modular_dashboard.web.app:app \
+    --host 127.0.0.1 \
+    --port 8010 \
+    --log-level info \
+    --no-access-log
+
+# ── Restart behaviour ───────────────────────────────────────────────────────
+Restart=on-failure
+RestartSec=5
+
+# ── Environment ─────────────────────────────────────────────────────────────
+# Inherit the user environment (needed for DBUS, DISPLAY etc. if desired).
+# Add environment overrides here if needed:
+# Environment="LOG_LEVEL=DEBUG"
+# Environment="REDIS_URL=redis://127.0.0.1:6379/0"
+
+[Install]
+WantedBy=default.target

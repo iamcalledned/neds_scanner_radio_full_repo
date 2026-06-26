@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Policy — GPU Model Manager{% endblock %}
+{% block heading %}VRAM Policy{% endblock %}
+
+{% block content %}
+
+<!-- Policy State -->
+<div class="card-grid card-grid-2">
+  <div class="card">
+    <div class="card-title">Current VRAM State</div>
+    <table class="stat-table">
+      <tr><th>Total VRAM</th><td>{{ policy.total_vram_mb | round(0) | int }} MB</td></tr>
+      <tr><th>Used</th><td>{{ policy.used_vram_mb | round(0) | int }} MB</td></tr>
+      <tr><th>Free</th><td>{{ policy.free_vram_mb | round(0) | int }} MB</td></tr>
+      <tr class="row-sep"><th colspan="2"></th></tr>
+      <tr><th>Safety Margin</th><td>&minus; {{ policy.gpu_safety_margin_mb }} MB</td></tr>
+      <tr><th>Scanner Reserve</th><td>&minus; {{ policy.scanner_whisper_reserved_mb }} MB</td></tr>
+      <tr class="row-sep"><th colspan="2"></th></tr>
+      <tr class="row-highlight"><th>Effective Available</th><td><strong>{{ policy.effective_available_mb | round(0) | int }} MB</strong></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Policy Formula</div>
+    <pre class="formula-pre">effective_available_mb =
+    free_vram_mb
+    - GPU_SAFETY_MARGIN_MB       ({{ policy.gpu_safety_margin_mb }} MB)
+    - SCANNER_WHISPER_RESERVED_MB ({{ policy.scanner_whisper_reserved_mb }} MB)
+
+allowed =
+    effective_available_mb >= runtime.estimated_vram_mb</pre>
+    <div class="card-meta" style="margin-top:0.5rem;">
+      The scanner reserve is always applied regardless of whether
+      scanner-mcp.service is currently running.
+    </div>
+  </div>
+</div>
+
+<!-- Can-start tester -->
+<div class="card" style="margin-top: 1rem;">
+  <div class="card-title">Admission Tester</div>
+  <div class="form-row">
+    <select id="policy-runtime-key" class="form-select">
+      {% for key in runtime_keys %}
+      <option value="{{ key }}">{{ key }}</option>
+      {% endfor %}
+    </select>
+    <label class="form-check">
+      <input type="checkbox" id="policy-force"> Force override
+    </label>
+    <button class="btn-primary" onclick="runCanStart()">Check Can Start</button>
+  </div>
+  <div id="policy-result" style="display:none; margin-top: 1rem;">
+    <pre id="policy-result-text" class="log-pre"></pre>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function runCanStart() {
+  const key = document.getElementById('policy-runtime-key').value;
+  const force = document.getElementById('policy-force').checked;
+  const resultDiv = document.getElementById('policy-result');
+  const pre = document.getElementById('policy-result-text');
+  resultDiv.style.display = 'block';
+  pre.textContent = 'Evaluating...';
+  try {
+    const resp = await fetch('/api/policy/can-start', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({runtime_key: key, force: force})
+    });
+    const data = await resp.json();
+    pre.textContent = data.explanation;
+    pre.className = 'log-pre ' + (data.allowed ? 'text-green' : 'text-red');
+  } catch(e) {
+    pre.textContent = 'Error: ' + e;
+    pre.className = 'log-pre text-red';
+  }
+}
+</script>
+{% endblock %}

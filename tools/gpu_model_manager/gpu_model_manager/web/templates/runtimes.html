@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Runtimes — GPU Model Manager{% endblock %}
+{% block heading %}Runtime Registry{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-title">Registered Runtimes</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Name</th>
+        <th>Kind</th>
+        <th>Owner</th>
+        <th>VRAM (MB)</th>
+        <th>Priority</th>
+        <th>Protected</th>
+        <th>Service</th>
+        <th>Can Start?</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key, r in runtimes.items() %}
+      <tr class="runtime-row {% if r.protected %}runtime-protected{% endif %}" data-key="{{ key }}">
+        <td><code>{{ key }}</code></td>
+        <td>{{ r.display_name }}</td>
+        <td><span class="kind-badge kind-{{ r.kind }}">{{ r.kind }}</span></td>
+        <td>{{ r.owner }}</td>
+        <td>{{ r.estimated_vram_mb }}</td>
+        <td><span class="priority-badge priority-{{ r.priority }}">{{ r.priority }}</span></td>
+        <td>{% if r.protected %}<span class="badge-protected">YES</span>{% else %}<span class="text-muted">no</span>{% endif %}</td>
+        <td>{{ r.service_name or "—" }}</td>
+        <td>
+          <button class="btn-sm" onclick="checkCanStart('{{ key }}')">Check</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Can-start result panel -->
+<div class="card" id="can-start-panel" style="display:none; margin-top:1rem;">
+  <div class="card-title">Admission Decision</div>
+  <pre id="can-start-result" class="log-pre"></pre>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function checkCanStart(runtimeKey) {
+  const panel = document.getElementById('can-start-panel');
+  const pre = document.getElementById('can-start-result');
+  panel.style.display = 'block';
+  pre.textContent = 'Checking...';
+  try {
+    const resp = await fetch('/api/policy/can-start', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({runtime_key: runtimeKey})
+    });
+    const data = await resp.json();
+    pre.textContent = data.explanation + '\n\nAllowed: ' + data.allowed;
+    pre.className = 'log-pre ' + (data.allowed ? 'text-green' : 'text-red');
+  } catch(e) {
+    pre.textContent = 'Error: ' + e;
+    pre.className = 'log-pre text-red';
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Leases — GPU Model Manager{% endblock %}
+{% block heading %}VRAM Leases{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-title">
+    Active Leases
+    <span class="badge-count">{{ lease_status.active_count }}</span>
+  </div>
+  {% if lease_status.leases %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Lease ID</th>
+        <th>Runtime</th>
+        <th>Owner</th>
+        <th>Created</th>
+        <th>Expires</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lease in lease_status.leases %}
+      <tr>
+        <td><code>{{ lease.lease_id[:12] }}…</code></td>
+        <td><code>{{ lease.runtime_key }}</code></td>
+        <td>{{ lease.owner }}</td>
+        <td>{{ lease.created_at }}</td>
+        <td>{{ lease.expires_at or "never" }}</td>
+        <td>
+          <button class="btn-sm btn-red" onclick="releaseLease('{{ lease.lease_id }}')">Release</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">No active leases.</div>
+  {% endif %}
+</div>
+
+<!-- Create Lease -->
+<div class="card" style="margin-top:1rem;">
+  <div class="card-title">Create Lease</div>
+  <div class="form-row">
+    <select id="lease-runtime-key" class="form-select">
+      {% for key in runtime_keys %}
+      <option value="{{ key }}">{{ key }}</option>
+      {% endfor %}
+    </select>
+    <input class="form-input" type="text" id="lease-owner" placeholder="owner (e.g. web_test)" value="web">
+    <input class="form-input" type="number" id="lease-ttl" placeholder="TTL seconds (blank = forever)" min="1">
+    <button class="btn-primary" onclick="createLease()">Create</button>
+  </div>
+  <div id="lease-result" style="display:none; margin-top:0.5rem;">
+    <pre id="lease-result-text" class="log-pre"></pre>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function releaseLease(leaseId) {
+  if (!confirm('Release lease ' + leaseId.slice(0,8) + '...?')) return;
+  const resp = await fetch(`/api/leases/${leaseId}/release`, {method:'POST'});
+  const data = await resp.json();
+  if (data.released) { location.reload(); }
+  else { alert('Failed to release lease'); }
+}
+
+async function createLease() {
+  const runtimeKey = document.getElementById('lease-runtime-key').value;
+  const owner = document.getElementById('lease-owner').value || 'web';
+  const ttlVal = document.getElementById('lease-ttl').value;
+  const ttlSeconds = ttlVal ? parseInt(ttlVal) : null;
+
+  const resultDiv = document.getElementById('lease-result');
+  const pre = document.getElementById('lease-result-text');
+  resultDiv.style.display = 'block';
+
+  try {
+    const resp = await fetch('/api/leases', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({runtime_key: runtimeKey, owner, ttl_seconds: ttlSeconds})
+    });
+    const data = await resp.json();
+    pre.textContent = JSON.stringify(data, null, 2);
+    pre.className = 'log-pre text-green';
+    setTimeout(() => location.reload(), 1500);
+  } catch(e) {
+    pre.textContent = 'Error: ' + e;
+    pre.className = 'log-pre text-red';
+  }
+}
+</script>
+{% endblock %}

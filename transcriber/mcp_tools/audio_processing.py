@@ -3,10 +3,11 @@ from pathlib import Path
 import os
 
 RMS_THRESHOLD = float(os.environ.get("RMS_THRESHOLD", "0.001"))
+DEFAULT_AUDIO_PROFILE = os.environ.get("DEFAULT_AUDIO_PROFILE", "radio").strip() or "radio"
 
 
 
-def preprocess_audio(inp: Path, outp: Path, profile: str = "default") -> None:
+def preprocess_audio(inp: Path, outp: Path, profile: str = "") -> None:
     """
     Preprocess using ffmpeg. Profiles let you tune filters without changing code.
     """
@@ -16,7 +17,11 @@ def preprocess_audio(inp: Path, outp: Path, profile: str = "default") -> None:
         "static_fix": "highpass=f=150,lowpass=f=3200,afftdn=nf=-30,volume=7dB",
         "aggressive": "highpass=f=200,lowpass=f=3000,afftdn=nf=-35,acompressor=threshold=-20dB:ratio=4,volume=8dB",
     }
-    af = profiles.get(profile, profiles["default"])
+    selected_profile = (profile or DEFAULT_AUDIO_PROFILE).strip()
+    if not selected_profile or selected_profile.lower() == "default":
+        selected_profile = DEFAULT_AUDIO_PROFILE
+    fallback_profile = DEFAULT_AUDIO_PROFILE if DEFAULT_AUDIO_PROFILE in profiles else "radio"
+    af = profiles.get(selected_profile, profiles[fallback_profile])
 
     subprocess.run(
         ["ffmpeg", "-y", "-i", str(inp), "-ac", "1", "-ar", "16000", "-af", af, str(outp)],

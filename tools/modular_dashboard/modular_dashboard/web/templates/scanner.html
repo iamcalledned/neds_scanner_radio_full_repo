@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Scanner — Scanner Control Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Scanner Pipeline</h1>
+  <div class="toolbar">
+    <button onclick="refreshPage()" class="btn btn-secondary">↻ Refresh</button>
+    <button onclick="validateStack()" class="btn btn-primary">Validate Stack</button>
+  </div>
+</div>
+
+<!-- Health summary -->
+<div class="health-banner status-{{ health.overall.value }}">
+  <span class="health-icon">
+    {% if health.overall.value == 'healthy' %}✅
+    {% elif health.overall.value == 'warning' %}⚠️
+    {% elif health.overall.value == 'critical' %}🔴
+    {% else %}❓{% endif %}
+  </span>
+  <strong>{{ health.overall.value | upper }}:</strong>&nbsp;{{ health.summary }}
+</div>
+
+<!-- Problems -->
+{% if health.problems %}
+<div class="panel problems-box">
+  <h3>Problems</h3>
+  <ul>
+    {% for p in health.problems %}<li>{{ p }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<!-- Next actions -->
+{% if health.next_actions %}
+<div class="panel actions-box">
+  <h3>Suggested Next Actions</h3>
+  <ul>
+    {% for a in health.next_actions %}<li><code>{{ a }}</code></li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<!-- Queue details -->
+{% if health.queue %}
+<div class="panel">
+  <h3>Queue / Backlog</h3>
+  <table class="info-table">
+    <tr><th>Stream Key</th><td>{{ health.queue.stream_key }}</td></tr>
+    <tr><th>Stream Length</th><td>{{ health.queue.stream_length if health.queue.stream_length is not none else 'unknown' }}</td></tr>
+    <tr><th>Pending Count</th><td>{{ health.queue.pending_count if health.queue.pending_count is not none else 'n/a (no consumer groups)' }}</td></tr>
+    <tr><th>Oldest Pending Age</th>
+      <td>{% if health.queue.oldest_pending_age_seconds is not none %}{{ health.queue.oldest_pending_age_seconds | int }}s{% else %}unknown{% endif %}
+        {% if health.queue.oldest_pending_note %}<em> — {{ health.queue.oldest_pending_note }}</em>{% endif %}
+      </td>
+    </tr>
+    <tr><th>Backlog Health</th>
+      <td><span class="badge-{{ health.queue.backlog_health.value }}">{{ health.queue.backlog_health.value }}</span>
+        — {{ health.queue.backlog_note }}
+      </td>
+    </tr>
+  </table>
+
+  {% if health.queue.recent_items %}
+  <h4>Recent Queue Items</h4>
+  <div class="scroll-box">
+    <table class="data-table">
+      <thead><tr><th>ID</th><th>Fields</th></tr></thead>
+      <tbody>
+        {% for item in health.queue.recent_items %}
+        <tr>
+          <td class="mono">{{ item.id }}</td>
+          <td class="mono small">{{ item.fields }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Path status -->
+<div class="panel">
+  <h3>Path Checks</h3>
+  <table class="data-table">
+    <thead><tr><th>Label</th><th>Path</th><th>Status</th><th>Type</th></tr></thead>
+    <tbody>
+      {% for ps in health.paths %}
+      <tr>
+        <td>{{ ps.label }}</td>
+        <td class="mono small">{{ ps.path }}</td>
+        <td><span class="badge-{% if ps.exists %}active{% else %}warning{% endif %}">
+          {% if ps.exists %}exists{% else %}missing{% endif %}
+        </span></td>
+        <td>{% if ps.is_file %}file{% elif ps.is_dir %}dir{% else %}—{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div id="validate-result" class="panel" style="display:none"></div>
+<div class="timestamp-line">Last updated: {{ health.timestamp }}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function validateStack() {
+  const div = document.getElementById('validate-result');
+  div.style.display = 'block';
+  div.innerHTML = '<em>Validating...</em>';
+  try {
+    const resp = await fetch('/api/scanner/stack/validate', {method: 'POST'});
+    const data = await resp.json();
+    let html = `<h3>Stack Validation</h3>`;
+    html += `<p><strong>Overall OK:</strong> ${data.overall_ok ? '✅ Yes' : '❌ No'}</p>`;
+    if (data.problems && data.problems.length > 0) {
+      html += '<ul>' + data.problems.map(p => `<li>${escHtml(p)}</li>`).join('') + '</ul>';
+    }
+    html += '<pre>' + escHtml(JSON.stringify(data.services, null, 2)) + '</pre>';
+    div.innerHTML = html;
+  } catch(e) {
+    div.innerHTML = '<span class="text-error">Validation request failed: ' + escHtml(String(e)) + '</span>';
+  }
+}
+</script>
+{% endblock %}

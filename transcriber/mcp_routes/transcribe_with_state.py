@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gc
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -84,8 +85,13 @@ def transcribe_with_state(
         if router is None and ctx is not None:
             router = get_router_fn(ctx)
         resolved_model_key, model_info = resolve_model_profile_fn(router, model_key)
-        log.info(f"[PRE-PROCESS AUDIO] Preprocessing {src.name} profile={profile}")
-        preprocess_audio_fn(src, tmp, profile=profile)
+        default_audio_profile = os.environ.get("DEFAULT_AUDIO_PROFILE", "radio").strip() or "radio"
+        effective_profile = (profile or "").strip()
+        if not effective_profile or effective_profile.lower() == "default":
+            effective_profile = default_audio_profile
+
+        log.info(f"[PRE-PROCESS AUDIO] Preprocessing {src.name} profile={effective_profile}")
+        preprocess_audio_fn(src, tmp, profile=effective_profile)
         log.info("[PRE-PROCESS AUDIO] Preprocessing done, starting Whisper inference…")
         text = transcribe_wavefile_fn(
             state,
@@ -120,7 +126,7 @@ def transcribe_with_state(
             "town": town,
             "state": state_name,
             "dept": dept,
-            "profile": profile,
+            "profile": effective_profile,
             "language": language,
             "classification": {
                 "zero_shot": {},
@@ -142,8 +148,8 @@ def transcribe_with_state(
                 "needs_review": quality["needs_review"],
                 "reasons": quality["reasons"],
             },
-            "profile_used": profile,
-            "retry_profiles_tried": [profile],
+            "profile_used": effective_profile,
+            "retry_profiles_tried": [effective_profile],
             "transcription_engine": "faster-whisper",
             "transcription_model": transcription_model,
             "transcription_model_key": resolved_model_key,
@@ -196,8 +202,8 @@ def transcribe_with_state(
                     "needs_retry": int(quality["needs_retry"]),
                     "needs_review": int(quality["needs_review"]),
                     "quality_reasons": quality["reasons"],
-                    "profile_used": profile,
-                    "retry_profiles_tried": [profile],
+                    "profile_used": effective_profile,
+                    "retry_profiles_tried": [effective_profile],
                     "transcription_engine": "faster-whisper",
                     "transcription_model": meta.get("transcription_model"),
                     "hook_request": hook_requested,
@@ -230,7 +236,7 @@ def transcribe_with_state(
             "text": text,
             "duration": dur,
             "rms": rms,
-            "profile": profile,
+            "profile": effective_profile,
             "language": language,
             "model_key": resolved_model_key,
             "source_path": str(src),

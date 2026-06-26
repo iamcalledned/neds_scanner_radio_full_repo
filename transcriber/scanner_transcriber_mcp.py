@@ -83,6 +83,7 @@ from mcp_functions.whisper_loader import load_whisper_model as _load_whisper_mod
 from mcp_config.scanner_transcriber_settings import (
     ALLOWED_ROOTS,
     ARCHIVE_BASE,
+    DEFAULT_AUDIO_PROFILE,
     DEFAULT_COMPUTE_TYPE,
     DEFAULT_MODEL_KEY,
     DEFAULT_MODEL_KEY_ENV,
@@ -296,8 +297,39 @@ async def lifespan(_: FastMCP):
     - build model router and (optionally) warm default model
     - import DB module if available
     - start periodic WAL checkpoint task
+    - coordinate with GPU Gatekeeper for highest priority protection (always active)
     """
     import asyncio
+    
+    # Register with GPU Gatekeeper at the very beginning to reserve VRAM
+    # Always-on configuration: We use a 10-year safety net TTL and do not release on shutdown.
+    try:
+        gk_path = "/home/ned/Documents/GPU_agent_gatekeeper"
+        if gk_path not in sys.path:
+            sys.path.append(gk_path)
+        from gpu_gatekeeper.client import GpuGatekeeperClient
+        
+        client = GpuGatekeeperClient()
+        log.info("Registering scanner service with GPU Gatekeeper for permanent highest protection reservation...")
+        
+        ensure_resp = client.ensure_runtime(
+            capability="scanner_transcription",
+            owner="scanner-mcp",
+            allow_protected=True,
+            ttl_seconds=315360000,  # 10-year virtually permanent lease
+            force=True
+        )
+        if ensure_resp.get("ok"):
+            lease = ensure_resp.get("lease")
+            if lease:
+                log.info(f"GPU Gatekeeper reservation SUCCESS. Permanent protected lease: '{lease.get('lease_id')}'")
+            else:
+                log.info("GPU Gatekeeper reservation SUCCESS (no lease returned).")
+        else:
+            log.warning(f"GPU Gatekeeper registration rejected: {ensure_resp.get('message')}")
+    except Exception as e:
+        log.warning(f"Could not register with GPU Gatekeeper: {e}. Running in standalone safety mode.")
+
     runtime = _ensure_runtime()
     router = runtime.get("router")
     state: Optional[WhisperState] = runtime.get("state")
@@ -384,6 +416,7 @@ def _transcribe_with_state(
 
 register_interactive_transcribe_segment_route(
     mcp=mcp,
+    default_profile=DEFAULT_AUDIO_PROFILE,
     ensure_runtime=_ensure_runtime,
     resolve_model_profile=_resolve_model_profile,
     transcribe_with_state=_transcribe_with_state,
@@ -393,6 +426,7 @@ register_interactive_transcribe_segment_route(
 )
 register_route_and_transcribe_tool(
     mcp=mcp,
+    default_profile=DEFAULT_AUDIO_PROFILE,
     get_router=_get_router,
     is_under_allowed_roots=_is_under_allowed_roots,
     detect_category=detect_category,
@@ -407,6 +441,7 @@ register_location_inference_tools(
 )
 register_core_transcribe_tools(
     mcp=mcp,
+    default_profile=DEFAULT_AUDIO_PROFILE,
     process_analyze_audio_fn=process_analyze_audio,
     is_under_allowed_fn=_is_under_allowed_roots,
     min_duration=MIN_DURATION,

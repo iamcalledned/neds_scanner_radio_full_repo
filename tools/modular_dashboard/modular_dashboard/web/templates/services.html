@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Services — Scanner Control Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Scanner Services</h1>
+  <div class="toolbar">
+    <button onclick="refreshPage()" class="btn btn-secondary">↻ Refresh</button>
+    <button onclick="restartStack()" class="btn btn-danger">⚡ Restart Entire Stack</button>
+  </div>
+</div>
+
+<div id="action-result" class="action-result" style="display:none"></div>
+
+<div class="panel">
+  <table class="data-table services-table">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Status</th>
+        <th>Sub-state</th>
+        <th>Description</th>
+        <th>Since</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for svc in summary.services %}
+      <tr>
+        <td class="mono">{{ svc.name }}</td>
+        <td><span class="badge-{{ svc.active_state.value }}">{{ svc.active_state.value }}</span></td>
+        <td>{{ svc.sub_state }}</td>
+        <td>{{ svc.description }}</td>
+        <td class="small">{{ svc.since }}</td>
+        <td class="action-btns">
+          {% if svc.active_state.value != 'missing' %}
+          <button onclick="svcAction('{{ svc.name }}', 'start')" class="btn btn-sm btn-success">Start</button>
+          <button onclick="svcAction('{{ svc.name }}', 'stop')" class="btn btn-sm btn-warning">Stop</button>
+          <button onclick="svcAction('{{ svc.name }}', 'restart')" class="btn btn-sm btn-primary">Restart</button>
+          {% else %}
+          <span class="text-muted">Not found</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if summary.discovered_extra %}
+<div class="panel">
+  <h3>Dynamically Discovered Scanner Services</h3>
+  <ul>
+    {% for name in summary.discovered_extra %}<li class="mono">{{ name }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function svcAction(name, action) {
+  const result = document.getElementById('action-result');
+  const confirmStop = (action === 'stop' || action === 'restart');
+  if (confirmStop && !confirm(`Are you sure you want to ${action} ${name}?`)) return;
+
+  result.style.display = 'block';
+  result.className = 'action-result info';
+  result.textContent = `Sending ${action} to ${name}...`;
+
+  try {
+    const resp = await fetch(`/api/scanner/service/${encodeURIComponent(name)}/${action}`, {method: 'POST'});
+    const data = await resp.json();
+    result.className = 'action-result ' + (data.success ? 'success' : 'error');
+    result.textContent = `[${name}] ${action}: ${data.message}`;
+    if (!data.success && data.output) result.textContent += '\n' + data.output;
+    setTimeout(() => location.reload(), 2000);
+  } catch(e) {
+    result.className = 'action-result error';
+    result.textContent = 'Request failed: ' + String(e);
+  }
+}
+
+async function restartStack() {
+  if (!confirm('Restart the entire scanner stack?\n\nThis will restart: scanner-mcp, scanner-transcriber, scanner-recorder, scanner-websocket in order.\n\nAre you sure?')) return;
+  const result = document.getElementById('action-result');
+  result.style.display = 'block';
+  result.className = 'action-result info';
+  result.textContent = 'Restarting scanner stack...';
+  try {
+    const resp = await fetch('/api/scanner/stack/restart', {method: 'POST'});
+    const data = await resp.json();
+    let msg = 'Stack restart results:\n';
+    for (const r of (data.results || [])) {
+      msg += `  ${r.service_name}: ${r.success ? 'OK' : 'FAILED'} — ${r.message}\n`;
+    }
+    result.className = 'action-result info';
+    result.textContent = msg;
+    setTimeout(() => location.reload(), 3000);
+  } catch(e) {
+    result.className = 'action-result error';
+    result.textContent = 'Request failed: ' + String(e);
+  }
+}
+</script>
+{% endblock %}

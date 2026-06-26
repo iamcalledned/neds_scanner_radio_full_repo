@@ -45,6 +45,7 @@ DEFAULT_MODEL_KEY = os.environ.get("DEFAULT_MODEL_KEY", "default")
 DEFAULT_MODEL_KEY_ENV = os.environ.get("DEFAULT_MODEL_KEY")
 MODEL_CACHE_LIMIT = int(os.environ.get("MODEL_CACHE_LIMIT", "1"))
 WARM_DEFAULT_MODEL = os.environ.get("WARM_DEFAULT_MODEL", "1").strip().lower() not in ("0", "false", "no")
+DEFAULT_AUDIO_PROFILE = os.environ.get("DEFAULT_AUDIO_PROFILE", "radio").strip() or "radio"
 
 TRANSCRIBE_DEFAULTS: Dict[str, Any] = {
     "task": "transcribe",

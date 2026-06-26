@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Scanner Dashboard{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <span class="site-title">📡 Scanner Control Center</span>
+      <nav class="site-nav">
+        <a href="/">Dashboard</a>
+        <a href="/scanner">Scanner</a>
+        <a href="/services">Services</a>
+        <a href="/redis">Redis</a>
+        <a href="/logs">Logs</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <span>Modular Scanner Dashboard — Phase 1</span>
+  </footer>
+
+  <script src="/static/js/dashboard.js"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Logs — GPU Model Manager{% endblock %}
+{% block heading %}Application Logs{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-title">
+    Log File: <code>{{ log_file }}</code>
+    <button class="btn-sm" style="float:right" onclick="location.reload()">Refresh</button>
+  </div>
+  <div class="log-controls">
+    <input type="text" id="log-search" class="form-input" placeholder="Filter…" oninput="filterLines()">
+    <select id="log-level-filter" class="form-select" onchange="filterLines()">
+      <option value="">All levels</option>
+      <option value="ERROR">ERROR</option>
+      <option value="WARNING">WARNING</option>
+      <option value="INFO">INFO</option>
+      <option value="DEBUG">DEBUG</option>
+    </select>
+  </div>
+  {% if lines %}
+  <div class="log-box" id="log-container">
+    {% for line in lines %}
+    <div class="log-line {% if 'ERROR' in line %}lvl-error{% elif 'WARNING' in line %}lvl-warn{% elif 'DEBUG' in line %}lvl-debug{% else %}lvl-info{% endif %}">{{ line }}</div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">No log lines found. Has the app logged anything yet?</div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.onload = () => {
+  const box = document.getElementById('log-container');
+  if (box) box.scrollTop = box.scrollHeight;
+};
+
+function filterLines() {
+  const search = document.getElementById('log-search').value.toLowerCase();
+  const level = document.getElementById('log-level-filter').value.toUpperCase();
+  document.querySelectorAll('.log-line').forEach(el => {
+    const text = el.textContent;
+    const matchSearch = !search || text.toLowerCase().includes(search);
+    const matchLevel = !level || text.includes(level);
+    el.style.display = (matchSearch && matchLevel) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — GPU Model Manager{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+
+{% block content %}
+{% set health = data.health %}
+{% set gpu = data.gpu %}
+{% set policy = data.policy %}
+{% set leases = data.leases %}
+
+<div class="status-bar">
+  <span class="status-badge status-{{ health.status }}">{{ health.status | upper }}</span>
+  <span class="status-ts">{{ health.timestamp }}</span>
+  <button class="btn-sm" onclick="location.reload()">Refresh</button>
+  <button id="validate-now" class="btn-sm">Validate Now</button>
+</div>
+
+<div class="card-grid">
+
+  <!-- GPU Card -->
+  <div class="card">
+    <div class="card-title">GPU Hardware</div>
+    {% if gpu.available %}
+      <div class="card-value">{{ gpu.name }}</div>
+      <div class="vram-bar-wrap">
+        <div class="vram-bar" style="width: {{ (gpu.memory_used_mb / gpu.memory_total_mb * 100) | round(1) }}%"></div>
+      </div>
+      <div class="card-detail">
+        {{ gpu.memory_used_mb | round(0) | int }} / {{ gpu.memory_total_mb | round(0) | int }} MB used
+        ({{ (gpu.memory_used_mb / gpu.memory_total_mb * 100) | round(1) }}%)
+      </div>
+      <div class="card-meta">
+        Temp: {{ gpu.temperature_c }}°C &nbsp;|&nbsp;
+        Util: {{ gpu.utilization_pct }}% &nbsp;|&nbsp;
+        Driver: {{ gpu.driver_version }}
+      </div>
+      {% if gpu.power_draw_w %}
+      <div class="card-meta">Power: {{ gpu.power_draw_w }}W / {{ gpu.power_limit_w }}W</div>
+      {% endif %}
+    {% else %}
+      <div class="card-value text-red">Unavailable</div>
+      <div class="card-meta">{{ gpu.error }}</div>
+    {% endif %}
+  </div>
+
+  <!-- Scanner Whisper Card -->
+  <div class="card card-protected">
+    <div class="card-title">Scanner Whisper <span class="badge-protected">PROTECTED</span></div>
+    {% if health.scanner_protected_ok %}
+      <div class="card-value text-green">Running</div>
+    {% else %}
+      <div class="card-value text-yellow">Not Running</div>
+    {% endif %}
+    <div class="card-meta">scanner-mcp.service &nbsp;|&nbsp; Reserved: {{ policy.scanner_whisper_reserved_mb }} MB</div>
+    <div class="card-meta">Never auto-stopped. Managed separately.</div>
+  </div>
+
+  <!-- Policy Card -->
+  <div class="card">
+    <div class="card-title">VRAM Policy</div>
+    <div class="card-value">{{ policy.effective_available_mb | round(0) | int }} MB <span class="card-sub">effective free</span></div>
+    <div class="vram-bar-wrap">
+      {% set pct = ((policy.free_vram_mb - policy.effective_available_mb) / policy.total_vram_mb * 100) | round(1) %}
+      <div class="vram-bar vram-reserved" style="width: {{ pct }}%"></div>
+    </div>
+    <div class="card-meta">
+      Free: {{ policy.free_vram_mb | round(0) | int }} MB
+      &minus; safety {{ policy.gpu_safety_margin_mb }} MB
+      &minus; scanner reserve {{ policy.scanner_whisper_reserved_mb }} MB
+    </div>
+  </div>
+
+  <!-- Health Summary Card -->
+  <div class="card">
+    <div class="card-title">Health Summary</div>
+    <div class="card-value">GPU: {% if health.gpu_available %}<span class="text-green">OK</span>{% else %}<span class="text-red">OFFLINE</span>{% endif %}</div>
+    <div class="card-detail">
+      Services: {{ health.services_active }}/{{ health.services_checked }} active
+    </div>
+    {% if health.endpoint_issues %}
+    <div class="card-meta text-yellow">
+      Endpoint issues: {{ health.endpoint_issues | join(", ") }}
+    </div>
+    {% else %}
+    <div class="card-meta text-green">All monitored endpoints OK</div>
+    {% endif %}
+  </div>
+
+  <!-- Active Leases Card -->
+  <div class="card">
+    <div class="card-title">Active Leases</div>
+    <div class="card-value">{{ leases.active_count }}</div>
+    {% if leases.leases %}
+    <div class="card-meta">
+      {% for lease in leases.leases %}
+        <div>{{ lease.runtime_key }} — {{ lease.owner }}</div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card-meta text-muted">No active leases</div>
+    {% endif %}
+    <a href="/leases" class="card-link">Manage leases →</a>
+  </div>
+
+  <!-- Quick Links Card -->
+  <div class="card">
+    <div class="card-title">Quick Access</div>
+    <div class="quick-links">
+      <a class="btn-outline" href="/gpu">GPU Detail</a>
+      <a class="btn-outline" href="/runtimes">Runtimes</a>
+      <a class="btn-outline" href="/policy">Policy Tester</a>
+      <a class="btn-outline" href="/services">Services</a>
+    </div>
+  </div>
+
+  <!-- Validation Card -->
+  <div class="card" id="validation-card">
+    <div class="card-title">Validation</div>
+    <div class="card-value" id="validation-status">Not run</div>
+    <div class="card-meta" id="validation-meta">Click "Validate Now" to run registry & endpoint checks.</div>
+    <a href="/runtimes" class="card-link">Open registry →</a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Auto-refresh dashboard every 30 seconds
+  setTimeout(() => location.reload(), 30000);
+
+  async function fetchJson(path) {
+    try {
+      const res = await fetch(path, {cache: 'no-store'});
+      if (!res.ok) return {ok: false, status: res.status};
+      return await res.json();
+    } catch (err) {
+      return {ok: false, error: String(err)};
+    }
+  }
+
+  async function runValidation() {
+    const statusEl = document.getElementById('validation-status');
+    const metaEl = document.getElementById('validation-meta');
+    statusEl.textContent = 'Running...';
+    metaEl.textContent = 'Checking registry and endpoints...';
+
+    const val = await fetchJson('/api/runtimes/validate');
+    const rec = await fetchJson('/api/runtimes/reconcile');
+
+    if (val && val.ok === false && val.error) {
+      statusEl.textContent = 'Validation failed';
+      metaEl.textContent = val.error || JSON.stringify(val);
+      return;
+    }
+
+    // Build a short summary
+    let summary = [];
+    if (val && val.valid_count !== undefined) {
+      summary.push(`${val.valid_count} valid`);
+      if (val.invalid_count) summary.push(`${val.invalid_count} invalid`);
+    }
+    if (rec && rec.runtime_notes) {
+      const problematic = rec.runtime_notes.filter(n => n.level === 'error' || n.level === 'warning');
+      if (problematic.length) summary.push(`${problematic.length} issues`);
+    }
+
+    statusEl.textContent = summary.length ? summary.join(' • ') : 'No issues found';
+
+    // Meta: top 3 runtime notes
+    if (rec && rec.runtime_notes && rec.runtime_notes.length) {
+      metaEl.innerHTML = rec.runtime_notes.slice(0,3).map(n => `<div class="text-${n.level}">${n.runtime_key}: ${n.message}</div>`).join('');
+    } else if (val && val.errors && val.errors.length) {
+      metaEl.innerHTML = `<div class="text-yellow">${val.errors.slice(0,3).join('<br>')}</div>`;
+    } else {
+      metaEl.textContent = 'Registry and endpoints appear healthy.';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('validate-now');
+    if (btn) btn.addEventListener('click', runValidation);
+    // Run an initial quick check in background
+    runValidation();
+  });
+</script>
+{% endblock %}

@@ -9,6 +9,7 @@ from mcp.server.fastmcp import Context
 def register_route_and_transcribe_tool(
     *,
     mcp: Any,
+    default_profile: str,
     get_router: Callable[[Any], Any],
     is_under_allowed_roots: Callable[[Path], bool],
     detect_category: Callable[[Path], tuple[str, str]],
@@ -19,7 +20,7 @@ def register_route_and_transcribe_tool(
     def route_and_transcribe(
         ctx: Context,
         path: str,
-        profile: str = "default",
+        profile: str = "",
         language: str = "en",
         auto_route: bool = True,
         model_key: str = "",
@@ -56,13 +57,14 @@ def register_route_and_transcribe_tool(
         if auto_route:
             chosen_model = router.choose_model(path=src, feed=feed_hint, duration=duration)
 
+        selected_profile = profile or default_profile
         state = router.get_state(chosen_model)
         result = transcribe_with_state(
             ctx,
             state,
             path=str(src),
             model_key=chosen_model,
-            profile=profile,
+            profile=selected_profile,
             language=language,
             write_artifacts=write_artifacts,
             insert_db=insert_db,
