@@ -1,0 +1,4237 @@
+{
+  "eval_manifest": "manifests_v104/eval.jsonl",
+  "test_manifest": "manifests_v104/test.jsonl",
+  "models": {
+    "V101": {
+      "gate": {
+        "no_speech_threshold": 0.1,
+        "avg_logprob_threshold": -0.5999999999999992
+      },
+      "eval_raw": {
+        "wer": 9.020396437805228,
+        "normalized_wer": 5.9067357512953365,
+        "cer": 3.5565169274108355,
+        "negative_count": 5,
+        "negative_false_positives": 5,
+        "negative_false_positive_rate": 100.0
+      },
+      "eval_gated": {
+        "wer": 8.876759551852915,
+        "normalized_wer": 5.77720207253886,
+        "cer": 3.4307560742492074,
+        "negative_count": 5,
+        "negative_false_positives": 0,
+        "negative_false_positive_rate": 0.0
+      },
+      "test_raw": {
+        "wer": 20.158683514545988,
+        "normalized_wer": 20.26595744680851,
+        "cer": 15.858352578906851,
+        "negative_count": 4,
+        "negative_false_positives": 4,
+        "negative_false_positive_rate": 100.0
+      },
+      "test_gated": {
+        "wer": 19.952982662356746,
+        "normalized_wer": 20.106382978723406,
+        "cer": 15.658198614318708,
+        "negative_count": 4,
+        "negative_false_positives": 2,
+        "negative_false_positive_rate": 50.0
+      },
+      "eval_predictions": [
+        {
+          "text": "511, Mendon Control. Mendon Control. You can show me clear, just the owners of Country Bunkin, they're just picking something up. Building security. Received.",
+          "no_speech_prob": 0.0100555419921875,
+          "avg_logprob": -0.16517857391209828
+        },
+        {
+          "text": "89 to control. Control. Just giving you an update we're clear for. Received.",
+          "no_speech_prob": 0.0296478271484375,
+          "avg_logprob": -0.32670455087314954
+        },
+        {
+          "text": "89 to control. Control. We're going to be clear, looks like it was just a couple of kids making a fort. It's on the Hazel Street side. 10-4.",
+          "no_speech_prob": 0.01413726806640625,
+          "avg_logprob": -0.15394175831567158
+        },
+        {
+          "text": "A-1 to fire alarm. Fire alarm. A-1 is responding. Received A-1 responding 12 to 3. Again it's a fur and elderly female that fell, bleeding from the back of the head.",
+          "no_speech_prob": 0.05645751953125,
+          "avg_logprob": -0.14257812624176344
+        },
+        {
+          "text": "9 Blackstone Street, Mendon Housing Authority, Apartment Bravo 3, a little autistic girl was found wandering there. 538 Roger.",
+          "no_speech_prob": 0.00659942626953125,
+          "avg_logprob": -0.16228693181818182
+        },
+        {
+          "text": "A-1 to Fire Alarm, A-1 is on arrival landmark, ending mileage 2.5. Received on arrival landmark, ending mileage 2.5, 1353.",
+          "no_speech_prob": 0.0189208984375,
+          "avg_logprob": -0.197358624566169
+        },
+        {
+          "text": "Squad-1 Fire Alarm, Squad-1 back in quarters. Received Squad-1 back in quarters 1423.",
+          "no_speech_prob": 0.0232696533203125,
+          "avg_logprob": -0.2570800855755806
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.058990478515625,
+          "avg_logprob": -0.404296875
+        },
+        {
+          "text": "Fire alarm, Support-1 is going to be in route to Milville as well. Received Support-1 en route 1552.",
+          "no_speech_prob": 0.022186279296875,
+          "avg_logprob": -0.15297379224531113
+        },
+        {
+          "text": "Engine-5, Rescue-1 in quarters. Engine-5, Rescue-1, I have you both back in quarters.",
+          "no_speech_prob": 0.03399658203125,
+          "avg_logprob": -0.13841146528720855
+        },
+        {
+          "text": "93 control. Control. Appears accidental, we'll be clear. 10-4.",
+          "no_speech_prob": 0.00682830810546875,
+          "avg_logprob": -0.2049851133709862
+        },
+        {
+          "text": "519 to back in quarters. Received.",
+          "no_speech_prob": 0.05633544921875,
+          "avg_logprob": -0.5042067124293401
+        },
+        {
+          "text": "538, Mendon control. Mendon control. Informed accidental, clear and clear. Received.",
+          "no_speech_prob": 0.01273345947265625,
+          "avg_logprob": -0.32843750953674317
+        },
+        {
+          "text": "89 to control. Control.",
+          "no_speech_prob": 0.01800537109375,
+          "avg_logprob": -0.5221354166666666
+        },
+        {
+          "text": "411 to Fire Alarm. Fire Alarm's on. 411 is going to be clear of service returning. Received clear of service returning 1404",
+          "no_speech_prob": 0.041229248046875,
+          "avg_logprob": -0.10219439535456545
+        },
+        {
+          "text": "Ladder 1 Engine-4, back in quarters. Ladder 1 Engine-4, back in quarters.",
+          "no_speech_prob": 0.084716796875,
+          "avg_logprob": -0.1834375047683716
+        },
+        {
+          "text": "A-1 Fire Alarm back in town. Received A-1 back in town 1502.",
+          "no_speech_prob": 0.0248870849609375,
+          "avg_logprob": -0.2983398574093978
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.031890869140625,
+          "avg_logprob": -0.3655133843421936
+        },
+        {
+          "text": "TONE!!! Rescue-1, Central Station Alarm, 5 Rich Road. Rescue-1, Engine-5, Central Station Alarm, 5 Rich Road.",
+          "no_speech_prob": 0.0240478515625,
+          "avg_logprob": -0.19571313491234413
+        },
+        {
+          "text": "Control to 93. 93.",
+          "no_speech_prob": 0.0106201171875,
+          "avg_logprob": -0.4835937559604645
+        },
+        {
+          "text": "Bravo 31, Bravo 35, can you respond to 151 North Main Street, the Charles Apartment 2103? Caller reports she hasn't been able to get a hold of her sister in two months. She's going to be at an 82-year-old female party.",
+          "no_speech_prob": 0.016754150390625,
+          "avg_logprob": -0.13132440050443014
+        },
+        {
+          "text": "Control we got him in custody. 1 in custody, 102.",
+          "no_speech_prob": 0.00677490234375,
+          "avg_logprob": -0.2863897900832327
+        },
+        {
+          "text": "Control.",
+          "no_speech_prob": 0.07830810546875,
+          "avg_logprob": -0.4547525942325592
+        },
+        {
+          "text": "Received you still at 31, right?",
+          "no_speech_prob": 0.0117340087890625,
+          "avg_logprob": -0.25060096153846156
+        },
+        {
+          "text": "You're still in the area of 31 Westcott, correct.",
+          "no_speech_prob": 0.0033702850341796875,
+          "avg_logprob": -0.2602539025247097
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.042236328125,
+          "avg_logprob": -0.46456473214285715
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.0240325927734375,
+          "avg_logprob": -0.4215959736279079
+        },
+        {
+          "text": "I have all of this information.",
+          "no_speech_prob": 0.005889892578125,
+          "avg_logprob": -0.35820311307907104
+        },
+        {
+          "text": "Fire alarm, A-2. A-2 is off to Milford ending mile 1.2. 1.2.",
+          "no_speech_prob": 0.0239410400390625,
+          "avg_logprob": -0.23172433727553912
+        },
+        {
+          "text": "9 to station.",
+          "no_speech_prob": 0.03570556640625,
+          "avg_logprob": -0.5680803741727557
+        },
+        {
+          "text": "Control. Go ahead. If you don't have the car information it's going to be MASS 6 Hotel Juliet Office 726HJA72 on the red Chevy. Received.",
+          "no_speech_prob": 0.0246429443359375,
+          "avg_logprob": -0.1460556431514461
+        },
+        {
+          "text": "9 to station. Go ahead 9. My end is 97105.6 your time. 10-4.",
+          "no_speech_prob": 0.02642822265625,
+          "avg_logprob": -0.31082588540656225
+        },
+        {
+          "text": "Fire alarm, A-2. A-2 is clear of the hospital, returning. Clear and returning 205.",
+          "no_speech_prob": 0.0135955810546875,
+          "avg_logprob": -0.23935884031756172
+        },
+        {
+          "text": "Control 61.",
+          "no_speech_prob": 0.01522064208984375,
+          "avg_logprob": -0.6523437329701015
+        },
+        {
+          "text": "A-2 is back in quarters. Back in quarters 210.",
+          "no_speech_prob": 0.045196533203125,
+          "avg_logprob": -0.4064670039547814
+        },
+        {
+          "text": "Control, clear the hospital. 10-4.",
+          "no_speech_prob": 0.01043701171875,
+          "avg_logprob": -0.42944337241351604
+        },
+        {
+          "text": "91 starting for 6, 65796, 65796 en route to the hospital. 10-4.",
+          "no_speech_prob": 0.0258026123046875,
+          "avg_logprob": -0.19203124523162843
+        },
+        {
+          "text": "80 control, clear the hospital. 10-4. 61 is in the lobby with two parties right now. Received.",
+          "no_speech_prob": 0.017669677734375,
+          "avg_logprob": -0.19266182822840555
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.01544189453125,
+          "avg_logprob": -0.5011160884584699
+        },
+        {
+          "text": "TONE!!! Hopedale Fire Alarm announcing general recall. Fresh alarm assignment. Receiving box number 01312 Master Box for 228 Hopedale Street water treatment plant. Engine-3, Engine-4, ladder 1 to respond. That's Hopedale Fire Alarm announcing general recall.",
+          "no_speech_prob": 0.07110595703125,
+          "avg_logprob": -0.18563432746858738
+        },
+        {
+          "text": "Fire alarm assignment, receiving box 01312 Master Box for 220 East Hopedale Street water treatment plant, Engine-3, Engine-4, ladder 1 to respond.",
+          "no_speech_prob": 0.004123687744140625,
+          "avg_logprob": -0.14689555372062482
+        },
+        {
+          "text": "Fire alarm from water command. Fire alarm's answering commands. Advised by the water department that there was a perp in the line, everything's back to normal inside the building. You can hold all other companies in quarters. Received command, holding all additional apparatus in quarters. 647.",
+          "no_speech_prob": 0.049407958984375,
+          "avg_logprob": -0.09511408824769277
+        },
+        {
+          "text": "Water command to Fire alarm. Fire alarm. System reset and holding. Command terminated. Engine-3 to quarters. Received system reset and holding, command terminated, Engine-3 you're clear returning in quarters shortly 6-2.",
+          "no_speech_prob": 0.06427001953125,
+          "avg_logprob": -0.18219338947871946
+        },
+        {
+          "text": "Fire alarm, Engine-3, back in quarters. Engine-3, back in quarters, 659.",
+          "no_speech_prob": 0.03717041015625,
+          "avg_logprob": -0.2634375
+        },
+        {
+          "text": "89 to control. Control. Starting for Paul 2, 46189, 46189, checks ok, negative for contraband. 10-4.",
+          "no_speech_prob": 0.0310211181640625,
+          "avg_logprob": -0.1772748170530095
+        },
+        {
+          "text": "Station to 7. 7. Can you respond to 29 Main Street, Calling Party State, she bought a rack and a bag for her SUV, and not sure if it's legal for her or possible for her to actually have this on her car, it's a blue Mazda.",
+          "no_speech_prob": 0.038665771484375,
+          "avg_logprob": -0.10742187847693761
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.0147705078125,
+          "avg_logprob": -0.4960937670298985
+        },
+        {
+          "text": "89 to control. Go ahead. Going to be out at the hospital with 91 for minute. Again 10-4.",
+          "no_speech_prob": 0.01308441162109375,
+          "avg_logprob": -0.28587962962962965
+        },
+        {
+          "text": "14. 14. 19. 19. C-3, checks complete, thank you. Received checks complete, 749, good morning.",
+          "no_speech_prob": 0.042816162109375,
+          "avg_logprob": -0.1594238276593387
+        },
+        {
+          "text": "10-4",
+          "no_speech_prob": 0.049346923828125,
+          "avg_logprob": -0.270703125
+        },
+        {
+          "text": "7 to station. Station's on. She was advised I'm 10-8. 10-4",
+          "no_speech_prob": 0.058502197265625,
+          "avg_logprob": -0.17542613568631085
+        },
+        {
+          "text": "89 to control. Control. I'll be clear. 10-4.",
+          "no_speech_prob": 0.0196533203125,
+          "avg_logprob": -0.3174913161330753
+        },
+        {
+          "text": "A-1 is going out. A-1, you're on scene.",
+          "no_speech_prob": 0.02740478515625,
+          "avg_logprob": -0.2040501660422275
+        },
+        {
+          "text": "Engine-1 Franklin Fire on arrival. Received Engine-1 you're on arrival.",
+          "no_speech_prob": 0.0202484130859375,
+          "avg_logprob": -0.2633463467160861
+        },
+        {
+          "text": "TONE!!! Roger radio checks one minute.",
+          "no_speech_prob": 0.046356201171875,
+          "avg_logprob": -0.6942708412806193
+        },
+        {
+          "text": "Fire alarm testing with A-2. A-2 loud and clear. Fire alarm testing with Engine-3. Engine-3. Fire alarm testing with L-1. L-1 loud and clear, good morning. Good morning L-1. Fire alarm testing with 89. 89 out.",
+          "no_speech_prob": 0.031524658203125,
+          "avg_logprob": -0.08283730324298616
+        },
+        {
+          "text": "Good morning 89, Fire alarm testing with 90. 90 loud and clear, good morning. Good morning 90, radio check is complete, 8 16. Fire alarm from L-1, can we do the immersion two tone test? Affirmative, stand by.",
+          "no_speech_prob": 0.041961669921875,
+          "avg_logprob": -0.1638183651957661
+        },
+        {
+          "text": "TONE!!! That one received to 89.",
+          "no_speech_prob": 0.01236724853515625,
+          "avg_logprob": -0.6199776913438525
+        },
+        {
+          "text": "10-4. 89 received, 90. 90 received, radio check complete 8 16.",
+          "no_speech_prob": 0.07501220703125,
+          "avg_logprob": -0.43005951813289095
+        },
+        {
+          "text": "Fire alarm from A-1 Daily Radio Check, how do you copy? Loud and clear, A-1, how do you receive? A-1 receives loud and clear.",
+          "no_speech_prob": 0.0229034423828125,
+          "avg_logprob": -0.3150435963342356
+        },
+        {
+          "text": "A-1 Franklin Fire. Franklin Fire. We're clear of the lift assist. Received clear of the lift assist.",
+          "no_speech_prob": 0.042510986328125,
+          "avg_logprob": -0.13853236926453455
+        },
+        {
+          "text": "Engine-1 Franklin Fire we're clear and in service. Received Engine-1 you're clear in service.",
+          "no_speech_prob": 0.0157318115234375,
+          "avg_logprob": -0.1785300992153309
+        },
+        {
+          "text": "Fire alarm, Brush 1 radio check. Fire alarm clear, Brush 1, how do you copy? Loud and clear, thank you.",
+          "no_speech_prob": 0.02923583984375,
+          "avg_logprob": -0.18007812549670538
+        },
+        {
+          "text": "The only thing I'm showing right now is a cancelled registration on a 2017 Ford Explorer  color black 4 RFG-1-6. Okay, Roger. 8 to control.",
+          "no_speech_prob": 0.00209808349609375,
+          "avg_logprob": -0.39171510657598807
+        },
+        {
+          "text": "Control's on. Alright, no plate given but the victim says he drives a gray Toyota Corolla, like 2011-ish. Received.",
+          "no_speech_prob": 0.0170745849609375,
+          "avg_logprob": -0.18619791666666666
+        },
+        {
+          "text": "Control, does Miguel have an active license? Alright, I have one. Suspended. Any photo attached?",
+          "no_speech_prob": 0.0203704833984375,
+          "avg_logprob": -0.34517045454545453
+        },
+        {
+          "text": "Negative.",
+          "no_speech_prob": 0.0157318115234375,
+          "avg_logprob": -0.5170201063156128
+        },
+        {
+          "text": "Received, I got a plate when you're ready. Go ahead. Tell me who comes back to 4 Lima Zulu Papa 23, 4 LZP 23.",
+          "no_speech_prob": 0.02783203125,
+          "avg_logprob": -0.17341693490743637
+        },
+        {
+          "text": "TONE!!! Franklin Fire, Shift Alarm, Engine-1, 1 third square at St. Mary's, entrapment in the elevator, no reported injuries. Franklin Fire, Shift Alarm, Engine-1, 1 third square at St. Mary's, entrapment in the elevator, no reported injuries.",
+          "no_speech_prob": 0.0173492431640625,
+          "avg_logprob": -0.20590049557779966
+        },
+        {
+          "text": "4LZP-23, is that correct? 4 Lima Zulu Papa 23, yes. That's cancelled on a 2025 BMW color black to a KSC construction on a Medway.",
+          "no_speech_prob": 0.0135498046875,
+          "avg_logprob": -0.19497281993212906
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.01245880126953125,
+          "avg_logprob": -0.6227213641007742
+        },
+        {
+          "text": "Be advised, I do have pictures of that male party. They're in our house. I don't have an RMV photo, but I do have photos from previous arrests. 10-4, can you send it to my phone? Received.",
+          "no_speech_prob": 0.0281982421875,
+          "avg_logprob": -0.1514008556460512
+        },
+        {
+          "text": "Engine-1 Franklin Fire on the air responding. Engine-1, you're responding to 1 Perch Square, St. Mary's Church. 16-year-old male trapped in the elevator. Believes it's the third level. No injuries.",
+          "no_speech_prob": 0.021942138671875,
+          "avg_logprob": -0.27766394810598405
+        },
+        {
+          "text": "Engine-1, Franklin Fire on scene. Received Engine-1, you're on scene. Party called back, he is out of the elevator.",
+          "no_speech_prob": 0.01268768310546875,
+          "avg_logprob": -0.14776786054883684
+        },
+        {
+          "text": "Engine-1 has it we're clear and returning. Received you're clear and returning.",
+          "no_speech_prob": 0.01337432861328125,
+          "avg_logprob": -0.17162025104398312
+        },
+        {
+          "text": "Engine-1 in quarters. Engine-1 in quarters.",
+          "no_speech_prob": 0.041656494140625,
+          "avg_logprob": -0.3183593787252903
+        },
+        {
+          "text": "We can call the company back to see if they have any information on that. Received.",
+          "no_speech_prob": 0.00489044189453125,
+          "avg_logprob": -0.236328129346172
+        },
+        {
+          "text": "Fire alarm, Rescue-3 en route 50 Fortune Blvd for the medical. Rescue-3 P-2, 50 Fortune Blvd, Holiday Inn Express. The medical has a 9-year-old female, she's stepped in glass, bleeding, conscious, and alert in breathing. She's located in the lobby. 50 Fortune.",
+          "no_speech_prob": 0.0352783203125,
+          "avg_logprob": -0.12392979941955984
+        },
+        {
+          "text": "Rescue has the update. P-2 received.",
+          "no_speech_prob": 0.01401519775390625,
+          "avg_logprob": -0.3325892814568111
+        },
+        {
+          "text": "3 to the cars, the description of the male may have been off. He may be wearing a white jacket, not a red shirt. I did see someone matching that description in the area of Spring Street about 10 minutes ago.",
+          "no_speech_prob": 0.0172271728515625,
+          "avg_logprob": -0.1090561224489796
+        },
+        {
+          "text": "Fire alarm, Engine-5 is on the air and available. Received on the air and available.",
+          "no_speech_prob": 0.0310211181640625,
+          "avg_logprob": -0.1695963547875484
+        },
+        {
+          "text": "3, I'll head over to the Main Street area and check it out.",
+          "no_speech_prob": 0.00881195068359375,
+          "avg_logprob": -0.18493009554712395
+        },
+        {
+          "text": "I looped both bows, saw nothing.",
+          "no_speech_prob": 0.0091400146484375,
+          "avg_logprob": -0.431966133415699
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.1593017578125,
+          "avg_logprob": -0.696875
+        },
+        {
+          "text": "10, I'll text you a picture of him. Yeah, please, thank you.",
+          "no_speech_prob": 0.00882720947265625,
+          "avg_logprob": -0.28991169514863385
+        },
+        {
+          "text": "Yeah, the last I saw him was probably about 10 minutes ago. He was coming off of Spring Street on 2 North Bow.",
+          "no_speech_prob": 0.0200653076171875,
+          "avg_logprob": -0.15557650862068967
+        },
+        {
+          "text": "3, you said on to North Bow? Yeah, I saw him on Court Street, then on Spring Street, and he came off of Spring Street on to North Bow. Oh, we didn't have that description at the time, I didn't think he was involved.",
+          "no_speech_prob": 0.0283203125,
+          "avg_logprob": -0.21698588132858276
+        },
+        {
+          "text": "Do we know if he has any family in the area or anything? 8 to 10, I asked the victim, she said he doesn't have any friends that live in the building or around the area. Received.",
+          "no_speech_prob": 0.0152435302734375,
+          "avg_logprob": -0.1686580917414497
+        },
+        {
+          "text": "P-2 and the Rescue on scene, Fortune Boulevard. P-2 Rescue-3 on arrival.",
+          "no_speech_prob": 0.0145721435546875,
+          "avg_logprob": -0.33304397485874315
+        },
+        {
+          "text": "89 to control. Control.",
+          "no_speech_prob": 0.02337646484375,
+          "avg_logprob": -0.6640625
+        },
+        {
+          "text": "Be out at the hospital. 10-4.",
+          "no_speech_prob": 0.0245513916015625,
+          "avg_logprob": -0.3786057692307692
+        },
+        {
+          "text": "6 control. Go ahead. Fire transport clear. Received. Sir, can you respond over to 28 Congress Terrace? I have a 98-year-old female who called, she's very distraught, her phone's not working, she stated that a couple of police officers went over yesterday but they weren't able to-",
+          "no_speech_prob": 0.020599365234375,
+          "avg_logprob": -0.1360035194477565
+        },
+        {
+          "text": "help her, she needs to be able to get in touch with her son. Again, she seems very distraught, can you respond and check on her please? It's going to be 28 Congress terrorists, see if you can help her get in touch with her son.",
+          "no_speech_prob": 0.057891845703125,
+          "avg_logprob": -0.14367054529109244
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.0250244140625,
+          "avg_logprob": -0.5621744692325592
+        },
+        {
+          "text": "Toby, did you say that it was a red jacket, or did you confirm that it was white? He stated that at first they said he was wearing a red shirt, but now they believe he might be wearing a white jacket. Okay, affirmative.",
+          "no_speech_prob": 0.01190948486328125,
+          "avg_logprob": -0.13049522900985458
+        },
+        {
+          "text": "Rescue-3 is clear returning. Rescue is clear returning.",
+          "no_speech_prob": 0.037750244140625,
+          "avg_logprob": -0.2570800669491291
+        },
+        {
+          "text": "Did they send you a picture of him, or do you want me to send it to you? No, they did, but I had a male party near the senior center wearing a red jacket. Just wasn't sure if it was him or not. Yeah, 3 to 10. The reporting party stated he had a red shirt. But 208 believes he may have seen him in a white jacket, so we're unsure at this time what he's wearing.",
+          "no_speech_prob": 0.00592803955078125,
+          "avg_logprob": -0.12414912776191636
+        },
+        {
+          "text": "10-4. Okay, thank you. 210, do you want another car in that area?",
+          "no_speech_prob": 0.01568603515625,
+          "avg_logprob": -0.20414402303488358
+        },
+        {
+          "text": "Negative, it looked like he was coming off the bike trail. He had a hood on so I couldn't really see his face. I'll loop back around just to confirm. Received, and where are you exactly now so I can just change your location, please? I'm on Depot Street. I want to turn back around and head towards the senior center.",
+          "no_speech_prob": 0.01502227783203125,
+          "avg_logprob": -0.08749059040144265
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.18994140625,
+          "avg_logprob": -0.40345982142857145
+        },
+        {
+          "text": "P-2 is transporting Milford Hospital. P-2, one to Milford Hospital.",
+          "no_speech_prob": 0.016845703125,
+          "avg_logprob": -0.21715198524973608
+        },
+        {
+          "text": "9 to control. Control's live. We'll be off at Secret Heart for the detail. Received. Is everyone clear 44 Main Street?",
+          "no_speech_prob": 0.0266571044921875,
+          "avg_logprob": -0.22021485026925802
+        },
+        {
+          "text": "3 to control, yeah, you can clear everybody for now. We are still unaware if he's on foot or in a vehicle, as his vehicle is not at the house, we're going to have a few units stay in the area. Received.",
+          "no_speech_prob": 0.01641845703125,
+          "avg_logprob": -0.104851972638515
+        },
+        {
+          "text": "Rescue-3 is back. Rescue-3 you're back.",
+          "no_speech_prob": 0.0272369384765625,
+          "avg_logprob": -0.29825367647058826
+        },
+        {
+          "text": "Bravo 27 to control, I'll be clear. Received.",
+          "no_speech_prob": 0.006320953369140625,
+          "avg_logprob": -0.24342105576866552
+        },
+        {
+          "text": "P-2 is on arrival. P-2 is on arrival.",
+          "no_speech_prob": 0.015594482421875,
+          "avg_logprob": -0.18887867647058823
+        },
+        {
+          "text": "89. 89. Can you meet Jen, she's at the ambulance entrance. Received.",
+          "no_speech_prob": 0.0216827392578125,
+          "avg_logprob": -0.3492542518810792
+        },
+        {
+          "text": "89 to control. Control. That party's been bailed. Myself and 91 will be clear from the hospital. 10-4.",
+          "no_speech_prob": 0.023040771484375,
+          "avg_logprob": -0.27107007575757575
+        },
+        {
+          "text": "P-2 is clear. Received P-2.",
+          "no_speech_prob": 0.0229034423828125,
+          "avg_logprob": -0.3059895912806193
+        },
+        {
+          "text": "TONE!!! Franklin Fire Medical Fifth Alarm Engine-1, A-1. 6 Cottage Court, Apartment 6 Alpha, for trauma. Franklin Fire Medical Fifth Alarm Engine-1, A-1, 6 Cottage Court, Apartment 6 Alpha, for trauma.",
+          "no_speech_prob": 0.0263519287109375,
+          "avg_logprob": -0.17993164365179837
+        },
+        {
+          "text": "Engine-4 to Fire Alarm, Engine-4 is on the air for driver training. On the air driver training.",
+          "no_speech_prob": 0.051544189453125,
+          "avg_logprob": -0.1810344827586207
+        },
+        {
+          "text": "89 to control. Control. I'll be out. 10-4, just a reminder, they said after the first fork after the yellow gate should be in that area. Received.",
+          "no_speech_prob": 0.0186309814453125,
+          "avg_logprob": -0.17902057345320538
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.125,
+          "avg_logprob": -0.666015625
+        },
+        {
+          "text": "89 to control. Control. Did you say the fork was going to be before or after the yellow gate? It's going to be the first fork after the yellow gate. Received. Believe this is probably going to be on the Freedom Street side.",
+          "no_speech_prob": 0.0168914794921875,
+          "avg_logprob": -0.11682581266871205
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.06402587890625,
+          "avg_logprob": -0.5521763563156128
+        },
+        {
+          "text": "Control to Bravo 27, Bravo 24.",
+          "no_speech_prob": 0.0183258056640625,
+          "avg_logprob": -0.3159179662664731
+        },
+        {
+          "text": "Can you head up to Michael's at 251 Hartford Ave? Got a call from Old Navy stating that their alarm keeps going off. She stated it wasn't a fire alarm but more of a burglary alarm.",
+          "no_speech_prob": 0.00975799560546875,
+          "avg_logprob": -0.07950846090291937
+        },
+        {
+          "text": "Bravo 22 control, I have that for 27. Received.",
+          "no_speech_prob": 0.00603485107421875,
+          "avg_logprob": -0.21001838235294118
+        },
+        {
+          "text": "Be advised, the fire just came over the airway and stated that they're headed to the paper store for a beeping alarm. So it might be, an old Navy employee might have had the wrong store, it might be the paper store that's going up.",
+          "no_speech_prob": 0.004268646240234375,
+          "avg_logprob": -0.08747209528727191
+        },
+        {
+          "text": "Control to Bravo 22, you said it was Michael's, do you want me to contact the key holder there? Affirmative please. Received.",
+          "no_speech_prob": 0.00868988037109375,
+          "avg_logprob": -0.21874999312254098
+        },
+        {
+          "text": "Control to Bravo 22. Good. Spoke to the manager, Howard, he's stated he thinks it's the balloons triggering a motion in the store triggering the alarm. He stated he can be on scene by 1130.",
+          "no_speech_prob": 0.004665374755859375,
+          "avg_logprob": -0.13855229105268205
+        },
+        {
+          "text": "Okay, Received. Um, I checked the back, no doors are open. Received.",
+          "no_speech_prob": 0.011932373046875,
+          "avg_logprob": -0.2066915696081908
+        },
+        {
+          "text": "Fire alarm, Engine-4. Fire alarm. Audible Burglar. No fire allowed sounding. No smoke, no fire. We'll be returning. Received Burglar alarm, no smoke, no fire, clearing 1049.",
+          "no_speech_prob": 0.0204315185546875,
+          "avg_logprob": -0.10507812783122063
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.025543212890625,
+          "avg_logprob": -0.37416294642857145
+        },
+        {
+          "text": "Fire Alarm Engine-4, Engine-4 is in quarter. Received Engine-4 in quarter, 1056.",
+          "no_speech_prob": 0.0247039794921875,
+          "avg_logprob": -0.16810826425041472
+        },
+        {
+          "text": "Bravo 24 to Control. Control. Just drove by Michael's, that alarm is not currently going off. Received. Manager stated he did reset it and put it in test mode.",
+          "no_speech_prob": 0.0088348388671875,
+          "avg_logprob": -0.13471798198979076
+        },
+        {
+          "text": "Control to 209-206 I'm on it. 9",
+          "no_speech_prob": 0.0144195556640625,
+          "avg_logprob": -0.3256835974752903
+        },
+        {
+          "text": "6. 48 North Bow Street, Apartment 5. Do a well-being check on a Helen Chavez. Her son is in the hospital right now and apparently she left him a message last night and her words were very slurred in the message. They're unable to get in touch with her this morning so they're requesting a well-being check. Also, the nurse in the hospital stated that she needs to be in touch with her son.",
+          "no_speech_prob": 0.0031414031982421875,
+          "avg_logprob": -0.12269736669565502
+        },
+        {
+          "text": "that she needs some of her son's medications that they don't have at the hospital. So they are requesting a well-being check and they are requesting that she call his son, or her son's nurse, at the hospital. 9 received. The hospital needs the son's medications. That's affirmative.",
+          "no_speech_prob": 0.004215240478515625,
+          "avg_logprob": -0.24614726190697656
+        },
+        {
+          "text": "Roger. Roger.",
+          "no_speech_prob": 0.0246429443359375,
+          "avg_logprob": -0.5855468809604645
+        },
+        {
+          "text": "TONE!!! Engine-4, Central Station Alarm, 24 Rolling Green Drive. Engine-4, Engine-5, Central Station Alarm, 24 Rolling Green Drive. Engine-5 is en route 24 Rolling Green. Engine-5, you're en route 24.",
+          "no_speech_prob": 0.0082855224609375,
+          "avg_logprob": -0.17140858742728163
+        },
+        {
+          "text": "Engine-4 is en route 24 Rolling Green. Engine-4 is en route 24 Rolling Green drive.",
+          "no_speech_prob": 0.0811767578125,
+          "avg_logprob": -0.2076822885622581
+        },
+        {
+          "text": "9 to control, you can show me out. Received.",
+          "no_speech_prob": 0.0260009765625,
+          "avg_logprob": -0.3513183631002903
+        },
+        {
+          "text": "Fire alarm, A-2. Fire alarm. On the air and available. 10-4.",
+          "no_speech_prob": 0.0122833251953125,
+          "avg_logprob": -0.2109374948169874
+        },
+        {
+          "text": "Mendon control, 538-511. 538. 511.",
+          "no_speech_prob": 0.0181121826171875,
+          "avg_logprob": -0.26933594346046447
+        },
+        {
+          "text": "Mendon control, responding units, have the caller on the line, claim accidental, granddoller, granddaughter, has her watch and called on that, no emergency. 10-4, we'll still check it out. Received.",
+          "no_speech_prob": 0.0187530517578125,
+          "avg_logprob": -0.2013739157339622
+        },
+        {
+          "text": "Mendon control, 538-511. 538. 511.",
+          "no_speech_prob": 0.01073455810546875,
+          "avg_logprob": -0.23632812947034837
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.07421875,
+          "avg_logprob": -0.421875
+        },
+        {
+          "text": "Mendon control, responding units, the dad came up on foot, white male, approximately 30's, medium brown hair, beard with a flannel plaid with a hood shirt. They're now walking in the fields in the rear past the back parking lot. 53, Roger, I'm pulling off now.",
+          "no_speech_prob": 0.0183868408203125,
+          "avg_logprob": -0.15658967823222064
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.11297607421875,
+          "avg_logprob": -0.45675224917275564
+        },
+        {
+          "text": "538, to Mendon. Mendon control.",
+          "no_speech_prob": 0.0126495361328125,
+          "avg_logprob": -0.3986816480755806
+        },
+        {
+          "text": "They've returned home, no emergency, we'll be clear. Received.",
+          "no_speech_prob": 0.003993988037109375,
+          "avg_logprob": -0.2680920989889848
+        },
+        {
+          "text": "What did they say? Not at the shelter, that there's a grandma in the apartment complex that has her grandkids over sometimes.",
+          "no_speech_prob": 0.0159759521484375,
+          "avg_logprob": -0.22595215309411287
+        },
+        {
+          "text": "Maybe a little further off Maple Street.",
+          "no_speech_prob": 0.01247406005859375,
+          "avg_logprob": -0.3952414881099354
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.03271484375,
+          "avg_logprob": -0.4082031299670537
+        },
+        {
+          "text": "511, Mendon Control. Mendon Control. Okay for that last call.",
+          "no_speech_prob": 0.01360321044921875,
+          "avg_logprob": -0.256640636920929
+        },
+        {
+          "text": "Control 511, you got cut off, could you go again, sir? For that previous call, we made contact at 24 Maple Street with the father and little girl. Everything's all set at that location, we'll be clear. Received, sir.",
+          "no_speech_prob": 0.01549530029296875,
+          "avg_logprob": -0.20901639930537488
+        },
+        {
+          "text": "Fire alarm, A-1 is report 1 going to be on scene. Received, A-1 is on scene 1345.",
+          "no_speech_prob": 0.0129852294921875,
+          "avg_logprob": -0.16914062052965165
+        },
+        {
+          "text": "89 to control, I'm out. 10-4",
+          "no_speech_prob": 0.01264190673828125,
+          "avg_logprob": -0.3305288369839008
+        },
+        {
+          "text": "It's going to be all set. It's going to be back at that area we were at earlier. It's going to be those two kids they've just been advised to take their trash when they leave. It's already out. 10-4.",
+          "no_speech_prob": 0.008941650390625,
+          "avg_logprob": -0.10646307170391082
+        },
+        {
+          "text": "A-1 to Fire Alarm. Fire Alarm's on. A-1 is transporting one ALS to Milford, starting mileage 0. Received and flying one to Milford, 4202.",
+          "no_speech_prob": 0.01519775390625,
+          "avg_logprob": -0.1561650747190351
+        },
+        {
+          "text": "A-1 to Fire Alarm. Fire Alarm. Clear landmark returning. Received clear landmark returning 1408.",
+          "no_speech_prob": 0.0251007080078125,
+          "avg_logprob": -0.20008680114039668
+        },
+        {
+          "text": "TONE!!! Bellingham Fire announcing a still alarm. Medical. 17 Wrentham Manor. Bellingham Fire announcing a still alarm. Medical. Ambulance-2, Brush-2, 17 Wrentham Manor.",
+          "no_speech_prob": 0.042724609375,
+          "avg_logprob": -0.18507542795148388
+        },
+        {
+          "text": "Squad-1, Fire Alarm. Squad-1 will be responding 17 Wrentham Manor from the Coachman. Received Squad-1 responding from Coachman 1414. Going to be for 77 year-old female with severe back pain.",
+          "no_speech_prob": 0.01441192626953125,
+          "avg_logprob": -0.18538136199369268
+        },
+        {
+          "text": "Squad-1 Fire Alarm, company's on arrival, Wrentham Manor, L-1 is establishing Wrentham Manor Command. Received company on arrival, L-1 has command 1416.",
+          "no_speech_prob": 0.0102081298828125,
+          "avg_logprob": -0.16863207547169812
+        },
+        {
+          "text": "P-1 to Fire Alarm. Fire Alarm go. A-1 is off at Milford, ending 8.9. Received off at Milford 1427.",
+          "no_speech_prob": 0.011260986328125,
+          "avg_logprob": -0.10071113476386437
+        },
+        {
+          "text": "Wrentham Manor, command fire on. A-1 is transporting 1 BLS to Milford. Squad-1 is clear, command is terminated. Received A-1 BLS to Milford, command terminated 1421.",
+          "no_speech_prob": 0.010772705078125,
+          "avg_logprob": -0.1781529001891613
+        },
+        {
+          "text": "A-1 to Fire Alarm. Fire Alarm. A-1 arriving Milford end of miles 10.0, 10.0. Received A-1 arriving Milford end of mileage 10.0, 1436.",
+          "no_speech_prob": 0.022216796875,
+          "avg_logprob": -0.15007812827825545
+        },
+        {
+          "text": "Fire Alarm, Support-1 is going to be on the air. Received Support-1 on the air 1441",
+          "no_speech_prob": 0.034912109375,
+          "avg_logprob": -0.15697338294099877
+        },
+        {
+          "text": "A-1 to Fire Alarm. Fire Alarm answering A-1. Clear, returning. A-1 clear returning 1450.",
+          "no_speech_prob": 0.0179443359375,
+          "avg_logprob": -0.14541330837434338
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.1649169921875,
+          "avg_logprob": -0.60859375
+        },
+        {
+          "text": "Mendon control, 538. 538. 14 Misco Road for 34 year old male, screaming and seizing. Roger.",
+          "no_speech_prob": 0.0080413818359375,
+          "avg_logprob": -0.17326108390285122
+        },
+        {
+          "text": "A-1 to Fire Alarm, A-1 is back in quarters. Back in quarters, 1513.",
+          "no_speech_prob": 0.01241302490234375,
+          "avg_logprob": -0.18028846153846154
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.022369384765625,
+          "avg_logprob": -0.46121651785714285
+        },
+        {
+          "text": "93 control. Control. Cruiser 2 checks ok, starting mileage 46202.6, again 46202.6.",
+          "no_speech_prob": 0.01763916015625,
+          "avg_logprob": -0.18224677340737705
+        },
+        {
+          "text": "TONE!!! Blackstone Fire Alarm to on-duty EMS respond mutual aid to Milville, 8 Herto Road off of Quaker Street for female subject choking. That's 8 Herto Road off of Quaker Street for female subjects choking. Blackstone Fire Alarm standing by 1515.",
+          "no_speech_prob": 0.00860595703125,
+          "avg_logprob": -0.11794543221815308
+        },
+        {
+          "text": "Thank you for watching, and I'll see you in the next video.",
+          "no_speech_prob": 0.09161376953125,
+          "avg_logprob": -0.8407118121782938
+        },
+        {
+          "text": "A-1 responding Millville. Received, A-1 responding 1551.",
+          "no_speech_prob": 0.0088653564453125,
+          "avg_logprob": -0.2179687537252903
+        },
+        {
+          "text": "Engine-1 Franklin Fire clear returning. Engine-1, would you mind staying on scene, she just called 911 again. Received.",
+          "no_speech_prob": 0.032989501953125,
+          "avg_logprob": -0.2131076343357563
+        },
+        {
+          "text": "Franklin fire to engine-1. Engine-1. You can go back in service, there was more of a complaint issue than a medical issue. Received we're clear and returning.",
+          "no_speech_prob": 0.007213592529296875,
+          "avg_logprob": -0.11356026501882643
+        },
+        {
+          "text": "Bravo 18, can you also respond to 156 Blackstone Street? 18 has it.",
+          "no_speech_prob": 0.0029239654541015625,
+          "avg_logprob": -0.2594400905072689
+        },
+        {
+          "text": "Support-1 to Fire Alarm. Fire Alarm's on. Support-1 is going to be clear of the scene in Milville. A-1 is going to be obtaining a refusal. We'll be heading back to town. Received Support-1 clear and in service 1601",
+          "no_speech_prob": 0.0229034423828125,
+          "avg_logprob": -0.13740079459689913
+        },
+        {
+          "text": "Control, 35, 31, and 18 will be out.",
+          "no_speech_prob": 0.00794219970703125,
+          "avg_logprob": -0.2346191368997097
+        },
+        {
+          "text": "Siera 4 control, can you show me out on Blackstone St? Received.",
+          "no_speech_prob": 0.01441192626953125,
+          "avg_logprob": -0.22005208900996617
+        },
+        {
+          "text": "Unit 12 can be clear in service. Unit 12 clear in service.",
+          "no_speech_prob": 0.017120361328125,
+          "avg_logprob": -0.3306640610098839
+        },
+        {
+          "text": "Bravo 18 to control. Control. For that female, just attach MASS PC 5 Sierra Mike Hotel 4 3. Received.",
+          "no_speech_prob": 0.0103759765625,
+          "avg_logprob": -0.19231770684321722
+        },
+        {
+          "text": "5 control. Control. 1-3-6-0-1, it's 1-3-6-0-1 Charlie. Received",
+          "no_speech_prob": 0.0196380615234375,
+          "avg_logprob": -0.2546386672183871
+        },
+        {
+          "text": "Control to Bravo 31, can you 14? 10-4.",
+          "no_speech_prob": 0.006717681884765625,
+          "avg_logprob": -0.31270559210526316
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.164306640625,
+          "avg_logprob": -0.607421875
+        },
+        {
+          "text": "Ladder 1, Engine-4, 5 Rich Road. Ladder 1, Engine-4, I have you both en route. Engine-5, Rescue-1 en route, 5 Rich. Engine-5, Rescue-1, Engine-4, Ladder 1, I have you all en route 5 Rich Road for the central station alarm. came in as a residential fire alarm on the smoke detector with no zone. Stand by for hydrant location.",
+          "no_speech_prob": 0.040740966796875,
+          "avg_logprob": -0.08149509957315874
+        },
+        {
+          "text": "Engine-5 received. Ladder has it.",
+          "no_speech_prob": 0.0513916015625,
+          "avg_logprob": -0.4465332068502903
+        },
+        {
+          "text": "Just an update, I have a hydrant, it's going to be Rich Road at Huff Road, again Rich at Huff. Engine-5 received. Ladder has it.",
+          "no_speech_prob": 0.00946807861328125,
+          "avg_logprob": -0.22430555290646023
+        },
+        {
+          "text": "Fire alarm to all responding apparatus. Alarm company just called back saying that they got a hold of the key holder who gave the correct passcode and said it was a false alarm, requesting a cancellation at this time. Engine-5 received, all apparatus clear returning. Ladder-1 has it. I have all apparatus clear returning to quarters.",
+          "no_speech_prob": 0.0176849365234375,
+          "avg_logprob": -0.11946202739130092
+        },
+        {
+          "text": "Can you respond 6 7 Westcott, 67 Westcott? We have an accidental 911 confirmed, came in through Upton. Received.",
+          "no_speech_prob": 0.016632080078125,
+          "avg_logprob": -0.2169858928649656
+        },
+        {
+          "text": "93 control. Control. We'll be out at Westcott Street. 10-4.",
+          "no_speech_prob": 0.005939483642578125,
+          "avg_logprob": -0.18843006520044236
+        },
+        {
+          "text": "4 control. Control. Parking violation, Lincoln at Winter. X-ray 95645, X-95645 tagged. Received.",
+          "no_speech_prob": 0.0251007080078125,
+          "avg_logprob": -0.15838068181818182
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.1666259765625,
+          "avg_logprob": -0.61640625
+        },
+        {
+          "text": "TONE!!! Franklin Fire announcing a shift alarm A-2 Engine-2 number 20 Wachusett Street for difficulty breathing. That's A-2 Engine-2 20 Wachusett Street for difficulty breathing. 1744.",
+          "no_speech_prob": 0.0218505859375,
+          "avg_logprob": -0.2500000143280396
+        },
+        {
+          "text": "A-2 is responding. Received A-2, you're responding 20 Wachusett 94-year-old female, difficulty breathing, patient's on O2. 1745.",
+          "no_speech_prob": 0.01483917236328125,
+          "avg_logprob": -0.15472560394101026
+        },
+        {
+          "text": "Engine-2 is on. Engine-2 20 Wachusett, 94 year old female, respiratory distress, 1745.",
+          "no_speech_prob": 0.01180267333984375,
+          "avg_logprob": -0.2431955741297814
+        },
+        {
+          "text": "A-2 is on scene. Engine-2 is on scene 1747 service. Engine-2 is on scene. Engine-2 is in traffic 1747.",
+          "no_speech_prob": 0.032867431640625,
+          "avg_logprob": -0.16731771330038706
+        },
+        {
+          "text": "TONE!!! 2GR326, town of Milville, WQWD 491, town of Mendon, testing with all radio units clear at 1800.",
+          "no_speech_prob": 0.0151824951171875,
+          "avg_logprob": -0.18169070894901568
+        },
+        {
+          "text": "A-2 Franklin Fire. Franklin Fire. ALS to Milford Zero. ALS to Milford Zero, 1805. Engine-2 to Franklin Fire, we're clear. Received cap back in service, 1805.",
+          "no_speech_prob": 0.0268096923828125,
+          "avg_logprob": -0.1171875025331974
+        },
+        {
+          "text": "Bravo 31 to control you show me out. Received.",
+          "no_speech_prob": 0.010040283203125,
+          "avg_logprob": -0.2487793006002903
+        },
+        {
+          "text": "Bravo 31 to control. Control.",
+          "no_speech_prob": 0.00691986083984375,
+          "avg_logprob": -0.4094460335644809
+        },
+        {
+          "text": "Show both units clear. Made contact with that female party. She's going to reach out to her sister and let her know she's all set. Received.",
+          "no_speech_prob": 0.0070953369140625,
+          "avg_logprob": -0.2534950752007334
+        },
+        {
+          "text": "TONE!!! Coastal Ambulance, Medical Emergency, 1 Huff Road. Coastal Ambulance, Medical Emergency, 1 Huff Road.",
+          "no_speech_prob": 0.03497314453125,
+          "avg_logprob": -0.2127821205390824
+        },
+        {
+          "text": "I'm alright.",
+          "no_speech_prob": 0.0030422210693359375,
+          "avg_logprob": -0.36411830357142855
+        }
+      ],
+      "test_predictions": [
+        {
+          "text": "Control it's going to be ending mileage 3134, 0.9. Received.",
+          "no_speech_prob": 0.0096435546875,
+          "avg_logprob": -0.18155570263447968
+        },
+        {
+          "text": "7 to control, you can show me out in the area. Received.",
+          "no_speech_prob": 0.01029205322265625,
+          "avg_logprob": -0.25390625
+        },
+        {
+          "text": "Engine-2, Franklin Fire. Franklin Fire. False detector is U208, there's no reading, there's no EMS here. Received faulty detector, no reading, no EMS. Received, sir.",
+          "no_speech_prob": 0.022674560546875,
+          "avg_logprob": -0.15762867588622897
+        },
+        {
+          "text": "Control 206. 6. 106 Beaver Street, again 106 Beaver Street. You can go to that residence, that's the Tree warden's residence see if he's there, you can make contact with him.",
+          "no_speech_prob": 0.016845703125,
+          "avg_logprob": -0.1588541649135889
+        },
+        {
+          "text": "Ladder-1 to Fire Alarm, what's the nature of the medical? Going for the same male that needed the lift assistant to his car. His wife called to say that he's dehydrated now. Received, have the rescue go to that medical. Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm, Fire Alarm",
+          "no_speech_prob": 0.07525634765625,
+          "avg_logprob": -0.022204860316382514
+        },
+        {
+          "text": "We're clear, we're available for a call. C-4, what's your pleasure.",
+          "no_speech_prob": 0.0108489990234375,
+          "avg_logprob": -0.1398607401744179
+        },
+        {
+          "text": "Rescue-1 arriving on scene. Rescue-1 on scene. He might be in Papa Gino's now trying to get a drink, again if you want to check Papa Gino's. Rescue has that. You can show P-10 on scene. P-1 on scene as well.",
+          "no_speech_prob": 0.0209197998046875,
+          "avg_logprob": -0.11517334054224193
+        },
+        {
+          "text": "Thank you for watching!",
+          "no_speech_prob": 0.68359375,
+          "avg_logprob": -0.9184570610523224
+        },
+        {
+          "text": "Received, Squad-1 on the air to headquarters, 8 31.",
+          "no_speech_prob": 0.005321502685546875,
+          "avg_logprob": -0.26685856517992523
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.0244903564453125,
+          "avg_logprob": -0.5807291467984518
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.2001953125,
+          "avg_logprob": -0.6077008928571429
+        },
+        {
+          "text": "Engine-5 back in quarters. Engine-5 back in quarters.",
+          "no_speech_prob": 0.033447265625,
+          "avg_logprob": -0.2469618088669247
+        },
+        {
+          "text": "246 control. Control's on. Can you put me out on radar enforcement in front of the town park please? Received.",
+          "no_speech_prob": 0.0156097412109375,
+          "avg_logprob": -0.24557292461395264
+        },
+        {
+          "text": "I'm off to Self-Mendon Cape. It is in fact a seven-car MVA. You can start at least three hooks. Received.",
+          "no_speech_prob": 0.004650115966796875,
+          "avg_logprob": -0.12532552083333334
+        },
+        {
+          "text": "P2, I have you responding.",
+          "no_speech_prob": 0.01351165771484375,
+          "avg_logprob": -0.3668323972008445
+        },
+        {
+          "text": "Fire alarm's on.",
+          "no_speech_prob": 0.00977325439453125,
+          "avg_logprob": -0.3242187388241291
+        },
+        {
+          "text": "Received, starting Rescue-3 for evaluation. Milford Fire Alarm, dispatching Rescue-3, south main at Cape for the MVA. Multiple injuries repeated, Milford Fire Alarm, dispatching Rescue-3, south main at Cape for evals, multiple injuries from the car accident.",
+          "no_speech_prob": 0.02728271484375,
+          "avg_logprob": -0.1815580964927942
+        },
+        {
+          "text": "Go Go Go!",
+          "no_speech_prob": 0.5947265625,
+          "avg_logprob": -1.1356026445116316
+        },
+        {
+          "text": "189. Milford Fire's on.",
+          "no_speech_prob": 0.016357421875,
+          "avg_logprob": -0.4195963467160861
+        },
+        {
+          "text": "189 to Fire Alarm, we're on scene, extra. 189, I have you on scene at the motor vehicle accent.",
+          "no_speech_prob": 0.00580596923828125,
+          "avg_logprob": -0.23899147727272727
+        },
+        {
+          "text": "Control, what's on tow? It's the Art's is towing, Art's is towing.",
+          "no_speech_prob": 0.01380157470703125,
+          "avg_logprob": -0.18134013964579657
+        },
+        {
+          "text": "Fire alarm, Rescue-3 is on. Rescue-3, you're responding south main at Cape for that MVA. Multiple casualties, multiple injuries.",
+          "no_speech_prob": 0.02508544921875,
+          "avg_logprob": -0.19607204529974195
+        },
+        {
+          "text": "P-1 is on scene. P-1, you're on scene. Correction, sorry, P-2. Correction, P-2, you're on scene.",
+          "no_speech_prob": 0.0679931640625,
+          "avg_logprob": -0.12988281883299352
+        },
+        {
+          "text": "Car-2 is on arrival. Car-2 on scene.",
+          "no_speech_prob": 0.0305633544921875,
+          "avg_logprob": -0.32861326821148396
+        },
+        {
+          "text": "Rescue-3 is on scene. Rescue-3 is on scene.",
+          "no_speech_prob": 0.036041259765625,
+          "avg_logprob": -0.3016493188010322
+        },
+        {
+          "text": "P-1 Fire alarm, can you show us transporting one. P-1, you're transporting. Received",
+          "no_speech_prob": 0.0223541259765625,
+          "avg_logprob": -0.06144531011581421
+        },
+        {
+          "text": "Milford P-1, can you show us at the hospital. Received P-1 off at the hospital.",
+          "no_speech_prob": 0.023895263671875,
+          "avg_logprob": -0.1863839216530323
+        },
+        {
+          "text": "Coastal 189 to fire alarm.",
+          "no_speech_prob": 0.0118255615234375,
+          "avg_logprob": -0.3470051983992259
+        },
+        {
+          "text": "Fire alarm's on. Coastal 189, we transported 1 BLS to Milford Regional and we're at destination. Received, I have that you transported and on scene at the hospital.",
+          "no_speech_prob": 0.0196685791015625,
+          "avg_logprob": -0.12881541044213052
+        },
+        {
+          "text": "Car-2 to Fire Alarm, Car-2 is clear of South Main. Received. Car-2, you're clear. Rescue-3, clear returning. Rescue-3, you're clear returning.",
+          "no_speech_prob": 0.03399658203125,
+          "avg_logprob": -0.13455784511058888
+        },
+        {
+          "text": "Fire alarm, Rescue-3 is in quarters. Rescue-3 is back in quarters.",
+          "no_speech_prob": 0.0189208984375,
+          "avg_logprob": -0.21930803855260214
+        },
+        {
+          "text": "89 to control. Control. Starting for Paul 2, 46257, 46257, checks ok, negative for contraband, be up at the schools. 10-4.",
+          "no_speech_prob": 0.03009033203125,
+          "avg_logprob": -0.1468749985098839
+        },
+        {
+          "text": "Control to Bravo 35. Go Ahead.",
+          "no_speech_prob": 0.00704193115234375,
+          "avg_logprob": -0.40651041666666665
+        },
+        {
+          "text": "2 vehicle MVA. It's going to be on North Main by the Outback Steak House. No P.I. stated.",
+          "no_speech_prob": 0.0087738037109375,
+          "avg_logprob": -0.2410534264579896
+        },
+        {
+          "text": "35 control, come on out. Received.",
+          "no_speech_prob": 0.01056671142578125,
+          "avg_logprob": -0.35937499083005464
+        },
+        {
+          "text": "Bravo 35, do you need another unit for traffic assistance? Negative, we're off the road pretty much, we're in the break down late. Received. 31 to control, you can show me out with them, I'm just pulling up now.",
+          "no_speech_prob": 0.02325439453125,
+          "avg_logprob": -0.36113912588165653
+        },
+        {
+          "text": "P-1 Fire Alarm, you can show us clear. P-1, you're clear from the hospital. Ambulance 189 to Fire Alarm, we're clear and available. Received 189, you're clear and available.",
+          "no_speech_prob": 0.0246734619140625,
+          "avg_logprob": -0.10243055845300357
+        },
+        {
+          "text": "Vehicle 1 is going to be MASS reg 5 Delta Papa Juliet 225 EPJ 22 operated by MASS ID Sierra 76372875, S76372875. 2 when ready. Received, go ahead. Vehicle 2, Round Ridge, Alpau Victor 578.",
+          "no_speech_prob": 0.0095062255859375,
+          "avg_logprob": -0.3085937622715445
+        },
+        {
+          "text": "A-P-528, operated by Rhode Islander, Rhode Island Driver's License 7414-043. 7414-043. Received.",
+          "no_speech_prob": 0.01263427734375,
+          "avg_logprob": -0.41506411631902057
+        },
+        {
+          "text": "35 control, do you have an ambulance headed this way as well? Negative, she said there was no P.I. Do you need one? Affirmative, yes she's just complaining of neck pain and she just wants to get it evaluated, but doesn't seem like no apparent injuries at the moment.",
+          "no_speech_prob": 0.0144500732421875,
+          "avg_logprob": -0.13437500468322208
+        },
+        {
+          "text": "Received, we will head one that way. Received, thank you.",
+          "no_speech_prob": 0.00994110107421875,
+          "avg_logprob": -0.2633167667822404
+        },
+        {
+          "text": "Engine-5 to Fire alarm. Fire alarm's on. Engine-5 is Rescue-1 clear returning, command terminated. Received command terminated, Engine-5 Rescue-1 clear.",
+          "no_speech_prob": 0.047882080078125,
+          "avg_logprob": -0.12571022896604103
+        },
+        {
+          "text": "Fire alarm Engine-4. Fire alarm. Engine-4 is on the way 275 North Main Street. Received. Engine-4 on the way 275 North Main Street. Sir the call came in originally as a motor vehicle accident. No PI, you have a female party there now.",
+          "no_speech_prob": 0.021392822265625,
+          "avg_logprob": -0.11439732048246595
+        },
+        {
+          "text": "of neck pain would like to be evaluated.",
+          "no_speech_prob": 0.037261962890625,
+          "avg_logprob": -0.5406901041666666
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.25244140625,
+          "avg_logprob": -0.4324776956013271
+        },
+        {
+          "text": "Bravo 31 to control, you can show me clear. Received.",
+          "no_speech_prob": 0.004703521728515625,
+          "avg_logprob": -0.3931640490889549
+        },
+        {
+          "text": "Wrentham Manor command to fire alarm. Fire alarm. Engine-3 is clear, one patient refusal. Command is terminated. Received Engine-3 clear with one patient refusal. Command terminated, 751.",
+          "no_speech_prob": 0.0183563232421875,
+          "avg_logprob": -0.11648437604308129
+        },
+        {
+          "text": "Fire alarm, Engine-4 we're on scene, C-5 will have North Main Street. Received, Engine-4 on scene, C-5 has command, 753.",
+          "no_speech_prob": 0.023590087890625,
+          "avg_logprob": -0.13395579849801412
+        },
+        {
+          "text": "P-1 back in quarters? Received, you're back in quarters.",
+          "no_speech_prob": 0.0184783935546875,
+          "avg_logprob": -0.25431743107343974
+        },
+        {
+          "text": "Fire alarm from A-2, we're also on scene. Received, 8-2 on scene, 7 53.",
+          "no_speech_prob": 0.0164642333984375,
+          "avg_logprob": -0.19601004411067283
+        },
+        {
+          "text": "Fire alarm Engine-4. Fire alarm. Engine-4, A-2 are going to be clear, one patient refusal. Received Engine-4, A-2 clear, one patient refusal, 8-0-4.",
+          "no_speech_prob": 0.03216552734375,
+          "avg_logprob": -0.13210937589406968
+        },
+        {
+          "text": "Bravo 35 control. Control. Police and fire units are going to be clear. Received.",
+          "no_speech_prob": 0.0162200927734375,
+          "avg_logprob": -0.2359035339044488
+        },
+        {
+          "text": "A-2 to Fire Alarm, A-2 is back in quarters. Received A-2 back in quarters, 8-0-9.",
+          "no_speech_prob": 0.01537322998046875,
+          "avg_logprob": -0.20668658263543072
+        },
+        {
+          "text": "Fire alarm, Engine-4, we're on quarters. Received, Engine-4 on quarters, 8-11.",
+          "no_speech_prob": 0.00705718994140625,
+          "avg_logprob": -0.19880022640739167
+        },
+        {
+          "text": "Engine-3 to fire alarm, back in quarters. Received Engine-3 back in quarters, 8 11.",
+          "no_speech_prob": 0.018768310546875,
+          "avg_logprob": -0.20601851520714937
+        },
+        {
+          "text": "TONE!!! Morning radio checks 1 minute.",
+          "no_speech_prob": 0.029022216796875,
+          "avg_logprob": -0.6406250085149493
+        },
+        {
+          "text": "25, line clear, good morning. Good morning, 25, Fire alarm testing is 90. Unit 90 loud and clear, good morning. Good morning 90, radio checks complete, 8 15.",
+          "no_speech_prob": 0.049407958984375,
+          "avg_logprob": -0.15001860722189858
+        },
+        {
+          "text": "89 to control. Control. Clear from school traffic. Received.",
+          "no_speech_prob": 0.0355224609375,
+          "avg_logprob": -0.3092830882352941
+        },
+        {
+          "text": "Testing with Rescue-1. Rescue-1.",
+          "no_speech_prob": 0.0103759765625,
+          "avg_logprob": -0.39146206634385244
+        },
+        {
+          "text": "Testing with Station-2 and dispatch.",
+          "no_speech_prob": 0.052581787109375,
+          "avg_logprob": -0.3632812450329463
+        },
+        {
+          "text": "Testing with Engine-4. Engine-4, loud and clear.",
+          "no_speech_prob": 0.0160980224609375,
+          "avg_logprob": -0.3337673627667957
+        },
+        {
+          "text": "Testing with Ladder-1. Ladder-1.",
+          "no_speech_prob": 0.01258087158203125,
+          "avg_logprob": -0.3925781138241291
+        },
+        {
+          "text": "Testing with P-1. P-1 loud and clear.",
+          "no_speech_prob": 0.02166748046875,
+          "avg_logprob": -0.24931066176470587
+        },
+        {
+          "text": "Testing with P-2. P-2",
+          "no_speech_prob": 0.061279296875,
+          "avg_logprob": -0.12825520212451616
+        },
+        {
+          "text": "Milford Fire Alarm radio test complete at 0820 hours.",
+          "no_speech_prob": 0.01038360595703125,
+          "avg_logprob": -0.2686632043785519
+        },
+        {
+          "text": "Bravo 35 to control. Control. Can you open Sally 2 please?",
+          "no_speech_prob": 0.0242919921875,
+          "avg_logprob": -0.3029513822661506
+        },
+        {
+          "text": "6 control. Control's on. 44858 Alpha checks ok no contraband. Received.",
+          "no_speech_prob": 0.012176513671875,
+          "avg_logprob": -0.2496603338614754
+        },
+        {
+          "text": "207 Control. Control's on. Starring miles 26451, again 26451, checks ok C-trail. Received.",
+          "no_speech_prob": 0.040557861328125,
+          "avg_logprob": -0.27959280303030304
+        },
+        {
+          "text": "Fire alarm, A-2 radio check. Loud and clear, A-2, how do you copy. Loud and clear, thank you.",
+          "no_speech_prob": 0.0266876220703125,
+          "avg_logprob": -0.17922794380608728
+        },
+        {
+          "text": "Squad-1, Fire Alarm. Fire Alarm. Squad-1 on the air to headquarters.",
+          "no_speech_prob": 0.0151519775390625,
+          "avg_logprob": -0.26184895137945813
+        },
+        {
+          "text": "Control 207. 207. Here, Whitewood Road and Mill Pond Circle call is reporting there's a large tree resting, leaning on the electrical wires. Whitewood Road and Mill Pond Circle.",
+          "no_speech_prob": 0.00640869140625,
+          "avg_logprob": -0.16032608468895373
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.063720703125,
+          "avg_logprob": -0.6712239483992258
+        },
+        {
+          "text": "91 to control you, show me clear of Stacy. Received you're clear",
+          "no_speech_prob": 0.02825927734375,
+          "avg_logprob": -0.2630208449231254
+        },
+        {
+          "text": "Received. Control.",
+          "no_speech_prob": 0.0221405029296875,
+          "avg_logprob": -0.7729492038488388
+        },
+        {
+          "text": "Squad-1 to fire alarm off of headquarters.",
+          "no_speech_prob": 0.01259613037109375,
+          "avg_logprob": -0.28984375
+        },
+        {
+          "text": "Received Squad-1 off at headquarters 8 40.",
+          "no_speech_prob": 0.01776123046875,
+          "avg_logprob": -0.25338541666666664
+        },
+        {
+          "text": "7 to control. Control's on. The calling party was correct, it's going to be right in front of 63. It's actually a very large tree, the only thing holding it up is the primaries and it's currently laying almost on the street.",
+          "no_speech_prob": 0.0178985595703125,
+          "avg_logprob": -0.1390086176066563
+        },
+        {
+          "text": "Received, want me to call national grid? Yes please, and then whoever would be able to handle this tree, and I'll be, I'm going to call 12 over the air, or excuse me, by phone. 10-4.",
+          "no_speech_prob": 0.0105133056640625,
+          "avg_logprob": -0.32058190374538814
+        },
+        {
+          "text": "Control 207. 7. Just want to confirm you're going to stand by for a grid, it'll be like an ASAP response, is that correct? Yes, if they would. And yes, I'll hang out here. I'm about to try to find a way to detour people around Mill Pond Circle. I really don't want them driving under this tree. Received.",
+          "no_speech_prob": 0.012664794921875,
+          "avg_logprob": -0.10165229576757584
+        },
+        {
+          "text": "Control 207. Go ahead. Grid's going to call me back with the ETA for the ASAP response. Do you need an additional officer to assist with the detour down Mill Pond Circle? Yeah, we might need to do that. Whatever the wind blows, this tree starts wiggling again. I really don't want these primaries to let go.",
+          "no_speech_prob": 0.01435089111328125,
+          "avg_logprob": -0.14371141975308643
+        },
+        {
+          "text": "Received. 204, report that way to assist.",
+          "no_speech_prob": 0.0262298583984375,
+          "avg_logprob": -0.29443359933793545
+        },
+        {
+          "text": "11 to station. Station's on. Transporting one to Court. 10-4.",
+          "no_speech_prob": 0.0596923828125,
+          "avg_logprob": -0.2775297562281291
+        },
+        {
+          "text": "Rescue-1 on the air and available. Rescue-1 on the air, available.",
+          "no_speech_prob": 0.00432586669921875,
+          "avg_logprob": -0.212890620653828
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.179443359375,
+          "avg_logprob": -0.59375
+        },
+        {
+          "text": "Bravo 35 control. Control. Ma'am, ending mileage 59604. 59604, your time. Received.",
+          "no_speech_prob": 0.0190582275390625,
+          "avg_logprob": -0.18867188145716984
+        },
+        {
+          "text": "89 to control. Control. Out at court. 10-4.",
+          "no_speech_prob": 0.02435302734375,
+          "avg_logprob": -0.3508731617647059
+        },
+        {
+          "text": "4 is going out. Received. 7 to control, you can show grid on scene as well. Received.",
+          "no_speech_prob": 0.027191162109375,
+          "avg_logprob": -0.2612847288449605
+        },
+        {
+          "text": "Engine-1 is back in quarters Franklin Fire. Received.",
+          "no_speech_prob": 0.01198577880859375,
+          "avg_logprob": -0.2522977941176471
+        },
+        {
+          "text": "Engine-4 to Fire Alarm, you can show us on the air and available. Engine-4 on the air, available.",
+          "no_speech_prob": 0.0126800537109375,
+          "avg_logprob": -0.14370265151515152
+        },
+        {
+          "text": "7 to control. Control's on. Just in case you start getting some calls for it, um, National Grids is about to pop one of the fuses up here because they're afraid this tree might actually come down, so you may get some people complaining about power outages. Received. 12 is off to 7, have we heard from the tree warden yet?",
+          "no_speech_prob": 0.026885986328125,
+          "avg_logprob": -0.15360576923076924
+        },
+        {
+          "text": "Received, and that's a negative, on the tree warden.",
+          "no_speech_prob": 0.0239715576171875,
+          "avg_logprob": -0.29132401002080816
+        },
+        {
+          "text": "89 to control. Control. Clear from court.",
+          "no_speech_prob": 0.0237579345703125,
+          "avg_logprob": -0.3801081639069777
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.01076507568359375,
+          "avg_logprob": -0.4522879293986729
+        },
+        {
+          "text": "Bravo 33 to control. Control.",
+          "no_speech_prob": 0.01294708251953125,
+          "avg_logprob": -0.47407670454545453
+        },
+        {
+          "text": "Motor vehicle stop in front of 352 Lake Street with Rhode Island PC-1 Foxtrot Zulu 664, 1SV664. Received.",
+          "no_speech_prob": 0.018157958984375,
+          "avg_logprob": -0.1812500037252903
+        },
+        {
+          "text": "Okay, but it's needed. 12 copies.",
+          "no_speech_prob": 0.006214141845703125,
+          "avg_logprob": -0.35885417461395264
+        },
+        {
+          "text": "243 to control. Control's on. Please notify the tree warden let em know it is needed.",
+          "no_speech_prob": 0.01282501220703125,
+          "avg_logprob": -0.21546874523162843
+        },
+        {
+          "text": "Received, we have attempt several calls, I'm going to attempt to leave another message as well for that party.",
+          "no_speech_prob": 0.0070953369140625,
+          "avg_logprob": -0.16322544163891248
+        },
+        {
+          "text": "Control 212.",
+          "no_speech_prob": 0.02117919921875,
+          "avg_logprob": -0.7290039286017418
+        },
+        {
+          "text": "A-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R-R",
+          "no_speech_prob": 0.0172576904296875,
+          "avg_logprob": -0.027881944709353977
+        },
+        {
+          "text": "Bravo 32 to control.",
+          "no_speech_prob": 0.039947509765625,
+          "avg_logprob": -0.4704861111111111
+        },
+        {
+          "text": "Control. Operator is going to be Rhode Island Driver's License 4094551. 4094551.",
+          "no_speech_prob": 0.021514892578125,
+          "avg_logprob": -0.3208007784560323
+        },
+        {
+          "text": "Roger that.",
+          "no_speech_prob": 0.0394287109375,
+          "avg_logprob": -0.4701451063156128
+        },
+        {
+          "text": "207 to control. Control's on. Grid would like you to page out a detail please for this spot. Received, we're looking for one officer, or multiple, in four-hour block or eight-hour. I was just giving that info, one officer, four hours, please. 1-hour, 1-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-4-",
+          "no_speech_prob": 0.0254974365234375,
+          "avg_logprob": -0.04756944285498725
+        },
+        {
+          "text": "1 officer, 4 hours, got it, thank you.",
+          "no_speech_prob": 0.0106353759765625,
+          "avg_logprob": -0.3541666785875956
+        },
+        {
+          "text": "M-15 to control. Control's on. Alright, that skunk was picked up at 20 Princess Pine Lane, I'll be all set. Received.",
+          "no_speech_prob": 0.031951904296875,
+          "avg_logprob": -0.1407335119114982
+        },
+        {
+          "text": "Bravo 33 to control. Control. I'll be clear, written warning to the operator.",
+          "no_speech_prob": 0.0164794921875,
+          "avg_logprob": -0.2278053963726217
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.0246124267578125,
+          "avg_logprob": -0.3716517857142857
+        },
+        {
+          "text": "Rescue-1 back in quarters. Rescue back in quarters.",
+          "no_speech_prob": 0.01447296142578125,
+          "avg_logprob": -0.3254394605755806
+        },
+        {
+          "text": "6 control. Control, who? He's heading over there now. Received.",
+          "no_speech_prob": 0.0166168212890625,
+          "avg_logprob": -0.2749999985098839
+        },
+        {
+          "text": "POWERED BY STUFORBREAKER",
+          "no_speech_prob": 0.2254638671875,
+          "avg_logprob": -1.3837890699505806
+        },
+        {
+          "text": "Control 246-206. We're clear. 06. 46 Water Street, Constable Evangelo is requesting assistance with funeral traffic. You're going to be leaving in approximately 15 minutes at 9 45. They go in a sacred heart church. 246- you can do a main out water and 206-",
+          "no_speech_prob": 0.0234375,
+          "avg_logprob": -0.159375
+        },
+        {
+          "text": "26 Main at Exchange, it's going to be about 25 vehicles, leaving in about 15 minutes. 46 has it. Roger.",
+          "no_speech_prob": 0.0185089111328125,
+          "avg_logprob": -0.2606534090909091
+        },
+        {
+          "text": "Control 212. Go ahead. That ASAP detail for Whitewood, it was filled by 576.",
+          "no_speech_prob": 0.00946044921875,
+          "avg_logprob": -0.19741587054270965
+        },
+        {
+          "text": "Roger, thank you.",
+          "no_speech_prob": 0.0059814453125,
+          "avg_logprob": -0.4281684027777778
+        },
+        {
+          "text": "Engine-5 to fire alarm going to be on the air and available. Engine-5 on the air, available.",
+          "no_speech_prob": 0.01538848876953125,
+          "avg_logprob": -0.19973958830038707
+        },
+        {
+          "text": "Engine-4, back in quarters. Engine-4, back in quarters.",
+          "no_speech_prob": 0.0350341796875,
+          "avg_logprob": -0.2089843743226745
+        },
+        {
+          "text": "Bravo 29 control. Control. Polaski at Pine Warbler, Rhode Island 1, Yankee Kilo 897. It's on a gray Honda Civic.",
+          "no_speech_prob": 0.018890380859375,
+          "avg_logprob": -0.24648437574505805
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.0274810791015625,
+          "avg_logprob": -0.3702567049435207
+        },
+        {
+          "text": "243 to control. Control's on. You can show the tree warden now on Whitewood Road. Received.",
+          "no_speech_prob": 0.020233154296875,
+          "avg_logprob": -0.17452566485319818
+        },
+        {
+          "text": "576 control. Control. I'll be in cruiser 205, headed to my detail, National Grid, Whitewood Road. Starting mileage 13687, 13687. Checks ok. Received.",
+          "no_speech_prob": 0.040863037109375,
+          "avg_logprob": -0.13807397472615146
+        },
+        {
+          "text": "12 to 5. 12 to 5. So you probably want to come in on the fiske mill side. Okay Roger, thank you.",
+          "no_speech_prob": 0.0204315185546875,
+          "avg_logprob": -0.19569052323218314
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.1866455078125,
+          "avg_logprob": -0.58359375
+        },
+        {
+          "text": "4 control. Control's on",
+          "no_speech_prob": 0.03143310546875,
+          "avg_logprob": -0.11218262277543545
+        },
+        {
+          "text": "Control's on. Clear that relieved by a detail officer. Received.",
+          "no_speech_prob": 0.0037593841552734375,
+          "avg_logprob": -0.2417763252007334
+        },
+        {
+          "text": "211 to control. Control's on. Why don't you put me on a follow up on that 26-13309 OF, 13309 OF. Received.",
+          "no_speech_prob": 0.00931549072265625,
+          "avg_logprob": -0.14753605387149712
+        },
+        {
+          "text": "246 control. Control's on. Motor vehicle stop Congress at Blanchard, MASS reg 3, Charlie, Lima, Victor, 8-8, Mass 3C, LV 88, Congress at Blanchard. Received.",
+          "no_speech_prob": 0.04052734375,
+          "avg_logprob": -0.14393028444968736
+        },
+        {
+          "text": "246 control. Control's on. Can you run out of MASS Sierra alpha, 739-0624, S.A. 739-0624.",
+          "no_speech_prob": 0.0258636474609375,
+          "avg_logprob": -0.2332317102246168
+        },
+        {
+          "text": "246 control. Control's on. Clear, written warning, you can put me back on that traffic pose. Received.",
+          "no_speech_prob": 0.01380157470703125,
+          "avg_logprob": -0.143992450730554
+        },
+        {
+          "text": "Engine-5 to fire alarm, Engine-5 will be on the air station 2. Engine-5 on the air station 2.",
+          "no_speech_prob": 0.0296630859375,
+          "avg_logprob": -0.13210227272727273
+        },
+        {
+          "text": "Engine-5 off at station 2. Engine-5 off at station 2.",
+          "no_speech_prob": 0.041229248046875,
+          "avg_logprob": -0.23124999552965164
+        },
+        {
+          "text": "12 to control. Control's on. Sir I'm going to be clear. Tree's off the wire, they're just cleaning up now. Received.",
+          "no_speech_prob": 0.01849365234375,
+          "avg_logprob": -0.2590793822262738
+        },
+        {
+          "text": "Rescue-1 on the air and available. Rescue-1 on the air, available.",
+          "no_speech_prob": 0.0113067626953125,
+          "avg_logprob": -0.24690754587451616
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.0258331298828125,
+          "avg_logprob": -0.5295759098870414
+        },
+        {
+          "text": "246 control. Control's on. Can you show me clear from that traffic post. Received.",
+          "no_speech_prob": 0.0171356201171875,
+          "avg_logprob": -0.2242838560293118
+        },
+        {
+          "text": "Engine-5, fire alarm. Fire alarm's on. All units are going to be on the air at 27 Maple Street for a building tour. Received all units on the 27 Maple for a building tour.",
+          "no_speech_prob": 0.031982421875,
+          "avg_logprob": -0.10738031724666028
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.10894775390625,
+          "avg_logprob": -0.39676339285714285
+        },
+        {
+          "text": "246 control. Control's on. Can you run out of MASS Sierra 817-359-60, again S-817-359-60. Please check the bob's all open.",
+          "no_speech_prob": 0.0262451171875,
+          "avg_logprob": -0.22316576670045438
+        },
+        {
+          "text": "Received, that's an active, owner opp, active non-renewal end, no warrants, 16 on the adult. Roger.",
+          "no_speech_prob": 0.005626678466796875,
+          "avg_logprob": -0.21571180265810755
+        },
+        {
+          "text": "246 control. Control's on. My CJIS is running very slow, anything 94-C related?",
+          "no_speech_prob": 0.0266571044921875,
+          "avg_logprob": -0.23859375
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.1600341796875,
+          "avg_logprob": -0.721875
+        },
+        {
+          "text": "Most recent for 94-C was a possessor's distribute class B back in 2007 but that was dismissed. And then back in 2007 as well, another one also dismissed. 10-4, thank you.",
+          "no_speech_prob": 0.0086669921875,
+          "avg_logprob": -0.24091198493023308
+        },
+        {
+          "text": "246 control. Control's on. Clear, written warning issued. Received.",
+          "no_speech_prob": 0.019195556640625,
+          "avg_logprob": -0.26621092706918714
+        },
+        {
+          "text": "207 control. Control's on. Show me off to the air please on a property",
+          "no_speech_prob": 0.01306915283203125,
+          "avg_logprob": -0.23124999552965164
+        },
+        {
+          "text": "Control's on.",
+          "no_speech_prob": 0.0116424560546875,
+          "avg_logprob": -0.39306640625
+        },
+        {
+          "text": "246 control. Control's on. You can put me out on radar enforcement West Street, near Tony's Collision. Received.",
+          "no_speech_prob": 0.01457977294921875,
+          "avg_logprob": -0.21320565092948177
+        },
+        {
+          "text": "Mendon to 204 and 206. 4. 6. 4 and 6, 10 West Pine Street, going to be for a 911 hang-up call coming from a cell phone. On call back, I wasn't able to leave a voicemail. Please check that location again, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine Street, 10 West Pine",
+          "no_speech_prob": 0.0279541015625,
+          "avg_logprob": -0.06131944603390164
+        },
+        {
+          "text": "Street, 10 West Pine.",
+          "no_speech_prob": 0.01203155517578125,
+          "avg_logprob": -0.5277777777777778
+        },
+        {
+          "text": "4 Roger. Received.",
+          "no_speech_prob": 0.037689208984375,
+          "avg_logprob": -0.4485085335644809
+        },
+        {
+          "text": "Received rescue, En route from Maple Street. Be for the 75-year-old male needing a lift assist from the house to the car.",
+          "no_speech_prob": 0.00879669189453125,
+          "avg_logprob": -0.15866268075564327
+        },
+        {
+          "text": "Rescue-1 on route 23A, Green Street, going code C. Rescue-1, you're en route 23A, off of, Green Street, you're responding code C. It's a 75-year-old male, he needs lift assist from the house to the car. Rescue has that. 10-4. Received.",
+          "no_speech_prob": 0.198486328125,
+          "avg_logprob": -0.23589409908486736
+        },
+        {
+          "text": "Fire alarm, P-2 clear and available. P-2 clear and available. Rescue, you can disregard clear.",
+          "no_speech_prob": 0.0223846435546875,
+          "avg_logprob": -0.17028356150344567
+        },
+        {
+          "text": "Rescue clear and returning to Maple Street.",
+          "no_speech_prob": 0.007266998291015625,
+          "avg_logprob": -0.3165690004825592
+        },
+        {
+          "text": "Control 207. At the request of that Framingham officer, if you could respond back to that residence and maybe leave a note on the windshield or the door of the vehicle for him to call Framingham, and I'll send you over the name of the officer.",
+          "no_speech_prob": 0.014892578125,
+          "avg_logprob": -0.17641128527541314
+        },
+        {
+          "text": "91 to control. Control's on. Just double-checking, did I clear myself from the hospital or did you still have me there? I still have you there. Want me to clear you? Yeah, affirmative, thank you. 10-4.",
+          "no_speech_prob": 0.040069580078125,
+          "avg_logprob": -0.11832386580380526
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.0772705078125,
+          "avg_logprob": -0.5647786458333334
+        },
+        {
+          "text": "46 control. Control's on. Grab that for 6, he's aware. 10-4.",
+          "no_speech_prob": 0.016357421875,
+          "avg_logprob": -0.2165421143822048
+        },
+        {
+          "text": "207 control. Control's on. Alright, I left a note on his truck you can show me clear. Received.",
+          "no_speech_prob": 0.0202789306640625,
+          "avg_logprob": -0.1600215455581402
+        },
+        {
+          "text": "87 Control. Control . Sierra 560-48327, S 560-48327. Received",
+          "no_speech_prob": 0.031005859375,
+          "avg_logprob": -0.123046875
+        },
+        {
+          "text": "6, I'll grab that for you if you're tied up. Thank you. Control copies.",
+          "no_speech_prob": 0.00783538818359375,
+          "avg_logprob": -0.27359375953674314
+        },
+        {
+          "text": "246, what do you have? Just pulling up to a medical now I'll let you know. Roger.",
+          "no_speech_prob": 0.0142364501953125,
+          "avg_logprob": -0.20143228471279145
+        },
+        {
+          "text": "46 control, you can show me out. Received you're out",
+          "no_speech_prob": 0.006420135498046875,
+          "avg_logprob": -0.33569335006177425
+        },
+        {
+          "text": "91 to control. Control's on. Do we have any reports of purging gas west of Highland? Not that I'm aware of, no one's advised me of any gas purging. Looks like we have every source of gas on Depot Street but that's it. Okay, I'm getting a smell of gas around here, I don't know if the fire department can help me with that. Okay, I'm getting a smell of gas around here, I don't know if the fire department can help me with that. Okay, I'm getting a smell of gas around here, I don't know if the fire department can help me with that. Okay, I'm getting a smell of gas around here, I don't know if the fire department can help me with that. Okay, I'm getting a smell of gas around here, I don't know if the fire department can help me with that. Okay, I'm getting a smell of gas around here, I don't know if the fire department can help me with that. Okay, I'm getting a smell of gas around here",
+          "no_speech_prob": 0.024017333984375,
+          "avg_logprob": -0.10131944550408258
+        },
+        {
+          "text": "10-4 want to come out and check it out. 10-4, do you have a number on that roadway? No, just keeps popping up between that intersection Weston Highland. Received Weston Highland.",
+          "no_speech_prob": 0.0355224609375,
+          "avg_logprob": -0.19062499672174454
+        },
+        {
+          "text": "87 Control. Control. 4 Victor Juliet Zulu 27, 4 VJZ 27, trailer sales. Received.",
+          "no_speech_prob": 0.057830810546875,
+          "avg_logprob": -0.2565104122515078
+        },
+        {
+          "text": "246 control. Control's on. Show me clear, that female party is being transported. Received.",
+          "no_speech_prob": 0.024688720703125,
+          "avg_logprob": -0.0772298149143656
+        },
+        {
+          "text": "Negative it's not an emergency, just a lift assistant to our car. Okay, Rescue-1 will be en route, code-C. Received respond in code-C.",
+          "no_speech_prob": 0.014251708984375,
+          "avg_logprob": -0.23987925560636955
+        },
+        {
+          "text": "Fire alarm to Rescue-1 and P-10, you can cancel your response. He was assisted into the car already, he's all set. Again, cancel your, cancel your response to 42 Cape Road. P-10, receive. Rescue-1 has that, we'll be en route to 141 West Street for the natural gas. Received your response.",
+          "no_speech_prob": 0.02838134765625,
+          "avg_logprob": -0.11658653970330189
+        },
+        {
+          "text": "140 Weston Highland for the smell of natural gas.",
+          "no_speech_prob": 0.010162353515625,
+          "avg_logprob": -0.3848958253860474
+        },
+        {
+          "text": "87 Control. Control. It's going to be owner opp. 10-4, he only has a permit. Yeah, we got somebody else on the license, we'll be all set. Received.",
+          "no_speech_prob": 0.01114654541015625,
+          "avg_logprob": -0.14670139286253187
+        },
+        {
+          "text": "Engine-5 ladder 1 en route 141 West Street, natural gas. Received, you're responding, it's going to be west of the Highland Street, called in by PD. Eversource was notified they have a 30 minute ETA, again it's outside order of gas in that area.",
+          "no_speech_prob": 0.01348876953125,
+          "avg_logprob": -0.1923415442587624
+        },
+        {
+          "text": "Engine-5, copies. Rescue has that. Milford, P-2, transporting to Framingham, Framingham. P-2, you're transporting Framingham.",
+          "no_speech_prob": 0.0220184326171875,
+          "avg_logprob": -0.13420758857613518
+        },
+        {
+          "text": "M-15 to control. Control's on. Alright, outside of that dog, he's in full sprint mode, he's heading down Mount Pleasant. He's not coming to me, I'm going to have to follow him a little bit. Received, do you need a controlman or are you all set? Yeah, if I could get somebody down here I might be able to persuade them to maybe have some control on their way out of the area.",
+          "no_speech_prob": 0.05816650390625,
+          "avg_logprob": -0.1949936276187702
+        },
+        {
+          "text": "to somebody, it's just running away. Received 206, point that way to assist. Roger. Keith, where do you find Pleasant and Hayward? We're at the top of the hill, I think we're at number 86 and we're heading down towards town. Received.",
+          "no_speech_prob": 0.12384033203125,
+          "avg_logprob": -0.2558593670837581
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.580078125,
+          "avg_logprob": -1.1109375
+        },
+        {
+          "text": "He took a, took Woodland Ave. Roger. Control to 204. 10-4.",
+          "no_speech_prob": 0.00931549072265625,
+          "avg_logprob": -0.37446120278588657
+        },
+        {
+          "text": "Milford Fire, Medical Emergency, 101 Cedar Street. Coastal Ambulance, Medical Emergency, 101 Cedar Street.",
+          "no_speech_prob": 0.0218353271484375,
+          "avg_logprob": -0.19309896131356558
+        },
+        {
+          "text": "L-1 to Engine-4, what's your location? We're crossing onto Main Street from East Main Street. Divert to the medical.",
+          "no_speech_prob": 0.01546478271484375,
+          "avg_logprob": -0.40912828319951106
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.2220458984375,
+          "avg_logprob": -0.4991629293986729
+        },
+        {
+          "text": "Engine-5, ladder 1, on scene 141 West Street. Be out investigating, L-1 will have command. Received L-1 has command. West and Highland, investigating.",
+          "no_speech_prob": 0.0246734619140625,
+          "avg_logprob": -0.18104619306066763
+        },
+        {
+          "text": "Is the detail officer still on scene? It wasn't a detail officer, he's not on scene.",
+          "no_speech_prob": 0.015045166015625,
+          "avg_logprob": -0.2179988015156526
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.022674560546875,
+          "avg_logprob": -0.5323660714285714
+        },
+        {
+          "text": "Milford Fire, Coastal 109.",
+          "no_speech_prob": 0.00759124755859375,
+          "avg_logprob": -0.3069411057692308
+        },
+        {
+          "text": "Engine-4 has the update.",
+          "no_speech_prob": 0.056182861328125,
+          "avg_logprob": -0.3995028409090909
+        },
+        {
+          "text": "Roger, we'll be all set. Roger, sir.",
+          "no_speech_prob": 0.01068878173828125,
+          "avg_logprob": -0.594618045621448
+        },
+        {
+          "text": "Rescue-1 on route to 141 West Street for the natural gas call. Received Rescue, you're responding. You're clear of that medical, you're responding.",
+          "no_speech_prob": 0.01248931884765625,
+          "avg_logprob": -0.2681021283312542
+        },
+        {
+          "text": "5 MP10 clear with a refusal. Do you need another unit? Received MP10 you're clear with a refusal.",
+          "no_speech_prob": 0.0137786865234375,
+          "avg_logprob": -0.2804687559604645
+        },
+        {
+          "text": "P-10, we have nothing else pending.",
+          "no_speech_prob": 0.024627685546875,
+          "avg_logprob": -0.26832931775313157
+        },
+        {
+          "text": "Fire Alarm, P-1 transport one to Milford. P-1, you're transporting to Milford.",
+          "no_speech_prob": 0.0181884765625,
+          "avg_logprob": -0.41756465928307895
+        },
+        {
+          "text": "Engine-4, we're going to be on scene. Engine-4, on scene. Engine-5 to rescue, you can cancel return.",
+          "no_speech_prob": 0.03717041015625,
+          "avg_logprob": -0.2166940785552326
+        },
+        {
+          "text": "Rescue has that, canceling and returning. Received, Fire alarm has that, Rescue you're clear. Engine-4 to Coastal 109, do you guys have an ETA for your arrival? 109, ETA is 5 minutes.",
+          "no_speech_prob": 0.0210418701171875,
+          "avg_logprob": -0.17338266916442335
+        },
+        {
+          "text": "Fire alarm, ladder 1 is clear West Street, we're returning to quarters. Ladder 1, you're clear, returning. Engine-5, fire alarm. Fire alarm's on. We didn't find any smells or any readings, we're going to stand by at 145 West Street in the parking lot waiting for you.",
+          "no_speech_prob": 0.0275421142578125,
+          "avg_logprob": -0.14192708352437386
+        },
+        {
+          "text": "2-4 Eversource.",
+          "no_speech_prob": 0.00954437255859375,
+          "avg_logprob": -0.6136718809604644
+        },
+        {
+          "text": "Received, didn't find any read-ins, standing by in the parking lot of 145 for eversource.",
+          "no_speech_prob": 0.00922393798828125,
+          "avg_logprob": -0.1470905172413793
+        },
+        {
+          "text": "Milford Fire Coastal 109. Milford Fire Coastal. We're on arrival. Received your off 101 Cedar Street, Reliant.",
+          "no_speech_prob": 0.00860595703125,
+          "avg_logprob": -0.17165178656578065
+        },
+        {
+          "text": "Fire Alarm P-1 on route north of the hospital. P-1 off at the hospital.",
+          "no_speech_prob": 0.06878662109375,
+          "avg_logprob": -0.3310546924670537
+        },
+        {
+          "text": "Engine-4 to Fire Alarm, you can show us clear. We'll be returning in quarters. Engine-4, you're clear, returning.",
+          "no_speech_prob": 0.021881103515625,
+          "avg_logprob": -0.23775338482212377
+        },
+        {
+          "text": "Rescue-1 back in quarters. Rescue back in quarters.",
+          "no_speech_prob": 0.0091094970703125,
+          "avg_logprob": -0.3411458349890179
+        },
+        {
+          "text": "Ladder 1 to Fire Alarm. Fire Alarm's on. Can you start a slip for a non-emergency auto lockout at Big Y? Ladder 1 will take it. Received. Non-emergency motor vehicle lockout at Big Y.",
+          "no_speech_prob": 0.03558349609375,
+          "avg_logprob": -0.15068855730153746
+        },
+        {
+          "text": "TONE!!! Milford Fire, motor vehicle lockout, 7 Medway Road. Milford Fire, motor vehicle lockout, 7 Medway Road.",
+          "no_speech_prob": 0.017486572265625,
+          "avg_logprob": -0.1449908079469905
+        },
+        {
+          "text": "87 control. Control. Alright, Mark says the vehicle will be clear. 10-4, that party has arrived. She actually got transportation, we're good. 10-4. Go.",
+          "no_speech_prob": 0.0361328125,
+          "avg_logprob": -0.16787574759551457
+        },
+        {
+          "text": "Rescue-1 is on scene. Received Rescue.",
+          "no_speech_prob": 0.0164642333984375,
+          "avg_logprob": -0.335156257947286
+        },
+        {
+          "text": "P-1 on arrival Fire alarm. Received P-1.",
+          "no_speech_prob": 0.039520263671875,
+          "avg_logprob": -0.45197610294117646
+        },
+        {
+          "text": "44, would you like a call created for this? Yeah, 10-4. You can assign me an O.F. on it. Received.",
+          "no_speech_prob": 0.0106048583984375,
+          "avg_logprob": -0.31109774571198684
+        },
+        {
+          "text": "Fire alarm, Rescue-1 is clear returning. Received Rescue, you're clear.",
+          "no_speech_prob": 0.0132904052734375,
+          "avg_logprob": -0.2083899482436802
+        },
+        {
+          "text": "P-1 Fire Alarm, show us transporting one. P-1, I have you transporting one.",
+          "no_speech_prob": 0.0305023193359375,
+          "avg_logprob": -0.24999999046325683
+        },
+        {
+          "text": "Rescue-1 is back in quarters. Received Rescue. P-1 fire alarm, you can show us off at the hospital. Received P-1.",
+          "no_speech_prob": 0.04248046875,
+          "avg_logprob": -0.1805320945945946
+        },
+        {
+          "text": "K-2 control. Control. Motor vehicle stop exchange at Main, New Jersey, passenger Bravo 50, Victor, Uniform, Echo, B50BUE, New Jersey. Received.",
+          "no_speech_prob": 0.055419921875,
+          "avg_logprob": -0.23295454003594138
+        },
+        {
+          "text": "K-2 control. Control. Operator when you're ready. Go ahead. Sierra alpha 546-1666, S.A. 546-1666, should be party heading westward.",
+          "no_speech_prob": 0.04071044921875,
+          "avg_logprob": -0.23680555555555555
+        }
+      ]
+    },
+    "V104-negative-balanced": {
+      "gate": {
+        "no_speech_threshold": 0.9500000000000003,
+        "avg_logprob_threshold": -1.5
+      },
+      "eval_raw": {
+        "wer": 9.020396437805228,
+        "normalized_wer": 5.803108808290156,
+        "cer": 3.994164696413301,
+        "negative_count": 5,
+        "negative_false_positives": 5,
+        "negative_false_positive_rate": 100.0
+      },
+      "eval_gated": {
+        "wer": 9.020396437805228,
+        "normalized_wer": 5.803108808290156,
+        "cer": 3.994164696413301,
+        "negative_count": 5,
+        "negative_false_positives": 5,
+        "negative_false_positive_rate": 100.0
+      },
+      "test_raw": {
+        "wer": 12.018806935057302,
+        "normalized_wer": 8.377659574468085,
+        "cer": 9.227610982807288,
+        "negative_count": 4,
+        "negative_false_positives": 3,
+        "negative_false_positive_rate": 75.0
+      },
+      "test_gated": {
+        "wer": 12.018806935057302,
+        "normalized_wer": 8.377659574468085,
+        "cer": 9.227610982807288,
+        "negative_count": 4,
+        "negative_false_positives": 3,
+        "negative_false_positive_rate": 75.0
+      },
+      "eval_predictions": [
+        {
+          "text": "511, Mendon Control.  Mendon Control. You can show me clear, just the owners of Country Bunkin, they're just picking something up. Building security.  Received.",
+          "no_speech_prob": 1.7881393432617188e-07,
+          "avg_logprob": -0.20889946138081344
+        },
+        {
+          "text": "89 to control. Control. Just giving you an update we're clear for. Received.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.33842328461733734
+        },
+        {
+          "text": "89 to control. Control. We're going to be clear, looks like it was just a couple of kids making a fort. It's on the Hazel Street side. 10-4.",
+          "no_speech_prob": 4.172325134277344e-07,
+          "avg_logprob": -0.16938920522278006
+        },
+        {
+          "text": "A-1 to fire alarm. Fire alarm. A-1 is responding. Received A-1 responding 12 to 3. Again it's  for an elderly female that fell bleeding from the back of the head.",
+          "no_speech_prob": 3.5762786865234375e-07,
+          "avg_logprob": -0.14785571428055458
+        },
+        {
+          "text": "9 Blackstone Street, Mendon Housing Authority, Apartment Bravo 3, a little autistic girl was found wandering there. 538 Roger.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1620501893939394
+        },
+        {
+          "text": "A-1 to Fire Alarm, A-1 is on arrival landmark, ending mileage 2.5. Received on arrival landmark, ending mileage 2.5, 1353.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.12937128366458983
+        },
+        {
+          "text": "Squad-1 Fire Alarm, Squad-1 back in quarters. M.T.S. Squad-1 back in quarters 1423.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4440104092160861
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 2.3245811462402344e-06,
+          "avg_logprob": -0.36021206208637785
+        },
+        {
+          "text": "Fire alarm, Support-1 is going to be in route to Milville as well.  Received Support-1 en route 1552.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16540527809411287
+        },
+        {
+          "text": "Engine-5, Rescue-1 in quarters. Engine-5, Rescue-1, I have you both back in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1556396479718387
+        },
+        {
+          "text": "93 control. Control. Appears accidental, we'll be clear. 10-4.",
+          "no_speech_prob": 1.7881393432617188e-07,
+          "avg_logprob": -0.23883927436102004
+        },
+        {
+          "text": "519 to back in quarters. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5414663644937369
+        },
+        {
+          "text": "538, Mendon Control.  Mendon Control.  Confirmed accidental, clear and clear.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.21578664204169964
+        },
+        {
+          "text": "89 to control. Control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5065104166666666
+        },
+        {
+          "text": "411 to Fire Alarm. Fire Alarm's on. 411 is going to be clear of service returning. Received, clear of service returning 1404",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16774553826877048
+        },
+        {
+          "text": "Ladder-1 Engine-4, back in quarters.  Ladder-1 Engine-4, back in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.27050780079194475
+        },
+        {
+          "text": "A-1 Fire Alarm back in town.  Received A-1 Fire Alarm back in town 1502.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3311941974929401
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.3752790263720921
+        },
+        {
+          "text": "TONE!!!  Rescue-1, Central Station Alarm, 5 Rich Road.  Rescue-1, Engine-5, Central Station Alarm, 5 Rich Road.",
+          "no_speech_prob": 2.980232238769531e-07,
+          "avg_logprob": -0.1631373339577725
+        },
+        {
+          "text": "Control to 93. 93.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5117187559604645
+        },
+        {
+          "text": "Bravo 31, Bravo 35, can you respond to 151 North Main Street, the Charles Apartment 2103? Caller reports she hasn't been able to get a hold of her sister in two months. She's going to be at an 82-year-old female party.",
+          "no_speech_prob": 3.993511199951172e-06,
+          "avg_logprob": -0.14533729496456327
+        },
+        {
+          "text": "Control we got him in custody. 1 in custody, 102.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.30674340850428533
+        },
+        {
+          "text": "Control.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.504882832368215
+        },
+        {
+          "text": "Received you still at 31, right?",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.24444109659928542
+        },
+        {
+          "text": "You're still in the area of 31 Westcott, correct.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.2565917931497097
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 3.5762786865234375e-07,
+          "avg_logprob": -0.44001117774418425
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 1.0132789611816406e-06,
+          "avg_logprob": -0.3585379549435207
+        },
+        {
+          "text": "I have all of this information.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.32558594942092894
+        },
+        {
+          "text": "Fire alarm, A-2. A-2 is off to Milford, ending mile 1.2. 1.2.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.29229525862068967
+        },
+        {
+          "text": "9 to station.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.486328125
+        },
+        {
+          "text": "Control. Go ahead. If you don't have the car information it's going to be MASS 6 Hotel Juliet Office 726HJA72 on the red Chevy. Received.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.16156914322934252
+        },
+        {
+          "text": "9 to station. Go ahead 9.  My end is 97105.6 your time. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.30544355992347966
+        },
+        {
+          "text": "Fire alarm, A-2, A-2 is clear of the hospital, returning. Clear and returning 205.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3239583432674408
+        },
+        {
+          "text": "Control 61.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5931919813156128
+        },
+        {
+          "text": "A-2 is back in quarters. Back in quarters 210.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4403211888339784
+        },
+        {
+          "text": "Control, clear the hospital. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.38989257998764515
+        },
+        {
+          "text": "91 starting for 6, 65796, 65796 en route to the hospital. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20296875
+        },
+        {
+          "text": "80 control, clear the hospital. 10-4. 61 is in the lobby with two parties right now. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20354352625352995
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5050223043986729
+        },
+        {
+          "text": "TONE!!!  Hopedale Fire Alarm announcing general recall. Fresh alarm assignment. Receiving box number 01312 Master Box for 228 Hopedale Street water treatment plant. Engine-3, Engine-4, ladder 1 to respond. That's Hopedale Fire Alarm announcing general recall.",
+          "no_speech_prob": 2.6047229766845703e-05,
+          "avg_logprob": -0.1312736760486256
+        },
+        {
+          "text": "Fire alarm assignment, receiving box 01312 Master Box for 220 East Hopedale Street water treatment plant. Engine-3, Engine-4, ladder 1 to respond.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.1960320657021121
+        },
+        {
+          "text": "Fire alarm from water command.  Fire alarm's answering commands.  Advised by the water department that there was a perp in the line. Everything's back to normal inside the building. You can hold all other companies in quarters.  Received command, holding all additional apparatus in quarters. 647.",
+          "no_speech_prob": 7.331371307373047e-06,
+          "avg_logprob": -0.09641335317582796
+        },
+        {
+          "text": "Water command to Fire alarm.  Fire alarm.  System reset and holding.  Command terminated. Engine-3 to quarters.  Received system reset and holding, command terminated, Engine-3 is clear returning in quarters shortly 6-52.",
+          "no_speech_prob": 5.841255187988281e-06,
+          "avg_logprob": -0.18610490885164058
+        },
+        {
+          "text": "Fire alarm, Engine-3, back in quarters. Engine-3, back in quarters, 659.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.22583911374763208
+        },
+        {
+          "text": "89 to control. control. Starting for Paul 2, 46189, 46189, checks ok, negative for contraband. 10-4.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.2826286817298216
+        },
+        {
+          "text": "Station to 7. 7. Can you respond to 29 Main Street, Calling Party State, she bought a rack and a bag for her SUV, and not sure if it's legal for her or possible for her to actually have this on her car, it's a blue Mazda.",
+          "no_speech_prob": 7.748603820800781e-07,
+          "avg_logprob": -0.1501302142937978
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.45647319725581575
+        },
+        {
+          "text": "89 to control. Good. Going to be out at the hospital with 91 for minute. Again, 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.32465278219293664
+        },
+        {
+          "text": "14. 14. 19. 19. C-3, checks complete, thank you. Received checks complete, 749, good morning.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16125488420948386
+        },
+        {
+          "text": "10-4",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.29453125
+        },
+        {
+          "text": "7 to station.  Station's on.  She was advised I'm 10-8.  10-4",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1498437452316284
+        },
+        {
+          "text": "89 to control. Control. I'll be clear. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3472222155994839
+        },
+        {
+          "text": "A-1 is going out. A-1, you're on scene.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.22450658365299828
+        },
+        {
+          "text": "Engine-1 Franklin Fire on arrival. Received Engine-1 you're on arrival.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3068033792078495
+        },
+        {
+          "text": "TONE!!! Radio checks one minute.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.7572115384615384
+        },
+        {
+          "text": "Fire alarm testing with A-2. A-2 loud and clear. Fire alarm testing with Engine-3. Engine-3. Fire alarm testing with L-1. L-1 loud and clear, good morning. Good morning L-1, fire alarm testing with 89. 89 out.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.10621279714599488
+        },
+        {
+          "text": "Good morning, 89, Fire alarm testing with 90. 80 to 90, loud and clear, good morning. Good morning 90, radio check is complete, 8 16. Fire alarm from L-1, can we do the emergency tone test? Affirmative, stand by.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16826025852516516
+        },
+        {
+          "text": "TONE!!! That one received to 89.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5580357398305621
+        },
+        {
+          "text": "10-4.  89 Received, 90.  90 Received, radio check complete 8 16.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3828125095367432
+        },
+        {
+          "text": "Fire alarm from A-1 Daily Radio Check, how do you copy? Loud and clear, A-1, how do you receive? A-1 receives loud and clear.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.27797963868739994
+        },
+        {
+          "text": "A-1 Franklin Fire.  Franklin Fire.  We're clear of the lift assist.  Received clear of the lift assist.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.152091734832333
+        },
+        {
+          "text": "Engine-1 Franklin Fire we're clear and in service.  Received Engine-1 you're clear in service.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1577845998108387
+        },
+        {
+          "text": "Fire alarm, Brush 1 radio check.  Fire alarm clear, Brush 1, how do you copy?  Loud and clear, thank you.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.17639160295948386
+        },
+        {
+          "text": "The only thing I'm showing right now is a cancelled registration on a 2017 Ford Explorer  color black. 4 RFG-1-6. Okay, Roger. 8 to control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4009232900359414
+        },
+        {
+          "text": "Control's on.  Alright, no plate given but the victim says he drives a gray Toyota Corolla, like 2011-ish.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.17656249829701015
+        },
+        {
+          "text": "Control, does Miguel have an active license? Suspended. Any photo attached?",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.28015625953674317
+        },
+        {
+          "text": "Negative.",
+          "no_speech_prob": 1.7881393432617188e-06,
+          "avg_logprob": -0.6199776956013271
+        },
+        {
+          "text": "Received, I got a plate when you're ready. Go ahead. Tell me who comes back to 4 Lima Zulu Papa 23, 4 LZP 23.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1837797611951828
+        },
+        {
+          "text": "TONE!!!   Franklin Fire, Shift Alarm, Engine-1, 1 third square at St. Mary's,  entrapment in the elevator, no reported injuries.   Franklin Fire, Shift Alarm, Engine-1, 1 third square at St. Mary's,  entrapment in the elevator, no reported injuries. Thank you.",
+          "no_speech_prob": 0.414306640625,
+          "avg_logprob": -0.13197917024294537
+        },
+        {
+          "text": "4LZP-23, is that correct? 4 Lima Zulu Papa 23, yes. That's cancelled on a 2025 BMW color black to a KSC construction on a Medway.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20227581910465076
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 2.980232238769531e-07,
+          "avg_logprob": -0.5429687599341074
+        },
+        {
+          "text": "Be advised, I do have pictures of that male party. They're in our house. I don't have an RMV photo, but I do have photos from previous arrests. 10-4, can you send it to my phone?  Received.",
+          "no_speech_prob": 1.3709068298339844e-06,
+          "avg_logprob": -0.16776316207751893
+        },
+        {
+          "text": "Engine-1, Franklin Fire on the air responding. Engine-1, you're responding to 1 Perch Square, St. Mary's Church. 16-year-old male trapped in the elevator. Believes it's the third level. No injuries.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.32938508016447865
+        },
+        {
+          "text": "Engine-1, Franklin Fire on scene.  Received Engine-1, you're on scene. Party called back, he is out of the elevator.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.12304688079489602
+        },
+        {
+          "text": "Engine-1 has it we're clear and returning.  Received you're clear and returning.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1643880226959785
+        },
+        {
+          "text": "Engine-1 in quarters.  Engine-1 in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3366268382352941
+        },
+        {
+          "text": "We can call the company back to see if they have any information on that. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2390950477371613
+        },
+        {
+          "text": "Fire alarm, Rescue-3 en route 50 Fortune Blvd for the medical. Rescue-3 P-2, 50 Fortune Blvd, Holiday Inn Express. The medical has a 9-year-old female, she's stepped in glass, bleeding, conscious, and alert in breathing. She's located in the lobby. 50 Fortune.",
+          "no_speech_prob": 4.76837158203125e-07,
+          "avg_logprob": -0.1462499992052714
+        },
+        {
+          "text": "Rescue has the update.  P-2 received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3057291547457377
+        },
+        {
+          "text": "3 to the cars, the description of the male may have been off. He may be wearing a white jacket, not a red shirt. I did see someone matching that description in the area of Spring Street about 10 minutes ago.",
+          "no_speech_prob": 1.9669532775878906e-05,
+          "avg_logprob": -0.1285076481955392
+        },
+        {
+          "text": "Fire alarm, Engine-5 is on the air and available. Received on the air and available.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20282451923076922
+        },
+        {
+          "text": "3, I'll head over to the Main Street area and check it out.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.18821957079987778
+        },
+        {
+          "text": "I looped both bows, saw nothing.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.3714192683498065
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.00693511962890625,
+          "avg_logprob": -0.815625
+        },
+        {
+          "text": "10, I'll text you a picture of him. Yeah, please, thank you.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.24065895702527917
+        },
+        {
+          "text": "Yeah, the last I saw him was probably about 10 minutes ago. He was coming off of Spring Street on 2 North Bow.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.1412984954899755
+        },
+        {
+          "text": "3, you said on to North Bow? Yeah, I saw him on Court Street, then on Spring Street, and he came off of Spring Street on to North Bow. Oh, we didn't have that description at the time, I didn't think he was involved.",
+          "no_speech_prob": 6.0439109802246094e-05,
+          "avg_logprob": -0.14062500096136524
+        },
+        {
+          "text": "Do we know if he has any family in the area or anything? 8 to 10, I asked the victim, she said he doesn't have any friends that live in the building or around the area. Received.",
+          "no_speech_prob": 2.384185791015625e-07,
+          "avg_logprob": -0.17325368289854012
+        },
+        {
+          "text": "P-2 and the Rescue on scene, Fortune Boulevard. P-2 Rescue-3 on arrival.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.39872685185185186
+        },
+        {
+          "text": "89 to control. Control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.6731770833333334
+        },
+        {
+          "text": "Be out at the hospital. 10-4.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.38972356686225307
+        },
+        {
+          "text": "6 control. Go ahead. Fire transport clear. Received. Sir, can you respond over to 28 Congress Terrace? I have a 98-year-old female who called, she's very distraught, her phone's not working. She stated that a couple of police officers went over yesterday but they weren't able to-",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.13259548507630825
+        },
+        {
+          "text": "to help her, she needs to be able to get in touch with her son. Again, she seems very distraught. Can you respond and check on her please? It's going to be 28 Congress terrorists. See if you can help her get in touch with her son.",
+          "no_speech_prob": 0.00540924072265625,
+          "avg_logprob": -0.1585937497516473
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5582682291666666
+        },
+        {
+          "text": "Toby, did you say that it was a red jacket, or did you confirm that it was white? He stated that at first they said he was wearing a red shirt, but now they believe he might be wearing a white jacket. Okay, affirmative.",
+          "no_speech_prob": 1.7881393432617188e-07,
+          "avg_logprob": -0.12857520782341392
+        },
+        {
+          "text": "Rescue-3 is clear returning.  Rescue is clear returning.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.22392003676470587
+        },
+        {
+          "text": "Did they send you a picture of him, or do you want me to send it to you? No, they did, but I had a male party near the senior center wearing a red jacket. Just wasn't sure if it was him or not. Yeah, 3 to 10. The reporting party stated he had a red shirt. But 208 believes he may have seen him in a white jacket, so we're unsure at this time what he's wearing.",
+          "no_speech_prob": 3.993511199951172e-06,
+          "avg_logprob": -0.13937500476837159
+        },
+        {
+          "text": "Okay, thank you. 210, do you want another car in that area?",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3727678457895915
+        },
+        {
+          "text": "Negative, it looked like he was coming off the bike trail. He had a hood on so I couldn't really see his face. I'll loop back around just to confirm. Received, and where are you exactly now so I can just change your location, please? I'm on Depot Street. I want to turn back around and head towards the senior center.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.09139683483594871
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.0010576248168945312,
+          "avg_logprob": -0.4162946513720921
+        },
+        {
+          "text": "P-2 is transporting Milford Hospital. P-2, one to Milford Hospital.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2584635478754838
+        },
+        {
+          "text": "9 to control. Control's live.  We'll be off at Secret Heart for the detail. Received. Is everyone clear 44 Main Street?",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.21567234848484848
+        },
+        {
+          "text": "3 to control, yeah, you can clear everybody for now. We are still unaware if he's on foot or in a vehicle, as his vehicle is not at the house, we're going to have a few units stay in the area. Received.",
+          "no_speech_prob": 4.172325134277344e-07,
+          "avg_logprob": -0.10546875209139105
+        },
+        {
+          "text": "Rescue-3 is back. Rescue-3, you're back.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3185763971673118
+        },
+        {
+          "text": "Bravo 27 to control, I'll be clear. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2629523089057521
+        },
+        {
+          "text": "P-2 is on arrival. P-2 is on arrival.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.177734375
+        },
+        {
+          "text": "89. Can you meet Jen, she's at the ambulance entrance. Received.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.352213554084301
+        },
+        {
+          "text": "89 to control. Control. That party's been bailed. Myself and 91 will be clear from the hospital. 10-4.",
+          "no_speech_prob": 2.384185791015625e-06,
+          "avg_logprob": -0.2724905303030303
+        },
+        {
+          "text": "P-2 is clear.  Received P-2.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2474365197122097
+        },
+        {
+          "text": "TONE!!!   Franklin Fire Medical Fifth Alarm, Engine-1 A-1, 6 Cottage Court, Apartment 6 Alpha, for trauma.   Franklin Fire Medical Fifth Alarm, Engine-1 A-1, 6 Cottage Court, Apartment 6 Alpha, for trauma.",
+          "no_speech_prob": 1.2516975402832031e-06,
+          "avg_logprob": -0.15441894298419356
+        },
+        {
+          "text": "Engine-4 to Fire Alarm, Engine-4 is on the air for driver training. On the air driver training.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3319052534718667
+        },
+        {
+          "text": "89 to control. Control. I'll be out. 10-4, just a reminder, they said after the first fork after the yellow gate should be in that area. Received.",
+          "no_speech_prob": 3.5762786865234375e-07,
+          "avg_logprob": -0.1909298722336932
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.0032291412353515625,
+          "avg_logprob": -0.7890625
+        },
+        {
+          "text": "89 to control. Control. Did you say the fork was going to be before or after the yellow gate? It's going to be the first fork after the yellow gate. Received. Believe this is probably going to be on the Freedom Street side.",
+          "no_speech_prob": 1.8477439880371094e-05,
+          "avg_logprob": -0.1635416661699613
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 2.384185791015625e-07,
+          "avg_logprob": -0.5053013563156128
+        },
+        {
+          "text": "Control to Bravo 27, Bravo 24.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3069661433498065
+        },
+        {
+          "text": "Can you head up to Michael's at 251 Hartford Ave? Got a call from Old Navy stating that their alarm keeps going off. She stated it wasn't a fire alarm but more of a burglary alarm.",
+          "no_speech_prob": 8.821487426757812e-06,
+          "avg_logprob": -0.08927408838644624
+        },
+        {
+          "text": "Bravo 22 control, I have that for 27.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.23285589615503946
+        },
+        {
+          "text": "Be advised, the fire just came over the airway and stated that they're headed to the paper store for a beeping alarm. So it might be, an old Navy employee might have had the wrong store, it might be the paper store that's going up.",
+          "no_speech_prob": 4.887580871582031e-06,
+          "avg_logprob": -0.10499730821827362
+        },
+        {
+          "text": "Control to Bravo 22, you said it was Michael's, do you want me to contact the key holder there? Affirmative please. Received.",
+          "no_speech_prob": 1.7881393432617188e-07,
+          "avg_logprob": -0.21714743513327378
+        },
+        {
+          "text": "Control to Bravo 22. Good. Spoke to the manager, Howard, he's stated he thinks it's the balloons triggering a motion in the store triggering the alarm. He stated he can be on scene by 1130.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.2657670411196622
+        },
+        {
+          "text": "Okay, Received. Um, I checked the back, no doors are open. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.26307743528614874
+        },
+        {
+          "text": "Fire alarm, Engine-4.  Fire alarm.  Audible Burglar.  No fire allowed sounding.  No smoke, no fire.  We'll be returning.  Received Burglar alarm, no smoke, no fire, clearing 1049.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.11467633968485254
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 4.8041343688964844e-05,
+          "avg_logprob": -0.3856026700564793
+        },
+        {
+          "text": "Fire Alarm Engine-4, Engine-4 is in quarter.  Received Engine-4 in quarter, 1056.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1808997885934238
+        },
+        {
+          "text": "Bravo 24 to Control. Control.  Just drove by Michael's, that alarm is not currently going off.  Received. Manager stated he did reset it and put it in test mode.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.1547056679115739
+        },
+        {
+          "text": "Control to 209-206  9",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2755533804496129
+        },
+        {
+          "text": "6. 48 North Bow Street, Apartment 5. Do a well-being check on a Helen Chavez. Her son is in the hospital right now and apparently she left him a message last night and her words were very slurred in the message. They're unable to get in touch with her this morning so they're requesting a well-being check. Also, the nurse in the hospital stated that she needs to be at the hospital.",
+          "no_speech_prob": 1.7881393432617188e-07,
+          "avg_logprob": -0.13365964358111462
+        },
+        {
+          "text": "that she needs some of her son's medications that they don't have at the hospital. So they are requesting a well-being check and they are requesting that she call his son, her son's nurse, at the hospital. 9 received. The hospital needs the son's medications. That's affirmative.",
+          "no_speech_prob": 3.993511199951172e-06,
+          "avg_logprob": -0.3450520696739356
+        },
+        {
+          "text": "Roger. Roger.",
+          "no_speech_prob": 6.556510925292969e-07,
+          "avg_logprob": -0.49101564288139343
+        },
+        {
+          "text": "TONE!!!  Engine-4, Central Station Alarm, 24 Rolling Green Drive.  Engine-4, Engine-5, Central Station Alarm, 24 Rolling Green Drive. Engine-5 is en route 24 Rolling Green. Engine-5, you're en route 25.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.16081958221939374
+        },
+        {
+          "text": "24 Rolling Green. Engine-4 is en route 24 Rolling Green. Engine-4 you're en route 24 Rolling Green drive.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.18844289204169964
+        },
+        {
+          "text": "9 to control, you can show me out.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.24402573529411764
+        },
+        {
+          "text": "Fire alarm, A-2. Fire alarm. On the air and available. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.26324727742568305
+        },
+        {
+          "text": "Mendon control, 538-5116. 538. 511.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.40513393424806143
+        },
+        {
+          "text": "Mendon control, responding units, have the caller on the line, claim accidental, granddoller, granddoller has her watch and called on that, no emergency. 10-4, we'll still check it out. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19902013065451282
+        },
+        {
+          "text": "Mendon control, 538-511. 538. 511.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5504557068149248
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5532924107142857
+        },
+        {
+          "text": "Mendon control, responding units, the dad came up on foot, white male, approximately  30's, medium brown hair,  beard with a flannel plaid with a hood shirt. They're now walking in the fields in the rear past the back parking lot. 53, Roger, I'm pulling off now.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.15404929577464788
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.44614955357142855
+        },
+        {
+          "text": "538, to Mendon.  Mendon control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.373437507947286
+        },
+        {
+          "text": "They've returned home, no emergency, we'll be clear. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.31975445293244864
+        },
+        {
+          "text": "What did they say? Not at the shelter, that there's a grandma in the apartment complex that has her grandkids over sometimes.",
+          "no_speech_prob": 3.5762786865234375e-07,
+          "avg_logprob": -0.22924805199727416
+        },
+        {
+          "text": "It's maybe a little further off Maple Street.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5528845970447247
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.00013124942779541016,
+          "avg_logprob": -0.3691406299670537
+        },
+        {
+          "text": "511, Mendon Control.  Mendon Control.   care for that last call.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2578125
+        },
+        {
+          "text": "Control 511, you got cut off, could you go again, sir? For that previous call, we made contact at 24 Maple Street with the father and little girl. Everything's all set at that location, we'll be clear. Received, sir.",
+          "no_speech_prob": 7.748603820800781e-07,
+          "avg_logprob": -0.1657274658562707
+        },
+        {
+          "text": "Fire alarm, A-1 is report 1 going to be on scene.  Received, A-1 is on scene 1345",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1534213300408988
+        },
+        {
+          "text": "89 to control, I'm out. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.36328126192092897
+        },
+        {
+          "text": "It's going to be all set. It's going to be back at that area we were at earlier. It's going to be those two kids they've just been advised to take their trash when they leave. It's already out. 10-4.",
+          "no_speech_prob": 1.4901161193847656e-06,
+          "avg_logprob": -0.13013979844879686
+        },
+        {
+          "text": "A-1 to Fire Alarm.  Fire Alarm's on.  A-1 is transporting one ALS to Milford, starting mileage 0.  Received and Fire Alarm is nothing but CO2.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2649739595750968
+        },
+        {
+          "text": "A-1 to Fire Alarm.  Fire Alarm.  Clear landmark returning.  Received clear landmark returning 1408.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19843749751647313
+        },
+        {
+          "text": "TONE!!! Bellingham Fire announcing a still alarm. Medical. 17 Wrentham Manor. Bellingham Fire announcing a still alarm. Medical. Ambulance-2. Brush-2. 17 Wrentham Manor.",
+          "no_speech_prob": 2.2470951080322266e-05,
+          "avg_logprob": -0.1903286699591012
+        },
+        {
+          "text": "Squad-1, Fire Alarm. Squad-1 will be responding 17 Wrentham Manor from the Coachman. Received Squad-1 responding from Coachman 1414. Could be for 77 year-old female with severe back pain.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.14776400142702564
+        },
+        {
+          "text": "Squad-1 Fire Alarm, company's on arrival, Wrentham Manor, L-1 is establishing Wrentham Manor Command. Received company on arrival, L-1 has command 1416.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1882370226788071
+        },
+        {
+          "text": "P-1 to Fire Alarm. Fire Alarm go.  A-1 is off at Milford, ending 8.9.  Received off at Milford 1427",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.09129607027921921
+        },
+        {
+          "text": "Wrentham Manor, command fire on. A-1 is transporting 1 BLS to Milford. Squad-1 is clear, command is terminated. Received A-1 BLS to Milford, command terminated 1421.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1817801288728203
+        },
+        {
+          "text": "A-1 to Fire Alarm. Fire Alarm. A-1 arriving Milford end of miles 10.0, 10.0. Received A-1 arriving Milford end of mileage 10.0, 1436.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.15757812470197677
+        },
+        {
+          "text": "Fire Alarm, Support-1 is going to be on the air. Received Support-1 on the air 1441.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.24676724960064067
+        },
+        {
+          "text": "A-1 to Fire Alarm. Fire Alarm answering A-1. Clear, returning. A-1 clear returning 1450.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.18876008449062223
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.002166748046875,
+          "avg_logprob": -0.68828125
+        },
+        {
+          "text": "Mendon control, 538. 538. 14 Misco Road for 34 year old male, screaming and seizing. Roger.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20652722447149216
+        },
+        {
+          "text": "A-1 to Fire Alarm, A-1 is back in quarters. Back in quarters, 1513.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2633928582072258
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.42103794642857145
+        },
+        {
+          "text": "93 control. Control. Cruiser 2 checks ok, starting mileage 46202.6, again 46202.6.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1918103468829188
+        },
+        {
+          "text": "TONE!!! Blackstone Fire Alarm to on-duty EMS respond mutual aid to Milville, 8 Herto Road off of Quaker Street for female subject choking. That's 8 Herto Road off of Quaker Street for female subjects choking. Blackstone Fire Alarm standing by 1515.",
+          "no_speech_prob": 6.556510925292969e-06,
+          "avg_logprob": -0.1378264858651517
+        },
+        {
+          "text": "8.",
+          "no_speech_prob": 0.0130462646484375,
+          "avg_logprob": -0.8796875
+        },
+        {
+          "text": "A-1 responding Millville. Received, A-1 responding 1551.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.30237926000898535
+        },
+        {
+          "text": "Engine-1 Franklin Fire we're clear returning. Engine-1, would you mind staying on scene, she just called 911 again. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.45518091634700175
+        },
+        {
+          "text": "Franklin fire to engine-1. Engine-1. You can go back in service, there was more of a complaint issue than a medical issue. Received we're clear and returning.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.17085193523338862
+        },
+        {
+          "text": "Bravo 18, can you also respond to 156 Blackstone Street? 18 has it.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2739257775247097
+        },
+        {
+          "text": "Support 1 to Fire Alarm.  Fire Alarm's on. Support 1 is going to be clear of the scene in Milville. A-1 is going to be obtaining a refusal. We'll be heading back to town.  Received Support 1 clear and in service 1601.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2017045517762502
+        },
+        {
+          "text": "Control, 35, 31, and 18 will be out.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2534179575741291
+        },
+        {
+          "text": "Siera 4 control, can you show me out on Blackstone St?  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20028409497304397
+        },
+        {
+          "text": "Unit 12 can be clear in service. Unit 12 clear in service.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2939453095197678
+        },
+        {
+          "text": "Bravo 18 to control. Control. For that female, just attach MASS PC 5 Sierra Mike Hotel 4 3. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1891927033662796
+        },
+        {
+          "text": "5 control. Control. 1-3-6-0-1, it's 1-3-6-0-1 Charlie. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20071230916415944
+        },
+        {
+          "text": "Control to Bravo 31, can you 14? 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3447779511150561
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.002593994140625,
+          "avg_logprob": -0.690625
+        },
+        {
+          "text": "Ladder 1, Engine-4, 5 Rich Road. Ladder 1, Engine-4, I have you both en route. Engine-5, Rescue-1 en route, 5 Rich. Engine-5, Rescue-1, Engine-4, Ladder 1, I have you all en route 5 Rich Road for the central station alarm. came in as a residential fire alarm on the smoke detector with no zone. Stand by for hydrant location.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1796874997134392
+        },
+        {
+          "text": "Engine-5 received. Ladder has it.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3889160044491291
+        },
+        {
+          "text": "Just an update, I have a hydrant, it's going to be Rich Road at Huff Road, again Rich at Huff. Engine-5 received. Ladder has it.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.24201388756434122
+        },
+        {
+          "text": "Fire alarm to all responding apparatus. Alarm company just called back saying that they got a hold of the key holder who gave the correct passcode and said it was a false alarm, requesting a cancellation at this time. Engine-5 received, all apparatus clear returning. Ladder-1 has it. Mendon, we have all our barriers clear, 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.12137680986653203
+        },
+        {
+          "text": "Can you respond 6 7 Westcott, 67 Westcott? We have an accidental 911 confirmed, came in through Upton.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2114257817156613
+        },
+        {
+          "text": "93 control. Control. We'll be out at Westcott Street. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16675967545736403
+        },
+        {
+          "text": "4 control. Control. Parking violation, Lincoln at Winter. X-ray 95645, X-95645 tagged. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.18241003787878787
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.0031032562255859375,
+          "avg_logprob": -0.70546875
+        },
+        {
+          "text": "TONE!!!  Franklin Fire announcing a shift alarm, A-2 Engine-2, number 20 Wachusett Street for difficulty breathing. That's A-2 Engine-2, 20 Wachusett Street for difficulty breathing, 1744.",
+          "no_speech_prob": 1.7881393432617188e-07,
+          "avg_logprob": -0.1481370241023027
+        },
+        {
+          "text": "A-2 is responding.  Received A-2, you're responding 20 Wachusett 94-year-old female, difficulty breathing, patient's on O2.  1745.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.162699852571931
+        },
+        {
+          "text": "Engine-2 is on.  Engine-2 20 Wachusett, 94 year old female, respiratory distress, 1745.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19661458482344946
+        },
+        {
+          "text": "A-2 is on scene.  Ambulance 2 is on scene 1747 service.  Engine-2 is on scene.  Engine-2 is in traffic 1747.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1919921837747097
+        },
+        {
+          "text": "TONE!!!  2GR326, town of Milville, WQWD 491, town of Mendon, testing with all radio units clear at 1800.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.14987665061887942
+        },
+        {
+          "text": "A-2 Franklin Fire. Franklin Fire. ALS to Milford Zero. ALS to Milford Zero, 1805. Engine-2 to Franklin Fire, we're clear. Received cap back in service, 1805.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16421273379371717
+        },
+        {
+          "text": "Bravo 31 to control, you can show me out.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.40338542858759563
+        },
+        {
+          "text": "Bravo 31 to control. Control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.40163351730866864
+        },
+        {
+          "text": "Show both units clear. Made contact with that female party. She's going to reach out to her sister and let her know she's all set. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.23951480223944313
+        },
+        {
+          "text": "TONE!!!  Coastal Ambulance, Medical Emergency, 1 Huff Road.  Coastal Ambulance, Medical Emergency, 1 Huff Road.",
+          "no_speech_prob": 4.231929779052734e-06,
+          "avg_logprob": -0.13292100694444445
+        },
+        {
+          "text": "I'm alright.",
+          "no_speech_prob": 1.0728836059570312e-06,
+          "avg_logprob": -0.3713727593421936
+        }
+      ],
+      "test_predictions": [
+        {
+          "text": "Control it's going to be ending mileage 3134, 0.9.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2041015656044086
+        },
+        {
+          "text": "7 to control, you can show me out in the area. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.23232887188593546
+        },
+        {
+          "text": "Engine-2, Franklin Fire.  Fire. False detector is U208, there's no reading, there's no EMS here. Received faulty detector, no reading, no EMS. Received, sir.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19476425438596492
+        },
+        {
+          "text": "Control 206. 206 Beaver Street, again 106 Beaver Street. You can go to that residence, that's the Tree warden's residence see if he's there, you can make contact with him.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2115752599677261
+        },
+        {
+          "text": "Ladder-1 to Fire Alarm, what's the nature of the medical? Going for the same male that needed the lift assistant to his car. His wife called to say that he's dehydrated now. Received, have the rescue go to that medical. Fire Alarm, copies.",
+          "no_speech_prob": 4.76837158203125e-07,
+          "avg_logprob": -0.3439764579137166
+        },
+        {
+          "text": "We're clear, we're available for a call. C-4, what's your pleasure.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.186480982148129
+        },
+        {
+          "text": "Rescue-1 arriving on scene. Rescue-1 on scene. He might be in Papa Gino's now trying to get a drink, again if you want to check Papa Gino's. Rescue has that. You can show P-10 on scene. P-1 on scene as well.",
+          "no_speech_prob": 1.7881393432617188e-07,
+          "avg_logprob": -0.1584821417927742
+        },
+        {
+          "text": "you",
+          "no_speech_prob": 0.47607421875,
+          "avg_logprob": -0.8115234375
+        },
+        {
+          "text": "Received, Squad-1 on the air to headquarters, 8 31.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.26048518482007477
+        },
+        {
+          "text": "Roger",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.466015625
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.00021755695343017578,
+          "avg_logprob": -0.5365513392857143
+        },
+        {
+          "text": "Engine-5 back in quarters.  Engine-5 back in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.27343748745165375
+        },
+        {
+          "text": "246 control. Control's on. You can put me out on radar enforcement in front of the town park please. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.26302084028720857
+        },
+        {
+          "text": "I'm off to Self-Mendon Cape. It is in fact a seven-car MVA. You can start at least three hooks. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.15961371776130465
+        },
+        {
+          "text": "P2, I have you responding.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3302556818181818
+        },
+        {
+          "text": "Fire alarm's on.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2968749888241291
+        },
+        {
+          "text": "Received, starting Rescue-3 for evaluation. Milford Fire Alarm, dispatching Rescue-3. South Main at Cape for the MVA. Multiple injuries repeated, Milford Fire Alarm, dispatching Rescue-3. Stalk me in at Cape. Court evals, multiple injuries from the car accident.",
+          "no_speech_prob": 5.960464477539062e-07,
+          "avg_logprob": -0.20521763579121657
+        },
+        {
+          "text": "",
+          "no_speech_prob": 1.0,
+          "avg_logprob": -99.0
+        },
+        {
+          "text": "189.  Milford Fire's on.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4128605769230769
+        },
+        {
+          "text": "189 to Fire Alarm, we're on scene, extra. 189, I have you on scene at the motor vehicle accent.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.24763257575757575
+        },
+        {
+          "text": "Control, what's on tow?  It's the Art's is towing, Art's is towing.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16247106039965595
+        },
+        {
+          "text": "Fire alarm, Rescue-3 is on. Rescue-3, you're responding south main at Cape for that MVA. Multiple casualties, multiple injuries.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.17701479596527
+        },
+        {
+          "text": "P-1 is on scene. P-1, you're on scene. Correction, sorry, P-2. Correction, P-2, you're on scene.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1880095137850098
+        },
+        {
+          "text": "Car-2 is on arrival.  Car-2 on scene.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3446691176470588
+        },
+        {
+          "text": "Rescue-3 is on scene. Rescue-3 is on scene.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3353515714406967
+        },
+        {
+          "text": "P-1 Fire alarm, can you show us transporting one. P-1, you're transporting.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.24609373739132515
+        },
+        {
+          "text": "Milford P-1, can you show us at the hospital. Received P-1 off at the hospital.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.17940848746470042
+        },
+        {
+          "text": "Coastal 189 to fire alarm.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2892252629001935
+        },
+        {
+          "text": "Fire alarm's on. Coastal 189, we transported 1 BLS to Milford Regional and we're at destination. Received, I have that you transported and on scene at the hospital.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1733710176133095
+        },
+        {
+          "text": "Car-2 to Fire Alarm, Car-2 is clear of South Main. Received. Car-2, you're clear. Rescue-3, clear returning. Rescue-3, you're clear returning.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2009139139697237
+        },
+        {
+          "text": "Fire alarm, Rescue-3 is in quarters. Rescue-3 is back in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.26188859732254693
+        },
+        {
+          "text": "89 to control. Control. Starting for Paul 2, 46257, 46257, checks ok, negative for contraband, be up at the schools. 10-4.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.17643228705440248
+        },
+        {
+          "text": "Control to Bravo 35. Good.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.7313701739678016
+        },
+        {
+          "text": "2 vehicle MVA, it's going to be on North Main by the Outback Steak House, no P.I. stated.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.27116934137959636
+        },
+        {
+          "text": "35 control, come on out.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.30831473214285715
+        },
+        {
+          "text": "Bravo 35, do you need another unit for traffic assistance? Negative, we're off the road pretty much, we're in the break down late. Received. 31 to control, you can show me out with them, I'm just pulling up now.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.35030240493436016
+        },
+        {
+          "text": "P-1 Fire Alarm, you can show us clear. P-1, you're clear from the hospital. Ambulance 189 to Fire Alarm, we're clear and available. Received 189, you're clear and available.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.15585937450329462
+        },
+        {
+          "text": "Vehicle 1 is going to be MASS reg 5 Delta Papa Juliet 225 EPJ 22 operated by MASS ID CRS 76372875, S 76372875. 2 when ready. Received, go ahead. Vehicle 2, Round Ridge, Alpau Victor 578.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.35054347480552783
+        },
+        {
+          "text": "A-P-528, operated by Rhode Islander, Rhode Island driver's license 7414-043. 7414-043. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3969983607530594
+        },
+        {
+          "text": "35 control, do you have an ambulance headed this way as well? Negative, she said there was no P.I. Do you need one? Affirmative, yes she's just complaining of neck pain and she just wants to get it evaluated, but doesn't seem like no apparent injuries at the moment.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.262723228761128
+        },
+        {
+          "text": "Received, we will head one that way. Received, thank you.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2425426271828738
+        },
+        {
+          "text": "Engine-5 to Fire Alarm.  Fire Alarm's on. Engine-5 is Rescue-1 clear returning, command terminated.  Received command terminated, Engine-5 Rescue-1 clear.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16781250029802322
+        },
+        {
+          "text": "Fire alarm Engine-4.  Fire alarm.  Engine-4 is on the way 275 North Main Street.  Received. Engine-4 on the way 275 North Main Street.  Sir the call came in originally as a motor vehicle accident, no PI, you have a female party there now.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.11794543221815308
+        },
+        {
+          "text": "of neck pain would like to be evaluated.",
+          "no_speech_prob": 0.0007872581481933594,
+          "avg_logprob": -0.5263671875
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.43331474917275564
+        },
+        {
+          "text": "Bravo 31 to control, you can show me clear. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.37695313096046446
+        },
+        {
+          "text": "Wrentham Manor command to fire alarm. Fire alarm. Engine-3 is clear, one patient refusal. Command is terminated. Received Engine-3 clear with one patient refusal. Command terminated, 751.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.13671875417232512
+        },
+        {
+          "text": "Fire alarm, Engine-4, we're on scene, C-5 will have North Main Street. Received, Engine-4 on scene, C-5 has command, 753.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19176136770031668
+        },
+        {
+          "text": "P-1 back in quarters?  Received, you're back in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.23124999552965164
+        },
+        {
+          "text": "Fire alarm from A-2, we're also on scene.  Received, 8-2 on scene, 753.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19948814449639157
+        },
+        {
+          "text": "Fire alarm Engine-4.  Fire alarm.  Engine-4, A-2 are going to be clear, one patient refusal.  Received Engine-4, A-2 clear, one patient refusal, 8-0-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1294958658938138
+        },
+        {
+          "text": "Bravo 35 control. Control.  Police and fire units are going to be clear.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.29031249046325686
+        },
+        {
+          "text": "A-2 to Fire Alarm, A-2 is back in quarters. Received, A-2 back in quarters, 8-0-9.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.26815879022752914
+        },
+        {
+          "text": "Fire alarm, Engine-4, we're on quarters. Received, Engine-4 on quarters, 8-11.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3218749980131785
+        },
+        {
+          "text": "Engine-3 to fire alarm, back in quarters.  Received Engine-3 back in quarters, 8-11.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1977370627995195
+        },
+        {
+          "text": "TONE!!! Morning radio checks 1 minute.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5920759098870414
+        },
+        {
+          "text": "25, line clear, good morning. Good morning, 25, Fire alarm testing is 90. Unit 90 loud and clear, good morning. Good morning 90, radio checks complete, 8 15.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1313244104385376
+        },
+        {
+          "text": "89 to control. Control. Clear from school traffic. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.34621711153733103
+        },
+        {
+          "text": "Testing with Rescue-1.  Rescue-1.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.35833332935969037
+        },
+        {
+          "text": "Testing with Station-2 and dispatch.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3776041616996129
+        },
+        {
+          "text": "Testing with Engine-4. Engine-4, loud and clear.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.31484373807907107
+        },
+        {
+          "text": "Testing with Ladder-1. Ladder-1.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5876735945542654
+        },
+        {
+          "text": "Testing with P-1. P-1 loud and clear.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2727481617647059
+        },
+        {
+          "text": "Testing with P-2.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5082031309604644
+        },
+        {
+          "text": "Milford Fire Alarm radio test complete at 0820 hours.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2523871577448315
+        },
+        {
+          "text": "Bravo 35 to control. Control. Can you open Sally 2 please?",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3344183944993549
+        },
+        {
+          "text": "6 control. Control's on. 44858 Alpha checks ok no contraband. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2554347955662271
+        },
+        {
+          "text": "207 Control. Control's on.  Starring miles 26451, again 26451, checks ok C-trail. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.27642462183447447
+        },
+        {
+          "text": "Fire alarm, A-2 radio check.  Loud and clear, A-2, how do you copy.  Loud and clear, thank you.",
+          "no_speech_prob": 2.980232238769531e-07,
+          "avg_logprob": -0.18198529411764705
+        },
+        {
+          "text": "Squad-1, Fire Alarm. Fire Alarm. Squad-1 on the air to headquarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.260286471247673
+        },
+        {
+          "text": "Control 207.  Control 207.  7.  Here, Whitewood Road and Mill Pond Circle call is reporting there's a large tree resting, leaning on the electrical wires. Whitewood Road and Mill Pond Circle.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1798377438233449
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.00016677379608154297,
+          "avg_logprob": -0.5800781150658926
+        },
+        {
+          "text": "91 to control you, show me clear of Stacy.  Received",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20239257719367743
+        },
+        {
+          "text": "10-4.  Control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.8273437321186066
+        },
+        {
+          "text": "Squad-1 to fire alarm off of headquarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.29244792064030967
+        },
+        {
+          "text": "Received Squad-1 off at headquarters 8 40.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.30963542461395266
+        },
+        {
+          "text": "7 to control. Control's on. The calling party was correct, it's going to be right in front of 63. It's actually a very large tree, the only thing holding it up is the primaries and it's currently laying almost on the street.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.11644666192346606
+        },
+        {
+          "text": "Received, want me to call, national grid? Yes please, and then whoever would be able to handle this tree, and I'll be, I'm going to call 12 over the air, or excuse me, by phone. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3540783797280263
+        },
+        {
+          "text": "Control 207. 7. Just want to confirm you're going to stand by for a grid, it'll be like an ASAP response, is that correct? Yes, if they would. And yes, I'll hang out here. I'm about to try to find a way to detour people around Mill Pond Circle. I really don't want them driving under this tree. Received.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.10955459838626029
+        },
+        {
+          "text": "Control 207.  Go ahead.  Received and going to call me back with the ETA for the ASAP response. Do you need an additional officer to assist with the detour down Mill Pond Circle? Yeah, we might need to do that. Whatever the wind blows, this tree starts wiggling again. I really don't want these primaries to let go.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.1674107112700031
+        },
+        {
+          "text": "Received. 204, can you point that way to assist?",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2925347338120143
+        },
+        {
+          "text": "11 to station. Station's on. Transporting one to Court. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3000372080575852
+        },
+        {
+          "text": "Rescue-1 on the air and available. Rescue-1 on the air, available.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2309570306291183
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.003154754638671875,
+          "avg_logprob": -0.655078125
+        },
+        {
+          "text": "Bravo 35 Control. Control. Ma'am, ending mileage 59604. 59604, your time. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.21093749701976777
+        },
+        {
+          "text": "89 to control. Control. Out at court. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2892323265904966
+        },
+        {
+          "text": "4 is going out.  Received. 7 to control, you can show grid on scene as well.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.34677418008927374
+        },
+        {
+          "text": "Engine-1 is back in quarters Franklin Fire.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.246744798289405
+        },
+        {
+          "text": "Engine-4 to Fire Alarm, you can show us on the air and available. Engine-4 on the air, available.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2677556818181818
+        },
+        {
+          "text": "7 to control.  Control's on.  Just in case you start getting some calls for it, um, National Grids is about to pop one of the fuses up here because they're afraid this tree might actually come down. So you may get some people complaining about power outages.  Received. 12 is off to 7, have we heard from the tree warden yet?",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.15406709273948388
+        },
+        {
+          "text": "Received, and that's a negative, on the tree warden.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2942023026315789
+        },
+        {
+          "text": "89 to control. Control. Clear from court.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.3963341254454393
+        },
+        {
+          "text": "10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.44698660714285715
+        },
+        {
+          "text": "Bravo 33 to control. Control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5637019047370324
+        },
+        {
+          "text": "Motor vehicle stop in front of 352 Lake Street with Rhode Island PC-1 Foxtrot Zulu 664, 1SV664. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2246093697845936
+        },
+        {
+          "text": "Okay, but it's needed. 12 copies.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.34661457538604734
+        },
+        {
+          "text": "243 to control. Control's on. Please notify the tree warden let em know it is needed.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.22624999523162842
+        },
+        {
+          "text": "Received, we have attempt several calls, I'm going to attempt to leave another message as well for that party.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16099330729671887
+        },
+        {
+          "text": "202-202",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.6669921725988388
+        },
+        {
+          "text": "Go Ahead. Sir, just an update, we have an attempted  tree warning five times, and, as well as left two voicemails, no answer. Okay.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4345930246419685
+        },
+        {
+          "text": "Bravo 32 to control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4544270833333333
+        },
+        {
+          "text": "Control. Operator is going to be Rhode Island Driver's License 4094551. 4094551.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3706054762005806
+        },
+        {
+          "text": "Roger that.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5424107142857143
+        },
+        {
+          "text": "207 to control. Control's on. Grid would like you to page out a detail please for this spot. Received, we're looking for one officer, or multiple, in four-hour block or eight-hour. I was just giving that info, one officer, four hours, please. 1 hour, 1 hour",
+          "no_speech_prob": 6.556510925292969e-07,
+          "avg_logprob": -0.1648787282296081
+        },
+        {
+          "text": "1 officer, 4 hours, got it, thank you.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3200520793596903
+        },
+        {
+          "text": "M-15 to control. Control's on. Alright, that skunk was picked up at 20 Princess Pine Lane, I'll be all set. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1349826426141792
+        },
+        {
+          "text": "Bravo 33 to control. Control. I'll be clear, written warning to the operator.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2682883387262171
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.3258928656578064
+        },
+        {
+          "text": "Rescue-1 back in quarters. Rescue back in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.32470702193677425
+        },
+        {
+          "text": "6 control. Control, who? He's heading over there now. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2927734389901161
+        },
+        {
+          "text": "",
+          "no_speech_prob": 1.0,
+          "avg_logprob": -99.0
+        },
+        {
+          "text": "Control 246-206.  We're clear.  06.  46 Water Street, Constable Evangelo is requesting assistance with funeral traffic. We're going to be leaving in approximately 15 minutes at 9 45. They go in a sacred heart church. 246, you can do a main out water and 207",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.14474239381583962
+        },
+        {
+          "text": "26 Main at Exchange, it's going to be about 25 vehicles, leaving in about 15 minutes. 46,000. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3206380282839139
+        },
+        {
+          "text": "Control 212. Go ahead. That ASAP detail for Whitewood, it was filled by 576.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.23061899611583123
+        },
+        {
+          "text": "Roger, thank you.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3888888888888889
+        },
+        {
+          "text": "Engine-5 to fire alarm going to be on the air and available. Engine-5 on the air, available.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.23750000496705373
+        },
+        {
+          "text": "Engine-4, back in quarters. Engine-4, back in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.25301845371723175
+        },
+        {
+          "text": "Bravo 29 control. Control. Polaski at Pine Warbler, Rhode Island 1, Yankee Kilo 897. It's on a gray Honda Civic.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.37402345016598704
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 1.8477439880371094e-06,
+          "avg_logprob": -0.3244977593421936
+        },
+        {
+          "text": "243 to control. Control's on. You can show the tree warden now on Whitewood Road. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.17187500532184327
+        },
+        {
+          "text": "576 control. Control. I'll be in cruiser 205, headed to my detail, National Grid, Whitewood Road. Starting mileage 13687, 13687. Checks ok. Received.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.20184948979591838
+        },
+        {
+          "text": "12 to 5. 12 to 5. So you probably want to come in on the fiske mill side. Okay Roger, thank you.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3017314060314282
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.006237030029296875,
+          "avg_logprob": -0.646875
+        },
+        {
+          "text": "4 control.  Control's on",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1474609375
+        },
+        {
+          "text": "Control's on.  Clear that relieved by a detail officer.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.21391369047619047
+        },
+        {
+          "text": "211 to control. Control's on. Why don't you put me on a follow up on that 26-13309 OF, 13309 OF. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.14763622100536639
+        },
+        {
+          "text": "246 control.  Control's on.  Motor vehicle stop Congress at Blanchard, MASS reg 3, Charlie, Lima, Victor, 8-8, Mass 3C, LV 88, Congress at Blanchard.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1485795492475683
+        },
+        {
+          "text": "246 control. Control's on. Can you run out of MASS Sierra alpha, 739-0624, S.A. 739-0624.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2127543639305026
+        },
+        {
+          "text": "246 control. Control's on. Clear, written warning, you can put me back on that traffic pose. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1578663813656774
+        },
+        {
+          "text": "Engine-5 to fire alarm, Engine-5 will be on the air station 2. Engine-5 on the air station 2.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16548295454545456
+        },
+        {
+          "text": "Engine-5 off at station 2.  Engine-5 off at station 2.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.22414434523809523
+        },
+        {
+          "text": "12 to control. Control's on. Sir I'm going to be clear, tree's off the wire, they're just cleaning up now. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4083614800427411
+        },
+        {
+          "text": "Rescue-1 on the air and available. Rescue-1 on the air, available.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.21484374875823656
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.462890625
+        },
+        {
+          "text": "246 control. Control's on. Can you show me clear from that traffic post. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2262369841337204
+        },
+        {
+          "text": "Engine-5, fire alarm. Fire alarm's on. All units are going to be on the air at 27 Maple Street for a building tour. Received all units on the 27 Maple for a building tour.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.14018278414348387
+        },
+        {
+          "text": "Received",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.691406230131785
+        },
+        {
+          "text": "246 control. Control's on.  Can you run out of MASS Sierra 817-359-60, again S-817-359-60. Please check the Bobbs all points",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2541666719648573
+        },
+        {
+          "text": "Received, that's an active, owner opp, active non-renewal end, no warrants, 16 on the adult. Roger.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3190104166666667
+        },
+        {
+          "text": "246 control.  Control's on.  My CJIS is running very slow, anything 94-C related?",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.21542245039233454
+        },
+        {
+          "text": "Beeps",
+          "no_speech_prob": 0.006954193115234375,
+          "avg_logprob": -0.85625
+        },
+        {
+          "text": "Most recent for 94-C was a possessor's distribute class B back in 2007 but that was dismissed. And then back in 2007 as well, another one also dismissed. 10-4, thank you.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3252551020408163
+        },
+        {
+          "text": "246 control.  Control's on.  Clear, written warning issued.  Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2578125
+        },
+        {
+          "text": "207 control. Control's on. Show me off to the air please on a property check. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.31069711996958804
+        },
+        {
+          "text": "Control's on.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.42041015625
+        },
+        {
+          "text": "246 control. Control's on. You can put me out on radar enforcement West Street, near Tony's Collision. Received.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.23223286674868676
+        },
+        {
+          "text": "Engine-2 to 204 and 206. 4. 6. 4 and 6, 10 West Pine Street, going to be for a 911 hang-up call coming from a cell phone. On call back, I wasn't able to leave a voicemail. Please check that location again, 10 West Pine Street.",
+          "no_speech_prob": 2.980232238769531e-07,
+          "avg_logprob": -0.21920290200606637
+        },
+        {
+          "text": "Street, 10 West Pine.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.4220920138888889
+        },
+        {
+          "text": "4 Roger. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4680397835644809
+        },
+        {
+          "text": "Received rescue, En route from Maple Street.  Be for the 75-year-old male needing a lift assist from the house to the car.",
+          "no_speech_prob": 3.5762786865234375e-07,
+          "avg_logprob": -0.16595982228006637
+        },
+        {
+          "text": "Rescue-1 on route 23A, Green Street, going code-C. Rescue-1, you're en route 23A, off of, Green Street, you're responding code-C. It's a 75-year-old male, he needs lift assist from the house to the car. Rescue has that.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.27645832935969034
+        },
+        {
+          "text": "Fire alarm, P-2 clear and available. P-2 clear and available. Rescue, you can disregard clear.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.18894676257062842
+        },
+        {
+          "text": "Rescue clear and returning to Maple Street.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3427734350164731
+        },
+        {
+          "text": "Control 207. at the request of that Framingham officer, if you could respond back to that residence and maybe leave a note on the windshield or the door of the vehicle for him to call Framingham, and I'll send you over the name of the officer.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.13463541145126026
+        },
+        {
+          "text": "91 to control. Control's on. Just double-checking, did I clear myself from the hospital or did you still have me there? I still have you there. Want me to clear you? Yeah, affirmative, thank you. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.12997159253467214
+        },
+        {
+          "text": "Roger.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4423827926317851
+        },
+        {
+          "text": "46 control. Control's on. Grab that for 6, he's aware. 10-4.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.22826086567795795
+        },
+        {
+          "text": "207 control. Control's on. Alright, I left a note on his truck you can show me clear. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.17510775245469193
+        },
+        {
+          "text": "87 Control.  Control. Sierra 560-48327, S 560-48327.  Received",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.13563368497071443
+        },
+        {
+          "text": "6, I'll grab that for you if you're tied up. Thank you. Control copies.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3085937404632568
+        },
+        {
+          "text": "246, what do you have? Just pulling up to a medical now I'll let you know. Roger.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20755208979050319
+        },
+        {
+          "text": "46 control, you can show me out. Received you're out.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3267578259110451
+        },
+        {
+          "text": "91 to control. Control's on. Do we have any reports of purging gas west of Highland? Not that I'm aware of, no one's advised me of any gas purging. Mostly we have eversource gas on Depot Street but that's it. Okay, I'm getting I can smell the gas around here, I don't know if the fire department...",
+          "no_speech_prob": 1.430511474609375e-06,
+          "avg_logprob": -0.14579503347768502
+        },
+        {
+          "text": "4122 come out and check it out. 10-4, do you have a number on that roadway? No, just keeps popping up between that intersection Weston Highland. Received Weston Highland.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.2156575582921505
+        },
+        {
+          "text": "87 Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control. Control.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.01672743002573649
+        },
+        {
+          "text": "246 control.  Control's on.  Show me clear, that female party is being transported.  Received",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.125450726885062
+        },
+        {
+          "text": "Negative it's not an emergency, just a lift assistant to our car. Okay, Rescue-1 will be en route, code-C. Received responding code-C.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.23837208609248317
+        },
+        {
+          "text": "Fire alarm to Rescue-1 and P-10, you can cancel your response. He was assisted into the car already, he's all set. Again, cancel your response to 42 Cape Road. P-10, receive. Rescue-1 has that, we'll be en route to 141 West Street for the natural gas. Received you're responding",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1516481148053522
+        },
+        {
+          "text": "Air 140 west of Highland for the smell of natural gas.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.46777342446148396
+        },
+        {
+          "text": "87 Control. Control. It's going to be owner opp. 10-4, he only has a permit. Yeah, we got somebody else on the license, we'll be all set. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2381036952137947
+        },
+        {
+          "text": "Engine-5 ladder 1 en route 141 West Street, natural gas. Received, you're responding, it's going to be west of the Highland Street, called in by PD. Eversource was notified they have a 30 minute ETA, again it's outside order of gas in that area.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19498239100818904
+        },
+        {
+          "text": "Engine-5, copies. Rescue has that. Milford, P-2, transporting to Framingham, Framingham. P-2, you're transporting Framingham.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19108073009798923
+        },
+        {
+          "text": "M-15 to control. Control's on. Alright, outside of that dog, he's in full sprint mode, he's heading down Mount Pleasant. He's not coming to me, I'm going to have to follow him a little bit. Received, do you need a patrolman, or are you all set? Yeah, if I could get somebody down here, I might be able to persuade them to maybe have some...",
+          "no_speech_prob": 3.3974647521972656e-06,
+          "avg_logprob": -0.15326704599640587
+        },
+        {
+          "text": "to somebody, it's just running away. Received 206, put that way to assist. Roger. Keith, where do you have Mount Pleasant and Hayward? We're at the top of the hill, I think we're at number 86 and we're heading down towards town. Okay.",
+          "no_speech_prob": 2.384185791015625e-07,
+          "avg_logprob": -0.21243106968262615
+        },
+        {
+          "text": "",
+          "no_speech_prob": 1.0,
+          "avg_logprob": -99.0
+        },
+        {
+          "text": "He took a, took Woodland Ave. Roger. Control to 204. Yeah.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.7575231393178304
+        },
+        {
+          "text": "TONE!!!  Milford Fire, Medical Emergency, 101 Cedar Street.  Coastal Ambulance, Medical Emergency, 101 Cedar Street.",
+          "no_speech_prob": 3.337860107421875e-06,
+          "avg_logprob": -0.17072610644733205
+        },
+        {
+          "text": "L-1 to Engine-4, what's your location? We're crossing onto Main Street from East Main Street. Divert to the medical.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.24054276668711713
+        },
+        {
+          "text": "Received",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.476953125
+        },
+        {
+          "text": "Engine-5, Ladder-1, on scene 141 West Street. Be out investigating, L-1 will have command. Received L-1 has command. West at Highland, investigating.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.19938150762269893
+        },
+        {
+          "text": "Is the detail officer still on scene? It wasn't a detail officer, he's not on scene.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.21574518714959806
+        },
+        {
+          "text": "Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.568359375
+        },
+        {
+          "text": "Milford Fire, Coastal 109.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3206129715992854
+        },
+        {
+          "text": "Engine-4 has the update.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3334517099640586
+        },
+        {
+          "text": "10-4.  Roger, we'll be all set.  Roger,",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.5399305356873406
+        },
+        {
+          "text": "Rescue-1 on route to 141 West Street for the natural gas call. Received Rescue, you're responding. You're clear of that medical, you're responding.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.27419968349177665
+        },
+        {
+          "text": "Fire Alarm P-10 clear with a refusal. Do you need another unit? Received P-10 you're clear with a refusal.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2819196547780718
+        },
+        {
+          "text": "P-10, we have nothing else pending.",
+          "no_speech_prob": 1.1920928955078125e-07,
+          "avg_logprob": -0.2833533745545607
+        },
+        {
+          "text": "Fire alarm, P-1 transport one to Milford. P-1, you're transporting to Milford.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.39453123935631346
+        },
+        {
+          "text": "Engine-4, we're going to be on scene. Engine-4, on scene. Engine-5 to rescue, you can cancel return.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.2214227005055076
+        },
+        {
+          "text": "Rescue has that, canceling and returning.  Received, Fire alarm has that, Rescue you're clear. Engine-4 to Coastal 109, do you guys have an ETA for your arrival?  109, ETA is 5 minutes.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.1303628203222307
+        },
+        {
+          "text": "Fire alarm, ladder 1 is clear West Street, we're returning to quarters. Ladder 1, you're clear, returning. Engine-5, fire alarm. Fire alarm's on. We didn't find any smells or any readings, we're going to stand by at 145 West Street in the parking lot waiting.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.18636924949915787
+        },
+        {
+          "text": "Thank you, ForeverSource.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.6957031130790711
+        },
+        {
+          "text": "Received, didn't find any read-ins, standing by in the parking lot of 145 for eversource.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.15490302340737705
+        },
+        {
+          "text": "Milford Fire Coastal 109.  Milford Fire Coastal. We're on arrival. Received your off 101 Cedar Street, Reliant.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.210828994297319
+        },
+        {
+          "text": "Fire Alarm P-1 on route north of the hospital. P-1 off to the hospital.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3430989657839139
+        },
+        {
+          "text": "Engine-4 to Fire Alarm, you can show us clear. We'll be returning in quarters. Engine-4, you're clear, returning.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.1821157142922685
+        },
+        {
+          "text": "Rescue-1 back in quarters. Rescue back in quarters.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3129340377118852
+        },
+        {
+          "text": "Ladder 1 to Fire Alarm. Fire Alarm's on. Can you start a slip for a non-emergency auto lockout at Big Y? Ladder 1 will take it. Received. Non-emergency motor vehicle lockout at Big Y.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.16286057692307693
+        },
+        {
+          "text": "TONE!!!  Milford Fire, motor vehicle lockout, 7 Medway Road. Milford Fire, motor vehicle lockout, 7 Medway Road.",
+          "no_speech_prob": 2.384185791015625e-07,
+          "avg_logprob": -0.1410714328289032
+        },
+        {
+          "text": "87 Control. Control. Alright, Mark says the vehicle will be clear. 10-4, that party has arrived. She actually got transportation, we're good. 10-4.",
+          "no_speech_prob": 3.5762786865234375e-07,
+          "avg_logprob": -0.18515624441206455
+        },
+        {
+          "text": "Rescue-1 is on scene.  Received Rescue.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.23657226003706455
+        },
+        {
+          "text": "P-1 on arrival, Fire alarm.  Received P-1.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.4518914599167673
+        },
+        {
+          "text": "44, would you like a call created for this? Yeah, 10-4. You can assign me an O.F. on it. Received.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.3088942429958246
+        },
+        {
+          "text": "Fire alarm, Rescue-1 is clear returning.  Received Rescue, you're clear.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.20188210024075073
+        },
+        {
+          "text": "P-1 follow, show us transporting one. P-1, I have you transporting one.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.28974185300909955
+        },
+        {
+          "text": "Rescue-1 is back in quarters. Received Rescue. P-1 Fire Alarm, you can show us off at the hospital. Received P-1.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.208274148743261
+        },
+        {
+          "text": "K-2 control. Control. Motor vehicle stop exchange at Main, New Jersey, Passenger Bravo 50 Victor, Uniform Echo, B50BUE, New Jersey.",
+          "no_speech_prob": 5.960464477539063e-08,
+          "avg_logprob": -0.33351935091472806
+        },
+        {
+          "text": "K-2 control. Control. Operator when you're ready. Go ahead. Sierra alpha 546-1666, S.A. 546-1666, should be party ahead of Weston.",
+          "no_speech_prob": 0.0,
+          "avg_logprob": -0.30944292636021326
+        }
+      ]
+    }
+  },
+  "label_filter": [
+    "beep",
+    "beeps",
+    "dead air",
+    "tone",
+    "tones"
+  ],
+  "filtered_scores": {
+    "V101": {
+      "eval_label_filter": {
+        "wer": 8.876759551852915,
+        "normalized_wer": 5.77720207253886,
+        "cer": 3.4307560742492074,
+        "negative_count": 5,
+        "negative_false_positives": 0,
+        "negative_false_positive_rate": 0.0
+      },
+      "eval_label_filter_plus_gate": {
+        "wer": 8.876759551852915,
+        "normalized_wer": 5.77720207253886,
+        "cer": 3.4307560742492074,
+        "negative_count": 5,
+        "negative_false_positives": 0,
+        "negative_false_positive_rate": 0.0
+      },
+      "test_label_filter": {
+        "wer": 20.070526006464885,
+        "normalized_wer": 20.18617021276596,
+        "cer": 15.765973826020016,
+        "negative_count": 4,
+        "negative_false_positives": 1,
+        "negative_false_positive_rate": 25.0
+      },
+      "test_label_filter_plus_gate": {
+        "wer": 19.894210990302675,
+        "normalized_wer": 20.0531914893617,
+        "cer": 15.606877084937132,
+        "negative_count": 4,
+        "negative_false_positives": 0,
+        "negative_false_positive_rate": 0.0
+      }
+    },
+    "V104-negative-balanced": {
+      "eval_label_filter": {
+        "wer": 8.876759551852915,
+        "normalized_wer": 5.673575129533679,
+        "cer": 3.8684038432516727,
+        "negative_count": 5,
+        "negative_false_positives": 0,
+        "negative_false_positive_rate": 0.0
+      },
+      "eval_label_filter_plus_gate": {
+        "wer": 8.876759551852915,
+        "normalized_wer": 5.673575129533679,
+        "cer": 3.8684038432516727,
+        "negative_count": 5,
+        "negative_false_positives": 0,
+        "negative_false_positive_rate": 0.0
+      },
+      "test_label_filter": {
+        "wer": 11.930649426976197,
+        "normalized_wer": 8.297872340425531,
+        "cer": 9.150628688734924,
+        "negative_count": 4,
+        "negative_false_positives": 0,
+        "negative_false_positive_rate": 0.0
+      },
+      "test_label_filter_plus_gate": {
+        "wer": 11.930649426976197,
+        "normalized_wer": 8.297872340425531,
+        "cer": 9.150628688734924,
+        "negative_count": 4,
+        "negative_false_positives": 0,
+        "negative_false_positive_rate": 0.0
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v201_layered/stage2_language/best",
+  "manifests_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v202_silence_refinement",
+  "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v202_silence_refinement",
+  "ctranslate2_output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v202_silence_refinement_ct2",
+  "training_stage": "language",
+  "epochs": 1.0,
+  "learning_rate": 0.0000003,
+  "batch_size": 1,
+  "eval_batch_size": 1,
+  "gradient_accumulation_steps": 16,
+  "warmup_ratio": 0.05,
+  "logging_steps": 5,
+  "eval_steps": 26,
+  "save_steps": 26,
+  "num_workers": 0,
+  "seed": 42,
+  "gradient_checkpointing": true,
+  "augment_probability": 0.0,
+  "fp16": true,
+  "bf16": false,
+  "run_test": false,
+  "metric_for_best_model": "selection_score",
+  "data_contract": {
+    "source_unique_train_calls": 1082,
+    "explicit_non_speech_unique_calls": 25,
+    "explicit_non_speech_repeat": 8,
+    "total_train_presentations": 1257,
+    "eval_calls": 35,
+    "test_calls_loaded": 0
+  }
+}

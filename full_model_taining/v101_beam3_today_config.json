@@ -1,0 +1,19 @@
+{
+  "model_catalog": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v101_decode_sweep_catalog.json",
+  "models": [
+    {
+      "key": "v101_current",
+      "label": "V101 beam 2"
+    },
+    {
+      "key": "v101_beam3",
+      "label": "V101 beam 3"
+    }
+  ],
+  "sample_source": {
+    "validation_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v102_scanner/real_world_2026-07-24_inputs"
+  },
+  "output": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/v101_decode_sweep/beam3_today"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "default_model": "v111",
+  "models": {
+    "v111": {
+      "model": "/home/ned/models/scanner_transcriber_models_active/whisper_medium_v111_lora_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "v201": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v201_layered_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "v202": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v202_silence_refinement_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    }
+  }
+}

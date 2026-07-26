@@ -1,0 +1,23 @@
+{
+  "model_catalog": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v111_v112_eval_catalog.json",
+  "models": [
+    {
+      "key": "v111",
+      "label": "V111 exact-export LoRA"
+    },
+    {
+      "key": "v112",
+      "label": "V112 best checkpoint"
+    },
+    {
+      "key": "v112_epoch2",
+      "label": "V112 final epoch"
+    }
+  ],
+  "sample_source": {
+    "validation_dir": "/tmp/v201_contamination_probe"
+  },
+  "output": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/v112_epoch2_contamination_probe"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "model_catalog": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v101_v105_real_world_catalog.json",
+  "models": [
+    {
+      "key": "v101",
+      "label": "V101 beam 2"
+    },
+    {
+      "key": "v105_lora",
+      "label": "V105 LoRA beam 2"
+    }
+  ],
+  "sample_source": {
+    "validation_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v102_scanner/real_world_2026-07-24_inputs"
+  },
+  "output": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/v101_v105_real_world_2026-07-24"
+  }
+}

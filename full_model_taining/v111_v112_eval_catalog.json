@@ -1,0 +1,89 @@
+{
+  "default_model": "v111",
+  "models": {
+    "v111": {
+      "model": "/home/ned/models/scanner_transcriber_models_active/whisper_medium_v111_lora_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "v112": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v112_corrective_lora_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "v112_epoch2": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v112_corrective_lora_epoch2_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "v113_stage1": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v113_stage1_targeted_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "v113_stage1_epoch5": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v113_stage1_epoch5_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    },
+    "v113": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v113_stage2_consolidation_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 2,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0
+      }
+    }
+  }
+}

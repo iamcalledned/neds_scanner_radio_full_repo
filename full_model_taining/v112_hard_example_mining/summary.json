@@ -1,0 +1,15 @@
+{
+  "model": "/home/ned/models/scanner_transcriber_models_active/whisper_medium_v111_lora_ct2",
+  "manifest": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v111_exact_exports/train.jsonl",
+  "rows": 1082,
+  "aggregate_wer": 0.1257832798410515,
+  "exact_matches": 740,
+  "wer_at_least_0_25": 88,
+  "wer_at_least_0_50": 42,
+  "wer_at_least_1_00": 29,
+  "repeated_predictions": 3,
+  "forbidden_phrase_hits": [
+    "rec_2026-03-29_15-28-32_pd"
+  ],
+  "runtime_seconds": 323.08533549308777
+}

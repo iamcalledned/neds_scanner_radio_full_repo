@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Model Comparison — 2026-07-25 11:42</title>
+<style>
+  :root {
+    --bg: #0d0f13;
+    --panel: #171a21;
+    --panel-2: #0f1319;
+    --line: #2b3240;
+    --text: #d9e1ea;
+    --muted: #7f8b9d;
+    --ok: #7ed957;
+    --ins: #ff6b6b;
+    --del: #f0a868;
+    --best: rgba(46, 204, 113, 0.14);
+    --tie: rgba(76, 201, 240, 0.12);
+    --missing: rgba(255, 107, 107, 0.08);
+  }
+  body { font-family: Consolas, 'Courier New', monospace; font-size: 13px;
+         background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+  h1 { color: #f3f6fb; font-size: 1.35em; margin: 0 0 16px; }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 460px) minmax(420px, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .summary {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 14px 18px;
+    border-radius: 10px;
+  }
+  .summary table { border-collapse: collapse; width: 100%; }
+  .summary th, .summary td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #242b37; }
+  .summary th { color: #9fb0c8; font-size: 0.85em; }
+  .summary tr:last-child td { border-bottom: 0; }
+  .summary .lbl { color: var(--muted); }
+  .verdict-a { color: #4ec9b0; font-weight: bold; }
+  .verdict-b { color: #9cdcfe; font-weight: bold; }
+  .verdict-tie { color: #dcdcaa; }
+  .summary-best td { background: rgba(78, 201, 176, 0.08); }
+  .summary-note { color: var(--muted); line-height: 1.6; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); }
+  table.main { border-collapse: collapse; min-width: 1700px; width: 100%; table-layout: fixed; }
+  table.main th { background: #1c2330; color: #c8d7ed; text-align: left;
+                   padding: 10px 12px; border-bottom: 2px solid #334055; font-size: 0.84em; }
+  table.main td { padding: 9px 12px; border-bottom: 1px solid #1e2531;
+                   vertical-align: top; word-break: break-word; }
+  tbody tr:nth-child(odd) td { background: rgba(255,255,255,0.015); }
+  col.c-num  { width: 56px; }
+  col.c-meta { width: 220px; }
+  col.c-ref  { width: 360px; }
+  col.c-hyp  { width: 360px; }
+  span.ok  { color: var(--ok); }
+  span.ins { color: var(--ins); text-decoration: underline; }
+  span.del { color: var(--del); text-decoration: line-through; }
+  .stem { color: #9cdcfe; font-size: 0.84em; }
+  .meta2, .meta3 { color: var(--muted); font-size: 0.78em; margin-top: 3px; }
+  .scores { color: var(--muted); font-size: 0.78em; margin-top: 6px; }
+  .num { color: #69788d; font-size: 0.85em; text-align: right; }
+  .ref { color: #c9e7b2; }
+  .diff { line-height: 1.55em; }
+  .hyp-best { background: var(--best) !important; box-shadow: inset 0 0 0 1px rgba(46, 204, 113, 0.3); }
+  .hyp-tie { background: var(--tie) !important; box-shadow: inset 0 0 0 1px rgba(76, 201, 240, 0.24); }
+  .hyp-missing { background: var(--missing) !important; }
+  .missing { color: #ff9c9c; }
+  .legend { font-size: 0.82em; color: var(--muted); margin: 0 0 10px; }
+  .legend span { margin-right: 16px; }
+</style>
+</head>
+<body>
+<h1>Whisper Model Comparison &mdash; 2026-07-25 11:42</h1>
+<div class="summary-grid">
+  <div class="summary">
+    <table>
+      <tr><td class="lbl">Baseline</td><td>edited_transcript</td></tr>
+      <tr><td class="lbl">Samples</td><td>35</td></tr>
+      <tr><td class="lbl">Tie rows</td><td>0</td></tr>
+      <tr><td class="lbl">Error rows</td><td>35</td></tr>
+      <tr><td class="lbl">Verdict</td><td><span class='verdict-tie'>n/a</span></td></tr>
+    </table>
+  </div>
+  <div class="summary">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Slot</th>
+          <th>Model</th>
+          <th>WER</th>
+          <th>CER</th>
+          <th>Wins</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+      <tr class="summary-best">
+        <td>1</td>
+        <td>A</td>
+        <td>whisper_medium_v101_scanner_ct2</td>
+        <td>n/a</td>
+        <td>n/a</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>B</td>
+        <td>whisper_medium_v105_lora_ct2</td>
+        <td>n/a</td>
+        <td>n/a</td>
+        <td>0</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="ok">green</span> = correct word</span>
+  <span><span class="ins">red underline</span> = insertion (extra word)</span>
+  <span><span class="del">orange strikethrough</span> = deletion (missing word)</span>
+  <span style="background:rgba(46, 204, 113, 0.14);padding:1px 4px;">green cell</span> = best model on that clip
+  <span style="background:rgba(76, 201, 240, 0.12);padding:1px 4px;">blue cell</span> = tied best
+</div>
+
+<div class="table-wrap">
+  <table class="main">
+    <colgroup>
+      <col class="c-num">
+      <col class="c-meta">
+      <col class="c-ref">
+    <col class="c-hyp">
+    <col class="c-hyp">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>File</th>
+        <th>Baseline — edited_transcript</th>
+      <th>Model A — whisper_medium_v101_scanner_ct2</th>
+      <th>Model B — whisper_medium_v105_lora_ct2</th>
+      </tr>
+    </thead>
+    <tbody>
+
+  <tr>
+    <td class="num">1</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_07-27-46_pd</div>
+      <div class="meta2">police &bull; 25.1s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">89 to control. Control. Starting for Paul 2, 44570, 44570. Checks ok, I&#x27;ll be up at the schools. 10-4.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">2</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_08-21-39_fd</div>
+      <div class="meta2">fire &bull; 5.5s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Received A-1, I have you in route 8:21.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">3</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_08-29-27_fd</div>
+      <div class="meta2">fire &bull; 4.9s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">On scene 8:29.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">4</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_08-38-02_fd</div>
+      <div class="meta2">fire &bull; 9.5s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Fire alarm, A-1. Fire Alarm. A-1 is clear returning.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">5</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-17-11_fd</div>
+      <div class="meta2">fire &bull; 4.9s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">That should be fine</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">6</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-47-26_mpd</div>
+      <div class="meta2">police &bull; 39.4s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">244 to control. We&#x27;ll be clear from the courthouse and available for calls. 10-4. Control 208. 8. Bellingham said she&#x27;s not living in their town anymore but they have an extensive history with her. This is a normal occurrence significant mental health.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">7</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-52-06_mpd</div>
+      <div class="meta2">police &bull; 14.8s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">12 to control. Are they only asking for that one location, I&#x27;m sorry I missed that, because I can clear here. No, you&#x27;re all set, they&#x27;re just looking for that one location.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">8</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-53-06_mpd</div>
+      <div class="meta2">police &bull; 23.8s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">244 to control. Go Ahead. Yeah, motor vehicle stop will be in front of Casa Brazil, MASS PC2, Bravo Hotel Zulu 692, BHZ69. 10-4. Control 203.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">9</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-53-55_mpd</div>
+      <div class="meta2">police &bull; 26.8s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">3 Roger. Control, 244. 244. Can I just confirm that plate with you 2 Bravo Hotel Charlie 7 5? Negative, it&#x27;s going to be 2 Bravo Hotel Zulu 6 9, 2BHZ69. Thank you.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">10</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-54-32_mpd</div>
+      <div class="meta2">police &bull; 37.2s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">12 to 3. 3. You still on the other side of town because I&#x27;m going to be leaving the Comfort Inn and I can check Beaver Street. I&#x27;m over on Cape Road right now if you&#x27;re closer. Roger control, I&#x27;ll take that between Maple and Dino.  Received I got that 3 has that thank you</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">11</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-56-28_mpd</div>
+      <div class="meta2">police &bull; 18.2s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">14 to control.  Go ahead 14. She&#x27;s been removed from the property, advise not to come back. I&#x27;ll take it on the left so you can show me that it&#x27;s clear.  10-4</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">12</td>
+    <td class="meta">
+      <div class="stem">rec_2026-02-25_09-57-13_mpd</div>
+      <div class="meta2">police &bull; 18.0s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">44 to control. Go ahead. Yeah, where was it they were coming from? Funeral Traffic. Funeral Traffic. Coming from Edwards, going to Sacred Heart.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">13</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_04-58-45_mndpd</div>
+      <div class="meta2">police &bull; 23.1s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">511 to Mendon control.  Mendon control.  You can show me clear, just the owners of Country Bunkin, they&#x27;re just picking something up. Building&#x27;s secure.  Received.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">14</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_11-15-28_pd</div>
+      <div class="meta2">police &bull; 17.8s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">89 to control. Control.  Just giving you an update we&#x27;re code-4. Received.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">15</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_11-47-05_pd</div>
+      <div class="meta2">police &bull; 23.5s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">89 to control. Control.  We&#x27;re going to be clear, looks like it was just a couple of kids making a fort. It&#x27;s on the Hazel Street side. 10-4.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">16</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_12-04-08_bfd</div>
+      <div class="meta2">fire &bull; 20.0s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">A-1 to fire alarm. Fire alarm. A-1 is responding. Received A-1 responding 12:03. Again it&#x27;s for an elderly female that fell bleeding from the back of the head.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">17</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_13-15-03_mndpd</div>
+      <div class="meta2">police &bull; 18.4s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">9 Blackstone Street, Mendon Housing Authority, Apartment Bravo 3, a little autistic girl was found wandering there.  538 Roger.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">18</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_13-53-58_bfd</div>
+      <div class="meta2">fire &bull; 14.0s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">A-1 to Fire Alarm, A-1 is on arrival landmark, ending mileage 2.5.  Received on arrival landmark, ending mileage 2.5, 13:53.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">19</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_14-23-16_bfd</div>
+      <div class="meta2">fire &bull; 12.0s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Squad-1 Fire Alarm, Squad-1 back in quarters.  Received Squad-1 back in quarters 14:23.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">20</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_15-40-34_pd</div>
+      <div class="meta2">police &bull; 6.7s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">10-4</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">21</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_15-52-14_blkfd</div>
+      <div class="meta2">fire &bull; 12.8s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Fire alarm, Support-1 is going to be in route to Milville as well.  Received Support-1 en route 15:52.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">22</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_16-42-05_mfd</div>
+      <div class="meta2">fire &bull; 10.9s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Engine-5, Rescue-1 in quarters.  Engine-5, Rescue-1, I have you both back in quarters.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">23</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-05_17-21-05_pd</div>
+      <div class="meta2">police &bull; 17.5s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">93 control. Control.  Appears accidental, we&#x27;ll be clear. 10-4.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">24</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_04-18-15_bpd</div>
+      <div class="meta2">police &bull; 13.6s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Control it&#x27;s going to be ending mileage 31340.9.  Received.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">25</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_08-44-08_mpd</div>
+      <div class="meta2">police &bull; 10.6s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">7 to control, you can show me out in the area.  Received.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">26</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_09-03-42_frkfd</div>
+      <div class="meta2">fire &bull; 25.4s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Engine-2, Franklin Fire.  Fire.  False detector is U208, there&#x27;s no reading, there&#x27;s no EMS here.  Received faulty detector, no reading, no EMS. Received, sir.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">27</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_09-15-13_mpd</div>
+      <div class="meta2">police &bull; 20.7s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Control 206.  6.  106 Beaver Street, again 106 Beaver Street.  You can go to that residence, that&#x27;s the Tree warden&#x27;s residence see if he&#x27;s there, you can make contact with him.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">28</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_12-17-42_mfd</div>
+      <div class="meta2">fire &bull; 38.1s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Ladder-1 to Fire alarm, what&#x27;s the nature of the medical?  Going for the same male that needed the lift assistant to his car.  His wife called to say that he&#x27;s dehydrated now.  Received, have the rescue go to that medical.  Fire alarm, copy. Fire alarm, copies, P-Chef. We&#x27;re clear, we&#x27;re available for a call. C-4, what&#x27;s your pleasure.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">29</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-06_12-20-14_mfd</div>
+      <div class="meta2">fire &bull; 30.4s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Rescue-1 arriving on scene.  Rescue-1 on scene. He might be in Papa Gino&#x27;s now trying to get a drink, again if you want to check Papa Gino&#x27;s.  Rescue has that.  You can show P-10 on scene.  P-1 on scene as well.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">30</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-10_08-59-48_mndpd</div>
+      <div class="meta2">police &bull; 20.7s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Mendon control, 511. 511. We emailed the recording over to you that she left at the school. Thank you.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">31</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-10_09-23-10_mndpd</div>
+      <div class="meta2">police &bull; 23.2s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Alright, so, we spoke with the father, Coleman Junior, and we did make contact with the son, Coleman the third. I&#x27;m going to be throwing some information in the call, if you could just leave it open.  Received.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">32</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-10_09-29-59_mndpd</div>
+      <div class="meta2">police &bull; 18.4s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">529 Mendon control. Mendon control. You control, both units clear. Received.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">33</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-10_11-23-27_mndpd</div>
+      <div class="meta2">police &bull; 28.0s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Mendon control, 539. Go ahead. 8 Megan Court we&#x27;re getting a report that a drone is hovering over her house and farm. For about 15 minutes so far it disappears as I&#x27;m returning, drone is smaller, gray 1.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">34</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-10_11-41-03_mndpd</div>
+      <div class="meta2">police &bull; 10.6s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">539 Mendon control. Mendon control.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="num">35</td>
+    <td class="meta">
+      <div class="stem">rec_2026-04-10_11-41-25_mndpd</div>
+      <div class="meta2">police &bull; 21.9s</div>
+      <div class="meta3">Best: ERR</div>
+    </td>
+    <td class="ref">Spoke with the RP at 8 Megan Court. The drone is not in the air right now. Looks like it headed back over to the Hastings Street, Emerson area. We&#x27;re gonna take a swing over there, see if we can find anything. Received.</td>
+    
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+    <td class="hyp hyp-missing">
+      <div class="diff"><span class="missing">[no prediction]</span></div>
+      <div class="scores">WER n/a &bull; CER n/a</div>
+    </td>
+  </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

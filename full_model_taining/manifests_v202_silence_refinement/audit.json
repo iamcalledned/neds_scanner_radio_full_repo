@@ -1,0 +1,23 @@
+{
+  "version": "V202",
+  "source_manifest_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v201_exact_exports",
+  "source_train_rows": 1082,
+  "source_train_unique_ids": 1082,
+  "all_source_train_ids_retained": {
+    "value": true,
+    "missing": []
+  },
+  "unique_non_speech_rows": 25,
+  "non_speech_repeat": 8,
+  "non_speech_presentations": 200,
+  "total_train_presentations": 1257,
+  "eval_rows": 35,
+  "eval_unique_ids": 35,
+  "train_eval_exact_overlap": [],
+  "test_rows_loaded": 0,
+  "manifest_sha256": {
+    "train": "79381d5b96e1ce8bd820d662984d15ad0d2c9f75c46670fd70d422238e702e7b",
+    "eval": "211c7395d551dc83ceaf0dfe57f79b27d266da6bba6d2b0b8ca586e96d549bc7"
+  },
+  "flags": []
+}

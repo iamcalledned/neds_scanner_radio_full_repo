@@ -1,0 +1,19 @@
+{
+  "model_catalog": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v101_v103_equal_catalog.json",
+  "models": [
+    {
+      "key": "v101_equal",
+      "label": "V101 beam 3"
+    },
+    {
+      "key": "v103_language_equal",
+      "label": "V103 language beam 3"
+    }
+  ],
+  "sample_source": {
+    "validation_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test"
+  },
+  "output": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/v101_v103_equal_test"
+  }
+}

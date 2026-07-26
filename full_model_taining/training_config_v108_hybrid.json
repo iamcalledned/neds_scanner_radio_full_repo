@@ -1,0 +1,49 @@
+{
+  "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v106_lora_clean_merged",
+  "source_manifests_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v105",
+  "word_manifests_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v108_words",
+  "negative_manifests_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v108_negative",
+  "manifests_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v105",
+  "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v108_hybrid/stage3_joint_consolidation",
+  "ctranslate2_output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v108_hybrid_ct2",
+  "batch_size": 1,
+  "eval_batch_size": 1,
+  "gradient_accumulation_steps": 16,
+  "warmup_ratio": 0.05,
+  "logging_steps": 8,
+  "num_workers": 0,
+  "seed": 42,
+  "gradient_checkpointing": true,
+  "fp16": true,
+  "bf16": false,
+  "metric_for_best_model": "selection_score",
+  "staged_training": {
+    "stage1": {
+      "name": "language",
+      "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v108_hybrid/stage1_word_decoder",
+      "epochs": 4.0,
+      "learning_rate": 0.0000005,
+      "augment_probability": 0.05,
+      "eval_steps": 89,
+      "save_steps": 89
+    },
+    "stage2": {
+      "name": "language",
+      "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v108_hybrid/stage2_negative_decoder",
+      "epochs": 1.0,
+      "learning_rate": 0.0000003,
+      "augment_probability": 0.05,
+      "eval_steps": 54,
+      "save_steps": 54
+    },
+    "stage3": {
+      "name": "consolidation",
+      "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v108_hybrid/stage3_joint_consolidation",
+      "epochs": 0.25,
+      "learning_rate": 0.0000001,
+      "augment_probability": 0.0,
+      "eval_steps": 12,
+      "save_steps": 12
+    }
+  }
+}

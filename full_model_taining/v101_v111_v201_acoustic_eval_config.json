@@ -1,0 +1,23 @@
+{
+  "model_catalog": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v101_v111_v201_acoustic_eval_catalog.json",
+  "models": [
+    {
+      "key": "v101_prod",
+      "label": "V101 production"
+    },
+    {
+      "key": "v111",
+      "label": "V111 exact-export LoRA"
+    },
+    {
+      "key": "v201_acoustic",
+      "label": "V201 acoustic only"
+    }
+  ],
+  "sample_source": {
+    "validation_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval"
+  },
+  "output": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/v101_v111_v201_acoustic_eval_comparison"
+  }
+}

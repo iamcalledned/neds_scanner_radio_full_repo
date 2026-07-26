@@ -1,0 +1,23 @@
+{
+  "version": "V112",
+  "source_manifest_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v111_exact_exports",
+  "mining_predictions": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v112_hard_example_mining/predictions.jsonl",
+  "source_train_rows": 1082,
+  "source_train_unique_ids": 1082,
+  "all_source_train_ids_retained": true,
+  "missing_source_train_ids": [],
+  "baseline_hard_ids_at_wer_0.50": 42,
+  "baseline_repetition_ids": 3,
+  "contamination_id": "rec_2026-03-29_15-28-32_pd",
+  "contamination_presentations": 12,
+  "total_train_presentations": 1137,
+  "eval_rows": 35,
+  "eval_unique_ids": 35,
+  "train_eval_exact_overlap": [],
+  "test_rows_loaded": 0,
+  "manifest_sha256": {
+    "train": "9cf5f08364be7d11845d7eef854e9c63abc4693d24baa1c6a3348d797f2e9fd4",
+    "eval": "50de7f5046404c4adb8c40c5399bf27e67a25ecea23898510fdb0b6d78af37f6"
+  },
+  "flags": []
+}

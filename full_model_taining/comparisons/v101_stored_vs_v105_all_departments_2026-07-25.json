@@ -1,0 +1,1496 @@
+{
+  "summary": {
+    "date": "2026-07-25",
+    "samples": 148,
+    "reference": "stored top-level transcript field (V101)",
+    "candidate_model": "/home/ned/models/scanner_transcriber_models_active/whisper_medium_v105_lora_ct2",
+    "candidate_name": "V105-LoRA",
+    "beam_size": 2,
+    "aggregate_raw_wer": 18.173345759552657,
+    "aggregate_normalized_wer": 16.10239471511148,
+    "aggregate_raw_cer": 10.705234641265402,
+    "exact_normalized_matches": 58
+  },
+  "calls": [
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-45-08_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-45-08_bfd.json",
+      "stored_v101_transcript": "Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-46-37_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-46-37_bfd.json",
+      "stored_v101_transcript": "Fire alarm from Brush 2. Fire alarm. Good morning, stand by station 1, station 2 radio check. Squad 1. Squad 1.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm from Brush 2. Fire alarm. Good morning, stand by station 1, station 2 radio check. Squad-1. Squad-1.",
+      "raw_wer": 19.047619047619047,
+      "normalized_wer": 0.0,
+      "raw_cer": 1.8018018018018018
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-46-53_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-46-53_bfd.json",
+      "stored_v101_transcript": "A-1. A-1. Engine-3. Engine-3.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "A-1. A-1. Engine-3. Engine-3.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-47-10_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-47-10_bfd.json",
+      "stored_v101_transcript": "19.  19.  20.  20.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "19. 19. 20. 20.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 16.666666666666664
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-47-32_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-47-32_bfd.json",
+      "stored_v101_transcript": "L-3. L-3. A-2. A-2. Engine-4. Engine-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "L-3. L-3. A-2. A-2. Engine-4. Engine-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-47-50_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-47-50_bfd.json",
+      "stored_v101_transcript": "Ladder 1. Ladder 1. M-5. M-5.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Ladder-1. Ladder-1. M-5. M-5.",
+      "raw_wer": 66.66666666666666,
+      "normalized_wer": 0.0,
+      "raw_cer": 6.896551724137931
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-48-04_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-48-04_bfd.json",
+      "stored_v101_transcript": "22. 22.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "22. 22.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-48-55_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-48-55_bfd.json",
+      "stored_v101_transcript": "25. 25.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "25. 25.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-49-24_bfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bfd/rec_2026-07-25_07-49-24_bfd.json",
+      "stored_v101_transcript": "M-8. M-8. 27. 27. Radio checked please, thank you. Received, radio check's loud and clear, good morning, 749.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "M-8. M-8. 2-7. 2-7. Radio checks please, thank you. Received, radio checks loud and clear, good morning, 7-49.",
+      "raw_wer": 27.77777777777778,
+      "normalized_wer": 42.857142857142854,
+      "raw_cer": 5.5045871559633035
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-00-11_blkfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-00-11_blkfd.json",
+      "stored_v101_transcript": "A-2, we're clear.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-04-59_blkfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-04-59_blkfd.json",
+      "stored_v101_transcript": "Engine-3 to Fire Alarm. Fire Alarm's on. Engine-3 will be on the road to BMR. Received Engine-3, come on I don't know if you want me to be on the road with you.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Engine-3 to Fire Alarm. Fire Alarm. Engine-3 will be on the road to BMR. Received",
+      "raw_wer": 57.57575757575758,
+      "normalized_wer": 55.26315789473685,
+      "raw_cer": 49.375
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-05-28_blkfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-05-28_blkfd.json",
+      "stored_v101_transcript": "Give me an Engine-3. Engine-3.  Just enter it through the front of the school. Engine-3 copies.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Coming in Engine-3. Engine-3. Just enter through the front of the school. Engine-3 copies.",
+      "raw_wer": 25.0,
+      "normalized_wer": 21.052631578947366,
+      "raw_cer": 12.631578947368421
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-11-09_blkfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-11-09_blkfd.json",
+      "stored_v101_transcript": "Engine-3, way 2, clear.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Engine-3, way 2, 6.",
+      "raw_wer": 25.0,
+      "normalized_wer": 20.0,
+      "raw_cer": 21.73913043478261
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-17-52_blkfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-17-52_blkfd.json",
+      "stored_v101_transcript": "A-2, we're clear.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-18-23_blkfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkfd/rec_2026-07-25_11-18-23_blkfd.json",
+      "stored_v101_transcript": "A-6 to Engine-3.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "A-6 to Engine-3.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-38-55_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-38-55_blkpd.json",
+      "stored_v101_transcript": "4 10 23.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4 10-23.",
+      "raw_wer": 66.66666666666666,
+      "normalized_wer": 0.0,
+      "raw_cer": 12.5
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-39-30_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-39-30_blkpd.json",
+      "stored_v101_transcript": "10-4. 4 is in use. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "10-4. 4 is in use. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 4 starting 6699 Cruiser Okay, back 2. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4. 10-4 10-4.",
+      "raw_wer": 56.09756097560976,
+      "normalized_wer": 50.0,
+      "raw_cer": 56.837606837606835
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-44-29_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-44-29_blkpd.json",
+      "stored_v101_transcript": "4 station Lagacheco, DMR, and the Carnival.  10-4.  It's all quiet.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4 station Lagacheco, DMR, and the Carnival. 10-4. It's all quiet.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 2.9850746268656714
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-44-35_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-44-35_blkpd.json",
+      "stored_v101_transcript": "10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "10-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-52-12_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_01-52-12_blkpd.json",
+      "stored_v101_transcript": "9 to station. Go ahead 9. Can you change me into a P-5? P-9 is going to have a tire that's going flat. It's going to be the left rear. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "9 to station. Go ahead 9. Can you change me into a P-5? P-9 is going to have a tire that's going flat. It's going to be the left rear. 10-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-09-32_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-09-32_blkpd.json",
+      "stored_v101_transcript": "P-4 to P-5, where's your 20? Be at my back, about to be at my place exactly. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "P-4 to P-5, where's your 20? Be at my back, about to be at my door. 10-4.",
+      "raw_wer": 11.11111111111111,
+      "normalized_wer": 9.090909090909092,
+      "raw_cer": 15.853658536585366
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-09-45_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-09-45_blkpd.json",
+      "stored_v101_transcript": "I'm 10-23.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "I'm 10-23.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-12-08_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-12-08_blkpd.json",
+      "stored_v101_transcript": "Second barricade you're good.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "2nd barricade complete.",
+      "raw_wer": 75.0,
+      "normalized_wer": 80.0,
+      "raw_cer": 44.827586206896555
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-12-41_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-12-41_blkpd.json",
+      "stored_v101_transcript": "B4 to B5, you got that? 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "P-4 to P-5, you got that? 10. 10-4.",
+      "raw_wer": 42.857142857142854,
+      "normalized_wer": 62.5,
+      "raw_cer": 27.586206896551722
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-13-20_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-13-20_blkpd.json",
+      "stored_v101_transcript": "We're in a meeting on another like for a barricade or something.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "We're in a meeting on another like for a better day for people.",
+      "raw_wer": 33.33333333333333,
+      "normalized_wer": 30.76923076923077,
+      "raw_cer": 26.5625
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-14-52_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-14-52_blkpd.json",
+      "stored_v101_transcript": "4 to 5, you'll be at the end of 6-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4 to 5, you'll be at 10.",
+      "raw_wer": 40.0,
+      "normalized_wer": 41.66666666666667,
+      "raw_cer": 38.88888888888889
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-15-56_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-15-56_blkpd.json",
+      "stored_v101_transcript": "We can get this barricade over by Night Cruiser as you can please.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "We can get this barricade over by 9 Cruises if you can please.",
+      "raw_wer": 23.076923076923077,
+      "normalized_wer": 23.076923076923077,
+      "raw_cer": 12.121212121212121
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-18-44_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-18-44_blkpd.json",
+      "stored_v101_transcript": "4 to station.  Go ahead 4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "For the station. Go ahead.",
+      "raw_wer": 66.66666666666666,
+      "normalized_wer": 50.0,
+      "raw_cer": 30.76923076923077
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-19-09_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-19-09_blkpd.json",
+      "stored_v101_transcript": "We'll leave a log note for DPW, we can use some more traffic cones.  For assist with parking lot.  10-4.  That can be phased for data.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Can you leave a log note for DPW? We can use some more traffic homes. 5th and 5th parking lot. 10-4. That can be phased for data. 10-4.",
+      "raw_wer": 29.629629629629626,
+      "normalized_wer": 20.0,
+      "raw_cer": 17.73049645390071
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-21-13_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-21-13_blkpd.json",
+      "stored_v101_transcript": "5, we're going to need tape for the barricades. Okay, we got you on that. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "5, we're going to need space for the barricades. Okay, we got you on that. 10-4.",
+      "raw_wer": 6.25,
+      "normalized_wer": 5.555555555555555,
+      "raw_cer": 3.79746835443038
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-25-33_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-25-33_blkpd.json",
+      "stored_v101_transcript": "5, once you're done with that one, just come to this last one over here please.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "5, once you're done with that one, just come to this last one over here please.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-27-37_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-27-37_blkpd.json",
+      "stored_v101_transcript": "4 to 5, any other barricades? No, I think that's good. 10-4, I have them all set up on this side.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4 to 5, any other barricades? No, I think that's it. 10-4, I have them all set up on this side.",
+      "raw_wer": 4.761904761904762,
+      "normalized_wer": 4.3478260869565215,
+      "raw_cer": 4.123711340206185
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-27-50_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-27-50_blkpd.json",
+      "stored_v101_transcript": "You need more tape over there.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "We need more tape over there.",
+      "raw_wer": 16.666666666666664,
+      "normalized_wer": 16.666666666666664,
+      "raw_cer": 10.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-27-59_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-27-59_blkpd.json",
+      "stored_v101_transcript": "Affirmative, I have us off 3 more feet.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Affirmative, I have us off 3 more feet.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-47-31_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_02-47-31_blkpd.json",
+      "stored_v101_transcript": "4 to station, log a check of BMR and the carnival please.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4 to station, log a check of BMR and the Carnival please. Received.",
+      "raw_wer": 15.384615384615385,
+      "normalized_wer": 14.285714285714285,
+      "raw_cer": 14.0625
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_07-30-42_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_07-30-42_blkpd.json",
+      "stored_v101_transcript": "I want to take me off 44 Ewing to Stigwood.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "I want to say male 44, you can stay with me.",
+      "raw_wer": 80.0,
+      "normalized_wer": 80.0,
+      "raw_cer": 58.139534883720934
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_07-45-27_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_07-45-27_blkpd.json",
+      "stored_v101_transcript": "I-1 to 6, I think 64 is good. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "I want to say thank you to all people who are with us. You're welcome.",
+      "raw_wer": 155.55555555555557,
+      "normalized_wer": 127.27272727272727,
+      "raw_cer": 151.42857142857142
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_07-48-54_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_07-48-54_blkpd.json",
+      "stored_v101_transcript": "6 to the station, off to the car wash.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "6 to the station, off to the car wash. 10-4",
+      "raw_wer": 10.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 4.444444444444445
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_07-53-29_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_07-53-29_blkpd.json",
+      "stored_v101_transcript": "6 to station 10-8.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Take to the station today. Received.",
+      "raw_wer": 80.0,
+      "normalized_wer": 85.71428571428571,
+      "raw_cer": 84.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-04-25_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-04-25_blkpd.json",
+      "stored_v101_transcript": "Received station, 1038. 10-4.  Summer at Farm, Rhode Island 1, Lima, India 714, 1 ally 714. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Received station, 10-38. 10-4. Summer at Farm, Rhode Island 1, Lima, India 714. 1 ally 714. 10-4.",
+      "raw_wer": 11.76470588235294,
+      "normalized_wer": 10.526315789473683,
+      "raw_cer": 3.0927835051546393
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-05-18_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-05-18_blkpd.json",
+      "stored_v101_transcript": "Received the station. Thank you sir. 2827 Rhode Island, 3370833, R.O.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Received station. Thank you, sir. 2827 Rhode Island, 3370833, R.O.",
+      "raw_wer": 18.181818181818183,
+      "normalized_wer": 8.333333333333332,
+      "raw_cer": 7.246376811594203
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-06-13_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-06-13_blkpd.json",
+      "stored_v101_transcript": "3 for the P-3. Go Ahead. 2728 come back active. Going to be on a white Toyota Rout4 registered to a female party out of Woonsocket. 29H negative.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "P-3. Go Ahead. 27-28, come back active. Going to be on a white Toyota Router 4 registered to a female party out of Woonsocket. 29 is negative.",
+      "raw_wer": 28.57142857142857,
+      "normalized_wer": 31.03448275862069,
+      "raw_cer": 12.413793103448276
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-06-20_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-06-20_blkpd.json",
+      "stored_v101_transcript": "A-2 is active.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-07-01_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_08-07-01_blkpd.json",
+      "stored_v101_transcript": "3 is 10-8-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "3 is 10-8.",
+      "raw_wer": 33.33333333333333,
+      "normalized_wer": 20.0,
+      "raw_cer": 16.666666666666664
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-00-10_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-00-10_blkpd.json",
+      "stored_v101_transcript": "Be3 all set.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "B-3 off set.",
+      "raw_wer": 66.66666666666666,
+      "normalized_wer": 100.0,
+      "raw_cer": 33.33333333333333
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-00-49_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-00-49_blkpd.json",
+      "stored_v101_transcript": "Alright, they're on the move. 6 copy. 3 copy.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Alright, they're on the move. 6 copy. 3 copy.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-03-44_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-03-44_blkpd.json",
+      "stored_v101_transcript": "John, I got tags going to be coming up to the left because I got a bunch of walk-ins coming in.  Stand-4, they're staying in the other lane anyways, that lane should be free.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "John, I got tags going to be coming up to the left because I got a bunch of walk-ins going on here. Stand-4, they're staying in the other lane anyways, that lane should be free.",
+      "raw_wer": 8.823529411764707,
+      "normalized_wer": 8.108108108108109,
+      "raw_cer": 5.172413793103448
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-07-07_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-07-07_blkpd.json",
+      "stored_v101_transcript": "John, they're crossing over to the left side of Halfway Up the Hill. Yeah, 10-4, is it shut down now on your end?  Negative, I got some stuff coming through.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "John, you're crossing over to the left side of Halfway Up the Hill. GSA-10-4, is it shut down now when you're in? Negative, I got some stuff coming through.",
+      "raw_wer": 20.0,
+      "normalized_wer": 18.75,
+      "raw_cer": 11.464968152866243
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-07-21_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-07-21_blkpd.json",
+      "stored_v101_transcript": "I'm going to put them all on for the last time.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Then I'll put them all to the right time.",
+      "raw_wer": 54.54545454545454,
+      "normalized_wer": 58.333333333333336,
+      "raw_cer": 44.680851063829785
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-11-58_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-11-58_blkpd.json",
+      "stored_v101_transcript": "3, last one, 8 and 7.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "3, last one,",
+      "raw_wer": 50.0,
+      "normalized_wer": 50.0,
+      "raw_cer": 42.857142857142854
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-13-19_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-13-19_blkpd.json",
+      "stored_v101_transcript": "6, 4th and 1 is going by Zebra House now. 10-4. There you go",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "6, 411 is going by Debbie House House. 10-4. There you go.",
+      "raw_wer": 42.857142857142854,
+      "normalized_wer": 33.33333333333333,
+      "raw_cer": 26.666666666666668
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-16-30_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-16-30_blkpd.json",
+      "stored_v101_transcript": "6 to M-1, you got 1 Hyundai coming down to reside on residential. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "6 to M-1, you got 1 Hyundai coming down, who resides on residential. 10-4.",
+      "raw_wer": 21.428571428571427,
+      "normalized_wer": 12.5,
+      "raw_cer": 5.633802816901409
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-17-46_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-17-46_blkpd.json",
+      "stored_v101_transcript": "1-4, come on in, entering the school now.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "1 is entering the school now. 10-4.",
+      "raw_wer": 44.44444444444444,
+      "normalized_wer": 36.36363636363637,
+      "raw_cer": 29.166666666666668
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-18-09_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-18-09_blkpd.json",
+      "stored_v101_transcript": "M-1, any idea what the male last runner looks like so I can keep an eye?  It should be Jimmy Sullivan's wife with a girler with a dog in it.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "M-1, any idea what the male last runner looks like so I can keep an eye? It should be Jimmy Sullivan's wife with a daughter with a dog in it. 10-4.",
+      "raw_wer": 3.225806451612903,
+      "normalized_wer": 2.941176470588235,
+      "raw_cer": 5.442176870748299
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-19-41_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-19-41_blkpd.json",
+      "stored_v101_transcript": "420, we're going to C-1.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire Alarm. Received Line. 7.",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 83.87096774193549
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-37-08_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-37-08_blkpd.json",
+      "stored_v101_transcript": "3 to 6. 6. We think everybody's made the turn, I'm going to send a rescue to drive the route just to get eyes and reports back. We have two walkers, one with a gray shirt, and a few vets. 10-4, we still have a lot of runners coming down towards Maine in summer, correct the black zone in summer. 10-4, we just want to get eyes on the smoothie tail end is.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "3 to 6. 6. We think everybody's made the turn, I'm going to send a rescue to drive the route just to get eyes and report back. We have two walkers, one with a gray shirt, and a few left. 10-4, we still have a lot of runners coming down towards Main in summer, correct the black zone in summer. 10-4. 10-4, we just want to get eyes on if we can get the tail end of it.",
+      "raw_wer": 15.068493150684931,
+      "normalized_wer": 15.584415584415584,
+      "raw_cer": 7.887323943661972
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-42-17_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-42-17_blkpd.json",
+      "stored_v101_transcript": "B6 to B3. 3. It's looking thin for what's left from what I can see if you want to send the rescue for the route.  10-4, they just started rolling about two minutes ago. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "B-6 to B-3. 3. It's looking thin for what's left from what I can see if you want to send the rescue for the route. 10-4, they just started rolling about two minutes ago. 10-4.",
+      "raw_wer": 5.714285714285714,
+      "normalized_wer": 10.256410256410255,
+      "raw_cer": 1.7241379310344827
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-43-07_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-43-07_blkpd.json",
+      "stored_v101_transcript": "A-2 to S-2. S-2. Do we have, uh, two, uh, that we're going to be bringing back to the high school? 10 forces that appear to be the end of the run. We're still making our way down to Blackstone, we were just stopped by two of the runners. They can't think it. 10-4, on your way by if you could just get eyes on who the final runner is and report it to B6 on your way through.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "A-2 to S-2. S-2. Do we have, uh, two, uh, that we're going to be bringing back to the high school? 10 forces that appear to be the end of the run. We're still making our way down to Blackstone. We were just stopped by two of the runners. They can't think it. 10-4, on your way by if you could just get eyes on who the final runner is and report it to B-6 on your way through.",
+      "raw_wer": 3.79746835443038,
+      "normalized_wer": 2.3255813953488373,
+      "raw_cer": 0.8021390374331552
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-43-33_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-43-33_blkpd.json",
+      "stored_v101_transcript": "Okay, Received the Ease, it was that last two that we saw. Stand by, I'll give you a landmark. 10-4.  Yeah, if you have a picture with the helmet on, you can look into him.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Okay, receive the ESA. It was that last two that we saw. Stand by, I'll give you a landmark. 10-4. Yeah, if you have a picture with the helmet on, you can look into him.",
+      "raw_wer": 8.571428571428571,
+      "normalized_wer": 5.405405405405405,
+      "raw_cer": 4.651162790697675
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-44-45_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-44-45_blkpd.json",
+      "stored_v101_transcript": "3 to 6, your final group before opening up will be the gray shirt male and light shirt female pair.  And then I'll make my way towards you. We'll shut it down, link in to BMR.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "3 to 6, your final group before opening up will be the gray shirt male and light shirt female pair. And then I'll make my way towards you. We'll shut it down, link in to BMR.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.5714285714285714
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-48-06_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-48-06_blkpd.json",
+      "stored_v101_transcript": "6 to 3, do you have eyes on the last runner?  It's going to be the male with a gray shirt, with a female with a light-colored shirt.  Once they come to your intersection, I'll shoot down to you and we'll open this up and shut it down from Lincoln to the ice cream enter.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "6 to 3, do you have eyes on the E last running? It's going to be the male with a gray shirt, with a female with a light colored shirt. Once they come to your intersection, I'll shoot down to you and we'll open this up and shut it down from Lincoln to the ice station. 10-4.",
+      "raw_wer": 10.714285714285714,
+      "normalized_wer": 6.557377049180328,
+      "raw_cer": 6.4981949458483745
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-50-25_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-50-25_blkpd.json",
+      "stored_v101_transcript": "A-2 to S-2. S-2. Now we're going to come back up Mendon and we're going to make the circle and then redo the route again. Very good.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "A-2 to S-2. S-2. Now we're going to come back up Mendon and we're going to make the circle and then redo the route again. Very good.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-54-25_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-54-25_blkpd.json",
+      "stored_v101_transcript": "6 to 3, I have eyes on the last two. 10-4, let me know when they're through and we'll break it down. 10-4, there's two telephone poles away from the intersection. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "6 to 3, I have eyes on the last two. 10-4, let me know when they're through and we'll break it down. 10-4, there's two telephone poles away from the intersection. 10-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-54-57_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-54-57_blkpd.json",
+      "stored_v101_transcript": "A-2 to B-6. B-6. Lieutenant, I use those last two runners just making that final corner. Do you still need us to run the rest of the road or are you just with us? We can be all set, I'm going to head down now. Okay, received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "A-2 to P-6. 6. Lieutenant, I use those last two runners just making that final corner. If you still need us to run the rest of the road or you just with us? We can be all set, I'm going to head down now. Okay, received.",
+      "raw_wer": 8.51063829787234,
+      "normalized_wer": 7.8431372549019605,
+      "raw_cer": 4.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-55-56_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-55-56_blkpd.json",
+      "stored_v101_transcript": "6 to 3, those last few are going down Lincoln, I'm going to open up Blackstone now, shut down Lincoln.  10-4, headed your way.  John, can you have them stay on the left side now, coming down the hill?  10-4, they're on the school side right now.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "6 to 3, those last few that are going down Lincoln. I'm going to open up Blackstone now, shut down Lincoln. 10-4, headed your way. John, can you have them stay on the left side now, coming down the hill? 10-4, they're on the school side right now. 10-4.",
+      "raw_wer": 4.166666666666666,
+      "normalized_wer": 1.8867924528301887,
+      "raw_cer": 3.968253968253968
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-56-30_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-56-30_blkpd.json",
+      "stored_v101_transcript": "Checks code 2 to 10-4-2.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Check store 2 to 10 Weston.",
+      "raw_wer": 80.0,
+      "normalized_wer": 57.14285714285714,
+      "raw_cer": 45.83333333333333
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-57-55_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-57-55_blkpd.json",
+      "stored_v101_transcript": "6 to 3. 3. Blackstone is now open, Lincoln is shut down. 10-4",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "6 to 3. 3. Blackstone is now open, Lincoln is shut down. 10.",
+      "raw_wer": 7.6923076923076925,
+      "normalized_wer": 7.142857142857142,
+      "raw_cer": 3.278688524590164
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-59-02_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_09-59-02_blkpd.json",
+      "stored_v101_transcript": "6, those two, the only two left on the route. 10-4, I'm following them in. 10.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "6, those two, the only two left on the route. 10-4, I'm following them in. 10.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_10-03-44_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_10-03-44_blkpd.json",
+      "stored_v101_transcript": "John, let's do a rinse. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "John, last door we're in. 10-4.",
+      "raw_wer": 66.66666666666666,
+      "normalized_wer": 62.5,
+      "raw_cer": 44.827586206896555
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_10-05-04_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_10-05-04_blkpd.json",
+      "stored_v101_transcript": "S-2 to all units, we're good to open up all roadways.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "S-2 to all units, we're good to open up all roadways.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_10-08-38_blkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/blkpd/rec_2026-07-25_10-08-38_blkpd.json",
+      "stored_v101_transcript": "3 to station, all units, 10-8. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "3 to station all units, 10-8. 10-4.",
+      "raw_wer": 14.285714285714285,
+      "normalized_wer": 0.0,
+      "raw_cer": 2.7777777777777777
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-19-57_bpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-19-57_bpd.json",
+      "stored_v101_transcript": "Bravo 27 to control.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Bravo 27 to control.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-20-05_bpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-20-05_bpd.json",
+      "stored_v101_transcript": "You can hear me?",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "You can hear me.",
+      "raw_wer": 25.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 6.25
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-23-37_bpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-23-37_bpd.json",
+      "stored_v101_transcript": "Subscribe to our YouTube channel for more videos like this one!",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-43-19_bpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-43-19_bpd.json",
+      "stored_v101_transcript": "Delta vehicle on the side of Walmart. 1 Tango Delta with the assistance.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Delta vehicle on the side of Walmart. 1 Tango Delta with station.",
+      "raw_wer": 15.384615384615385,
+      "normalized_wer": 15.384615384615385,
+      "raw_cer": 15.277777777777779
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-46-11_bpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-46-11_bpd.json",
+      "stored_v101_transcript": "10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "10-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-46-18_bpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/bpd/rec_2026-07-25_10-46-18_bpd.json",
+      "stored_v101_transcript": "Beeps  Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_08-14-23_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_08-14-23_fd.json",
+      "stored_v101_transcript": "TONE!!!  Morning radio checks, one minute.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "TONE!!! Morning radio checks, one minute.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 2.380952380952381
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_08-15-53_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_08-15-53_fd.json",
+      "stored_v101_transcript": "TONE!!! Fire alarm testing with A-1. A-1 not clear. Engine-3. Engine-3. L-2. L-2. 87. 87. 90. 90. Radio check complete, 8 15.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "TONE!!! Fire alarm testing with A-1. A-1 loud and clear. Engine-3. Engine-3. L-2. L-2. 87. 87. 90. 90. Radio check complete, 8.15.",
+      "raw_wer": 18.181818181818183,
+      "normalized_wer": 7.142857142857142,
+      "raw_cer": 6.4
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_08-18-50_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_08-18-50_fd.json",
+      "stored_v101_transcript": "Fire alarm from A-2 with radio check. Loud and clear, A-2, copy. A-2, loud and clear.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm from A-2 with radio check. Loud and clear, A-2, copy. A-2 loud and clear.",
+      "raw_wer": 6.25,
+      "normalized_wer": 0.0,
+      "raw_cer": 1.1764705882352942
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_08-37-29_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_08-37-29_fd.json",
+      "stored_v101_transcript": "Fire alarm, Engine-4 radio check. Fire alarm clear, ready copy Engine-4. Loud and clear, thank you.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, Engine-4, radio check. Loud and clear, ready copy Engine-4. Loud and clear, thank you.",
+      "raw_wer": 18.75,
+      "normalized_wer": 11.11111111111111,
+      "raw_cer": 9.090909090909092
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-08-56_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-08-56_fd.json",
+      "stored_v101_transcript": "TONE!!!  Hopedale Fire Alarm announcing a still alarm. A-1 and Brush 1 responding 172 Laurelwood Drive-4 Medical.  That's Hopedale Fire Alarm announcing a still alarm. A-1, Brush 1, 172 Laurelwood Drive-4 Medical.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "TONE!!! Hopedale Fire Alarm announcing a still alarm. A-1 and Brush 1 responding. 172 Larawood Drive-4 Medical. That's Hopedale Fire Alarm announcing a still alarm. A-1, Brush 1, 172 Larawood Drive-4 Medical.",
+      "raw_wer": 9.375,
+      "normalized_wer": 5.405405405405405,
+      "raw_cer": 4.225352112676056
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-09-13_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-09-13_fd.json",
+      "stored_v101_transcript": "Fire Alarm A-1 en route. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, A-1 en route. Received.",
+      "raw_wer": 16.666666666666664,
+      "normalized_wer": 0.0,
+      "raw_cer": 5.88235294117647
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-10-04_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-10-04_fd.json",
+      "stored_v101_transcript": "Fire Alarm, Brush 1 is on responding. 36909.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire Alarm, Brush-1 is on responding. 36909.",
+      "raw_wer": 25.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 2.272727272727273
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-13-20_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-13-20_fd.json",
+      "stored_v101_transcript": "Fire Alarm A-1 on scene. A-1 on scene.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, A-1 on scene. Fire alarm, A-1 on scene.",
+      "raw_wer": 37.5,
+      "normalized_wer": 20.0,
+      "raw_cer": 36.84210526315789
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-14-21_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-14-21_fd.json",
+      "stored_v101_transcript": "Fire alarm, Brush 1 is on scene.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, Brush-1 is on scene.",
+      "raw_wer": 28.57142857142857,
+      "normalized_wer": 0.0,
+      "raw_cer": 3.125
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-33-17_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-33-17_fd.json",
+      "stored_v101_transcript": "Fire alarm, Brush 1.  Answering Brush 1. Brush 1 is clear returning. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, Brush-1. Answering Brush-1. Brush-1 is clear returning. Received.",
+      "raw_wer": 46.15384615384615,
+      "normalized_wer": 0.0,
+      "raw_cer": 5.128205128205128
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-35-09_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-35-09_fd.json",
+      "stored_v101_transcript": "Fire alarm, A-1. Fire alarm. Transporting 1 BLS Milford starting mileage 0. Received 10934.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, A-1. Fire alarm. Transporting 1 BLS Milford starting mileage 0. Received 10 9 34.",
+      "raw_wer": 21.428571428571427,
+      "normalized_wer": 20.0,
+      "raw_cer": 2.197802197802198
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-40-03_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-40-03_fd.json",
+      "stored_v101_transcript": "Fire alarm, brush 1's in quarters. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, brush 1's in quarters. Received.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-41-15_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_09-41-15_fd.json",
+      "stored_v101_transcript": "Fire alarm, A-1 off Milford, any mileage 2.5? 2.5 to Milford 941.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, A-1 off at Milford, ending mileage 2.5. 2.5 at Milford 9.41.",
+      "raw_wer": 41.66666666666667,
+      "normalized_wer": 33.33333333333333,
+      "raw_cer": 18.461538461538463
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_10-02-07_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_10-02-07_fd.json",
+      "stored_v101_transcript": "Fire alarm, OK-1. Fire alarm. Clear from Milford returning. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm, A-1. Fire alarm. Clear from Milford returning. Received.",
+      "raw_wer": 10.0,
+      "normalized_wer": 9.090909090909092,
+      "raw_cer": 2.898550724637681
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_10-26-13_fd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/fd/rec_2026-07-25_10-26-13_fd.json",
+      "stored_v101_transcript": "Fire alarm from A-1. Fire alarm. Back in quarters. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Fire alarm from A-1. Fire alarm. Back in quarters. 10-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/frkpd/rec_2026-07-25_02-00-52_frkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/frkpd/rec_2026-07-25_02-00-52_frkpd.json",
+      "stored_v101_transcript": "516 Maple.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516 Maple.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/frkpd/rec_2026-07-25_02-01-02_frkpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/frkpd/rec_2026-07-25_02-01-02_frkpd.json",
+      "stored_v101_transcript": "10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "10-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-00-16_mfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-00-16_mfd.json",
+      "stored_v101_transcript": "Engine-5 in quarters. Received, you're back in.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Engine-5 in quarters. Received, you're back in.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-01-17_mfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-01-17_mfd.json",
+      "stored_v101_transcript": "P-1, Milford Fire, P-1 is clear. Received P-1, you're clear. Received back. Received, you're back in.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "P-1, Milford Fire, P-1 is clear. Received P-1, you're clear. Received back. Received, you're back in.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-01-37_mfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-01-37_mfd.json",
+      "stored_v101_transcript": "P-2 to Milford Hospital. Received you're 1 to Milford.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "P-2 to Milford Hospital. Received you're 1 to Milford.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-08-02_mfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-08-02_mfd.json",
+      "stored_v101_transcript": "Brush 1 is off at station 2 for fuel. Received. P-2 is off to the hospital. Received, you're off to the hospital.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Brush 1 is off at station 2 for fuel. Received. P-2 is off to the hospital. Received, you're off to the hospital.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-13-45_mfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-13-45_mfd.json",
+      "stored_v101_transcript": "Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-21-17_mfd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mfd/rec_2026-07-25_11-21-17_mfd.json",
+      "stored_v101_transcript": "Brush 1 is clear station 2, returning to station 1. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Brush 1 is clear station 2, returning to station 1. Received.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_00-33-55_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_00-33-55_mndpd.json",
+      "stored_v101_transcript": "516, Mendon Control. Mendon Control. Entry gained, both units are clear. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516, Mendon Control. Mendon Control. Entry gain, both units are clear. Received.",
+      "raw_wer": 8.333333333333332,
+      "normalized_wer": 8.333333333333332,
+      "raw_cer": 2.4390243902439024
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_00-34-15_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_00-34-15_mndpd.json",
+      "stored_v101_transcript": "Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_00-36-06_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_00-36-06_mndpd.json",
+      "stored_v101_transcript": "538-209 control. Medi control. They're all set, I'll be clear. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "538 to a nice drill. Minute is open. They're all set, I'll be clear. Received.",
+      "raw_wer": 72.72727272727273,
+      "normalized_wer": 50.0,
+      "raw_cer": 33.33333333333333
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-00-51_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-00-51_mndpd.json",
+      "stored_v101_transcript": "Mendon control, 516.  516 Maple.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Mendon control, 516. 516 Maple.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 3.125
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-01-03_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-01-03_mndpd.json",
+      "stored_v101_transcript": "Just been done an immediate detail, from Bryson. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Just been done in immediate detail, from Bryson. 10-4.",
+      "raw_wer": 11.11111111111111,
+      "normalized_wer": 10.0,
+      "raw_cer": 1.8518518518518516
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-17-32_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-17-32_mndpd.json",
+      "stored_v101_transcript": "516 Mendon control.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516 Mendon control.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-17-57_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-17-57_mndpd.json",
+      "stored_v101_transcript": "Mendon control. What are the angles of stop Hastings at Elm with MASS 6, Hotel Hotel Tango 22, 6, HHT 22, showing she's been to 27 and active 29? I'll advise. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Mendon control. One of the vehicles will stop hastings at Elm with MASS 6 Hotel Hotel Tango 22 6HHT22, showing a suspended 27 and an active 29. All advised. Received.",
+      "raw_wer": 53.125,
+      "normalized_wer": 44.11764705882353,
+      "raw_cer": 23.214285714285715
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-18-48_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-18-48_mndpd.json",
+      "stored_v101_transcript": "538, to Mendon Control. Control. I'll be out with 516. Received, thank you.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "538 to Mendon Control. Control. I'll be out with 5162. Received, thank you.",
+      "raw_wer": 15.384615384615385,
+      "normalized_wer": 7.142857142857142,
+      "raw_cer": 2.666666666666667
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-19-57_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-19-57_mndpd.json",
+      "stored_v101_transcript": "516 Mendon control. Mendon control. Just wanted to confirm it is the owner opp.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516 Mendon control. Mendon control. Just wanted to confirm it is the owner 10-4 on the run.",
+      "raw_wer": 28.57142857142857,
+      "normalized_wer": 35.714285714285715,
+      "raw_cer": 17.72151898734177
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-20-04_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-20-04_mndpd.json",
+      "stored_v101_transcript": "Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Received.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-20-27_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-20-27_mndpd.json",
+      "stored_v101_transcript": "Control to 516, are you clear to come? Go ahead. Just advising the owner opp has a straight misdemeanor.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Control to 516, are you clear to cop? Go ahead. Just advising the owner opp has a straight misdemeanor.",
+      "raw_wer": 5.263157894736842,
+      "normalized_wer": 5.263157894736842,
+      "raw_cer": 1.9230769230769231
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-20-34_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-20-34_mndpd.json",
+      "stored_v101_transcript": "10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "10-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-21-27_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-21-27_mndpd.json",
+      "stored_v101_transcript": "5382, Mendon Control. Mendon Control. KC is with Portuguese, speaking officer is available.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "5382, Mendon Control. Mendon Control. KC is with Portuguese, speaking officer is available.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-21-34_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-21-34_mndpd.json",
+      "stored_v101_transcript": "Received, stay back.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Received, stay back.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-24-44_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-24-44_mndpd.json",
+      "stored_v101_transcript": "516, Mendon Control. Mendon Control. Started to O4-1, 1 in custody. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516, Mendon Control. Mendon Control. Start it to O-4-1, 1 in custody. Received.",
+      "raw_wer": 25.0,
+      "normalized_wer": 30.76923076923077,
+      "raw_cer": 5.194805194805195
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-25-38_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-25-38_mndpd.json",
+      "stored_v101_transcript": "Mendon control, 538. 538. Negative findings on a Portuguese speaking officer. Try Bellingham, Milford, even LPS 7. Roger.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Mendon control, 538. 538. Negative findings on a Portuguese speaking officer. Try Bellingham, Milford, even LPS 7. Roger.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-26-50_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-26-50_mndpd.json",
+      "stored_v101_transcript": "Control 516, Howey's en route.  10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Control 516, Howey's en route. 10-4.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 2.7027027027027026
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-28-17_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-28-17_mndpd.json",
+      "stored_v101_transcript": "538 to Mendon Control.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "538 to Mendon Control.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-28-36_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-28-36_mndpd.json",
+      "stored_v101_transcript": "Mendon control. 1 male on board en route back to the station, starting mileage 49717.5. Received 228.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Mendon control. 1 male on board en route back to the station, starting mileage 49717.5. Received 2 28.",
+      "raw_wer": 11.76470588235294,
+      "normalized_wer": 11.11111111111111,
+      "raw_cer": 0.9900990099009901
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-29-50_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-29-50_mndpd.json",
+      "stored_v101_transcript": "538 to Mendon Control. Mendon Control. On arrival at the station, ending mileage 49717.9.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "538 to Mendon Control. Mendon Control. Own arrival at the station, ending mileage 49717.9.",
+      "raw_wer": 7.142857142857142,
+      "normalized_wer": 6.666666666666667,
+      "raw_cer": 1.1235955056179776
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-29-57_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-29-57_mndpd.json",
+      "stored_v101_transcript": "Received 229.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Received 229.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-32-07_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-32-07_mndpd.json",
+      "stored_v101_transcript": "516-538. 538. I created an engine and number and transferred it to you.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516538. 538. I created an engine and number and transferred it to you.",
+      "raw_wer": 7.6923076923076925,
+      "normalized_wer": 14.285714285714285,
+      "raw_cer": 1.4084507042253522
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-32-13_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-32-13_mndpd.json",
+      "stored_v101_transcript": "Roger.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Roger.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-36-11_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-36-11_mndpd.json",
+      "stored_v101_transcript": "Control to 516. 516. So we just sent you a message on your MDT, when you have a moment. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Control to 516. 516. Sir we just sent you a message on your MDT, when you have a moment. 10-4.",
+      "raw_wer": 5.0,
+      "normalized_wer": 4.761904761904762,
+      "raw_cer": 2.1505376344086025
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-50-11_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-50-11_mndpd.json",
+      "stored_v101_transcript": "516 Mendon control. Mendon control. Halley's is on arrival. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516 Mendon control. Mendon control. Halley's is on arrival. Received.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-53-58_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_02-53-58_mndpd.json",
+      "stored_v101_transcript": "516 Mendon control. Mendon control. Hollies has that vehicle, has it removed, I'll be clear. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516 Mendon control. Mendon control. Hollis has that vehicle, has it removed, I'll be clear. Received.",
+      "raw_wer": 6.25,
+      "normalized_wer": 5.88235294117647,
+      "raw_cer": 0.9803921568627451
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_03-04-02_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_03-04-02_mndpd.json",
+      "stored_v101_transcript": "538, to Mendon Control. Mendon Control. Can you see if there's a DRE available in the area?",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "538 to Mendon Control. Mendon Control. Can you see if there's a DRE available in the area?",
+      "raw_wer": 5.88235294117647,
+      "normalized_wer": 0.0,
+      "raw_cer": 1.098901098901099
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_03-04-12_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_03-04-12_mndpd.json",
+      "stored_v101_transcript": "Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Received.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_04-12-16_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_04-12-16_mndpd.json",
+      "stored_v101_transcript": "516, Mendon Control. Mendon Control. That prisoner's been released, both units are clear and available. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "516 Mendon Control. Mendon Control. That prisoner's been released, both units are clear and available. Received.",
+      "raw_wer": 6.25,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.8849557522123894
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_06-03-57_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_06-03-57_mndpd.json",
+      "stored_v101_transcript": "Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_09-57-29_mndpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mndpd/rec_2026-07-25_09-57-29_mndpd.json",
+      "stored_v101_transcript": "Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-00-00_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-00-00_mpd.json",
+      "stored_v101_transcript": "246 control. Control's on. Can you put me on the board, traffic are in today, starting 4245 again 4245, I'll be doing 1101 today. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "246 control. Control's on. Can you put me on the board, traffic are in today, starting 4245 again 4245, I'll be doing 11-1 today. Received.",
+      "raw_wer": 4.0,
+      "normalized_wer": 7.4074074074074066,
+      "raw_cer": 0.7194244604316548
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-07-38_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-07-38_mpd.json",
+      "stored_v101_transcript": "246 control. Control's on. En route to the front of Brookside with MASS reg 6 Romeo, Bravo Lima 91, MASS 6R BL 91. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "246 control. Control's on. Onger's in front of Brookside with MASS reg 6 Romeo Bravo Lima 91. MASS 6RBL91. Received.",
+      "raw_wer": 37.5,
+      "normalized_wer": 28.000000000000004,
+      "raw_cer": 12.903225806451612
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-10-09_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-10-09_mpd.json",
+      "stored_v101_transcript": "246 control. Go ahead 46. Operator's MASS Sierra 359-387-41, S-359-387-41.  10-4, you want the return? Negative also, thank you. Bailey, can you give it to me again? I think I missed a little return number, I'm sorry. Yeah, Roger, it's going to be MASS, OLN Sierra 359-387-41, again S 359-387-41.  Thank you.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "246 control. Go ahead 46. Operator's MASS Sierra 35938741, S35938741. 10-4, you want the return? Negative also, thank you. Bailey, can you give it to me again, I think I missed a letter or number, I'm sorry. Yeah, Roger, it's going to be MASS, OLN Sierra 35938741, again S35938741. Thank you.",
+      "raw_wer": 15.384615384615385,
+      "normalized_wer": 24.615384615384617,
+      "raw_cer": 6.493506493506493
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-13-11_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-13-11_mpd.json",
+      "stored_v101_transcript": "246 control, you can show me clear of red warning issued. Received. Control 208, 204. 208.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "246 control, you can show me clear of written warning issued. Received. Control 208 204. 208.",
+      "raw_wer": 12.5,
+      "normalized_wer": 6.25,
+      "raw_cer": 6.666666666666667
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-13-37_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-13-37_mpd.json",
+      "stored_v101_transcript": "4. Can you guys check Countryside Drive again, Countryside Drive? Caller reports for the last 50 minutes there's been a black infinity parked on the side of the road. Received to be occupied. Received that. 4 over.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4. Can you guys check Countryside Drive again, Countryside Drive? Caller reports for the last 50 minutes there's been a black infinity parking side by the road. Received to be occupied. Received. 4 over.",
+      "raw_wer": 16.216216216216218,
+      "normalized_wer": 13.157894736842104,
+      "raw_cer": 7.009345794392523
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-19-44_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-19-44_mpd.json",
+      "stored_v101_transcript": "4 control. Control's on. Can you put me in the area? Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4 control. Control's on. Can you put me in the area? Received.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-20-52_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-20-52_mpd.json",
+      "stored_v101_transcript": "4 control. Go ahead. MASS reg 6 Echo Foxtrot Delta 6-9, 6 EFD 6-9, right off of West Street, don't be out with it. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4. Go ahead. MASS reg 6 Echo Foxtrot Delta 6 9, 6EFD69, right off of West Street, don't be out with it. 10-4.",
+      "raw_wer": 20.0,
+      "normalized_wer": 17.24137931034483,
+      "raw_cer": 10.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_01-19-36_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_01-19-36_pd.json",
+      "stored_v101_transcript": "Ease control.  I have it have it. Yeah, received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "Easy control. I have it have it. Yeah, received.",
+      "raw_wer": 11.11111111111111,
+      "normalized_wer": 11.11111111111111,
+      "raw_cer": 4.081632653061225
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_01-21-06_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_01-21-06_pd.json",
+      "stored_v101_transcript": "Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_01-21-44_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_01-21-44_pd.json",
+      "stored_v101_transcript": "Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_07-21-35_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_07-21-35_pd.json",
+      "stored_v101_transcript": "8 control. Control. Morning, starting for 671-907, make sure I'm ok. Declared available. 10-4, good morning.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "8 control. Control. Morning, starting for 671907, make sure I'm ok. Clear and",
+      "raw_wer": 37.5,
+      "normalized_wer": 42.10526315789473,
+      "raw_cer": 32.407407407407405
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-07-16_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-07-16_pd.json",
+      "stored_v101_transcript": "88. 88. Can you head over to 5656 Millen for a commercial burglar alarm, D&M office, that's showing the entry door?",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "88. 88. Can you head over to 5656 Millin for a commercial burglar alarm, D&M office that's showing me entry door.",
+      "raw_wer": 19.047619047619047,
+      "normalized_wer": 8.695652173913043,
+      "raw_cer": 4.3478260869565215
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-12-20_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-12-20_pd.json",
+      "stored_v101_transcript": "Be out in 5-6 minutes. 10-4. Picked up a delivery in the back, looks like. Yeah, that's typically the case with this business, we get it a couple times a month for deliveries.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "It'll be out in 5-6 minutes. 10-4. Picking up a delivery in the back, looks like. Yeah, that's typically the case with this business, we get it a couple times a month for deliveries.",
+      "raw_wer": 9.090909090909092,
+      "normalized_wer": 8.333333333333332,
+      "raw_cer": 5.714285714285714
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-13-29_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-13-29_pd.json",
+      "stored_v101_transcript": "80 control. Control. He's got a key that they hide to uh for deliveries but he can't find the box to show off so go look inside. Received. Do you have contact information for this all of them, broadly? I'll take a look.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "8 to control. Control. He's got a key that they hide to, for deliveries, but he can't find the box to shut off. Take a look inside. Received. Do you have contact information for this office, broadly? I'll take a look.",
+      "raw_wer": 27.906976744186046,
+      "normalized_wer": 19.565217391304348,
+      "raw_cer": 10.95890410958904
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-14-33_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-14-33_pd.json",
+      "stored_v101_transcript": "88, negative on contact and both.  Alright, thank you, I'm going to go inside with them and see if we can find the box.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "88, negative on contact and both. Alright, thank you, I'm going to go inside with them and see if we can find the box.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.8403361344537815
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-17-41_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-17-41_pd.json",
+      "stored_v101_transcript": "8 to control. Control. Yeah, he's going to be off the building security again. They didn't leave anything for him, he was supposed to pick something up. 10-4.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "8 to control. Control. Yeah, he's going to be off that. Building security again. They didn't leave anything for him, he was supposed to pick something up. 10-4.",
+      "raw_wer": 7.142857142857142,
+      "normalized_wer": 3.225806451612903,
+      "raw_cer": 2.5316455696202533
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-24-45_pd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/pd/rec_2026-07-25_09-24-45_pd.json",
+      "stored_v101_transcript": "Beeps",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "",
+      "raw_wer": 100.0,
+      "normalized_wer": 100.0,
+      "raw_cer": 100.0
+    }
+  ]
+}

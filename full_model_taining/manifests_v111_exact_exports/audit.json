@@ -1,0 +1,12 @@
+{
+  "exports_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports",
+  "train_source": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train",
+  "eval_source": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval",
+  "train_rows": 1082,
+  "train_unique_ids": 1082,
+  "eval_rows": 35,
+  "eval_unique_ids": 35,
+  "train_eval_exact_overlap": [],
+  "test_policy": "exports/test was not read, loaded, copied, or referenced",
+  "flags": []
+}

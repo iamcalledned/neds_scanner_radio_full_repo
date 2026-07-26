@@ -1,0 +1,35 @@
+{
+  "version": "V113",
+  "source_manifest_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v111_exact_exports",
+  "mining_predictions": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v112_hard_example_mining/predictions.jsonl",
+  "source_train_rows": 1082,
+  "source_train_unique_ids": 1082,
+  "eval_rows": 35,
+  "test_rows_loaded": 0,
+  "stage1": {
+    "strategy": "measured_failures_and_non_speech_only",
+    "unique_ids": 63,
+    "presentations": 243,
+    "hard_ids": 42,
+    "repetition_ids": 3,
+    "non_speech_probe_ids": 25,
+    "contamination_presentations": 24,
+    "train_eval_exact_overlap": []
+  },
+  "stage2": {
+    "strategy": "full_curated_set_consolidation",
+    "unique_ids": 1082,
+    "presentations": 1137,
+    "all_source_train_ids_retained": true,
+    "missing_source_train_ids": [],
+    "contamination_presentations": 12,
+    "train_eval_exact_overlap": []
+  },
+  "manifest_sha256": {
+    "stage1_train": "6403aa37072707ea01929cf1004596b218bfd3191f7350851cf5d3c790b3475f",
+    "stage1_eval": "50de7f5046404c4adb8c40c5399bf27e67a25ecea23898510fdb0b6d78af37f6",
+    "stage2_train": "9cf5f08364be7d11845d7eef854e9c63abc4693d24baa1c6a3348d797f2e9fd4",
+    "stage2_eval": "50de7f5046404c4adb8c40c5399bf27e67a25ecea23898510fdb0b6d78af37f6"
+  },
+  "flags": []
+}

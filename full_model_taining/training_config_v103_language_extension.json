@@ -1,0 +1,49 @@
+{
+  "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v103_layered/stage1_acoustic/best",
+  "alignment_model": "openai/whisper-medium.en",
+  "exports_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports",
+  "manifests_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v103",
+  "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v103_layered_r2/stage3_consolidation",
+  "ctranslate2_output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v103_layered_r2_ct2",
+  "exclude_filenames": [
+    "rec_2026-04-06_08-15-45_fd.wav"
+  ],
+  "min_duration": 0.25,
+  "max_duration": 30.0,
+  "long_audio": {
+    "enabled": true,
+    "segment_duration": 29.0,
+    "stride_length": 3.0,
+    "minimum_alignment_ratio": 0.25,
+    "allow_low_confidence": true
+  },
+  "allow_transcript_fallback": false,
+  "batch_size": 1,
+  "eval_batch_size": 1,
+  "gradient_accumulation_steps": 16,
+  "warmup_ratio": 0.05,
+  "logging_steps": 10,
+  "num_workers": 0,
+  "seed": 42,
+  "gradient_checkpointing": true,
+  "fp16": true,
+  "bf16": false,
+  "language_extension": {
+    "input_model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v103_layered/stage1_acoustic/best",
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v103_layered_r2/stage2_language",
+    "epochs": 3.0,
+    "learning_rate": 0.000002,
+    "augment_probability": 0.1,
+    "eval_steps": 25,
+    "save_steps": 25,
+    "required_wer_below": 20.734597156398106
+  },
+  "consolidation": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v103_layered_r2/stage3_consolidation",
+    "epochs": 0.25,
+    "learning_rate": 0.0000002,
+    "augment_probability": 0.0,
+    "eval_steps": 10,
+    "save_steps": 10
+  }
+}

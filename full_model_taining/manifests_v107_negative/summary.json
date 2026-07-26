@@ -1,0 +1,13 @@
+{
+  "source_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v105",
+  "negative_repeat": 10,
+  "source_train_rows": 756,
+  "unique_negative_rows": 11,
+  "refinement_train_rows": 855,
+  "refinement_negative_presentations": 110,
+  "held_out_splits_unchanged": [
+    "eval",
+    "test",
+    "hallucination"
+  ]
+}

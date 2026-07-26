@@ -1,0 +1,5 @@
+{
+  "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v112_corrective_lora",
+  "merged_output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v112_corrective_lora_epoch2_merged",
+  "ctranslate2_output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v112_corrective_lora_epoch2_ct2"
+}

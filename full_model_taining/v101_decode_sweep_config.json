@@ -1,0 +1,23 @@
+{
+  "model_catalog": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v101_decode_sweep_catalog.json",
+  "models": [
+    {
+      "key": "v101_current",
+      "label": "V101 current"
+    },
+    {
+      "key": "v101_guardrails",
+      "label": "V101 guardrails"
+    },
+    {
+      "key": "v101_guardrails_vad",
+      "label": "V101 guardrails + VAD"
+    }
+  ],
+  "sample_source": {
+    "validation_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test"
+  },
+  "output": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/v101_decode_sweep/test"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v113_stage2_consolidation_ct2",
+  "manifest": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v111_exact_exports/train.jsonl",
+  "rows": 1082,
+  "aggregate_wer": 0.11335269244485201,
+  "exact_matches": 739,
+  "wer_at_least_0_25": 87,
+  "wer_at_least_0_50": 40,
+  "wer_at_least_1_00": 27,
+  "repeated_predictions": 4,
+  "forbidden_phrase_hits": [],
+  "runtime_seconds": 308.52989172935486
+}

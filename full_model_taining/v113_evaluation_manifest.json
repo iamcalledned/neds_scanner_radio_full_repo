@@ -1,0 +1,83 @@
+{
+  "version": "v113",
+  "status": "rejected_not_promoted",
+  "evaluated_at": "2026-07-25T16:19:00-04:00",
+  "lineage": {
+    "base": "V111 exact-export LoRA merged Hugging Face model",
+    "stage1": {
+      "method": "targeted corrective LoRA",
+      "unique_calls": 63,
+      "presentations": 243,
+      "selected_for_stage2": "checkpoint-80 (epoch 5)"
+    },
+    "stage2": {
+      "method": "low-rate full-set consolidation LoRA",
+      "unique_calls": 1082,
+      "presentations": 1137
+    },
+    "eval_calls": 35,
+    "test_rows_loaded": 0
+  },
+  "candidate": {
+    "ct2_model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v113_stage2_consolidation_ct2",
+    "ct2_model_bin_sha256": "1d8546897550177e7745e8ee81e6279ae3e06d670b820944b3745cf3324d9850",
+    "merged_hf_model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v113_stage2_consolidation_merged",
+    "merged_model_sha256": "dfe9ce938d2320ab00db25c8653d9cf32e83979e0e564f901de4d25f7ce6195e"
+  },
+  "external_eval": {
+    "source": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval",
+    "samples": 35,
+    "v111": {
+      "wer_percent": 7.73,
+      "cer_percent": 3.26
+    },
+    "v113": {
+      "wer_percent": 7.73,
+      "cer_percent": 3.24
+    },
+    "per_sample_wer_ties": 35
+  },
+  "full_curated_train_audit": {
+    "samples": 1082,
+    "v111": {
+      "wer_percent": 12.5783,
+      "exact_matches": 740,
+      "wer_at_least_0_50": 42,
+      "wer_at_least_1_00": 29,
+      "repeated_predictions": 3,
+      "forbidden_phrase_hits": 1
+    },
+    "v113": {
+      "wer_percent": 11.3353,
+      "exact_matches": 739,
+      "wer_at_least_0_50": 40,
+      "wer_at_least_1_00": 27,
+      "repeated_predictions": 4,
+      "forbidden_phrase_hits": 0
+    }
+  },
+  "non_speech_probe": {
+    "samples": 25,
+    "v111_wer_percent": 27.59,
+    "v111_cer_percent": 27.59,
+    "v113_wer_percent": 27.59,
+    "v113_cer_percent": 326.90,
+    "new_pathology": {
+      "id": "rec_2026-04-10_11-25-17_mndpd",
+      "reference": "(dead air)",
+      "prediction_summary": "very long repeated Z output"
+    }
+  },
+  "contamination_probe": {
+    "id": "rec_2026-03-29_15-28-32_pd",
+    "reference": "(dead air)",
+    "v111_prediction": "Not Farting.",
+    "v113_prediction": "POW!",
+    "forbidden_phrase_removed": true,
+    "correct_transcription": false
+  },
+  "decision": {
+    "promote": false,
+    "reason": "V113 improved aggregate curated-call WER and removed the forbidden phrase while preserving eval WER, but introduced an additional repetition failure and a catastrophic non-speech output."
+  }
+}

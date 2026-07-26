@@ -1,0 +1,54 @@
+{
+  "source_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests_v103",
+  "eval_days": [
+    "2026-04-05"
+  ],
+  "test_days": [
+    "2026-04-06"
+  ],
+  "minimum_alignment_ratio": 0.5,
+  "short_target_cap": 12,
+  "negative_holdout_percent": 25,
+  "negative_repeat": 10,
+  "splits": {
+    "train": {
+      "rows": 855,
+      "hours": 3.437,
+      "days": {
+        "2026-04-07": 331,
+        "2026-02-25": 307,
+        "2026-04-02": 167,
+        "2026-03-28": 18,
+        "2026-03-29": 18,
+        "2026-03-30": 6,
+        "2026-04-04": 6,
+        "2026-03-31": 1,
+        "2026-04-08": 1
+      },
+      "non_speech": 110
+    },
+    "eval": {
+      "rows": 198,
+      "hours": 0.87,
+      "days": {
+        "2026-04-05": 198
+      },
+      "non_speech": 5
+    },
+    "test": {
+      "rows": 209,
+      "hours": 0.892,
+      "days": {
+        "2026-04-06": 209
+      },
+      "non_speech": 4
+    }
+  },
+  "hallucination_rows": 1,
+  "rejected": 41,
+  "rejection_reasons": {
+    "short_target_frequency_cap": 21,
+    "not_manually_reviewed": 14,
+    "low_alignment": 6
+  }
+}

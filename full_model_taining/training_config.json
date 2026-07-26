@@ -1,0 +1,33 @@
+{
+  "model": "openai/whisper-medium.en",
+  "exports_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports",
+  "manifests_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/manifests",
+  "output_dir": "/home/ned/models/scanner_transcriber_models_active/whisper-medium-scanner",
+  "ctranslate2_output_dir": "/home/ned/models/scanner_transcriber_models_active/whisper-medium-scanner-ct2",
+  "min_duration": 0.25,
+  "max_duration": 30.0,
+  "long_audio": {
+    "enabled": true,
+    "segment_duration": 29.0,
+    "stride_length": 3.0,
+    "minimum_alignment_ratio": 0.25,
+    "allow_low_confidence": true
+  },
+  "allow_transcript_fallback": true,
+  "epochs": 5.0,
+  "learning_rate": 1e-05,
+  "batch_size": 1,
+  "eval_batch_size": 1,
+  "gradient_accumulation_steps": 16,
+  "warmup_ratio": 0.05,
+  "save_steps": 100,
+  "eval_steps": 100,
+  "logging_steps": 10,
+  "num_workers": 2,
+  "seed": 42,
+  "freeze_encoder": false,
+  "gradient_checkpointing": true,
+  "fp16": true,
+  "bf16": false,
+  "run_test": true
+}

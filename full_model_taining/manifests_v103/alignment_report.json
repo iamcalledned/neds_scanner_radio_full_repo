@@ -1,0 +1,515 @@
+{
+  "train": {
+    "long_recordings": 58,
+    "created_segments": 117,
+    "details": [
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_08-28-09_pd.wav",
+        "alignment_ratio": 0.825,
+        "low_confidence": false,
+        "manual_words": 40,
+        "recognized_words": 40,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_10-01-48_mpd.wav",
+        "alignment_ratio": 0.9209,
+        "low_confidence": false,
+        "manual_words": 70,
+        "recognized_words": 69,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-20-08_mndpd.wav",
+        "alignment_ratio": 0.7143,
+        "low_confidence": false,
+        "manual_words": 36,
+        "recognized_words": 34,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-33-42_mndpd.wav",
+        "alignment_ratio": 0.6949,
+        "low_confidence": false,
+        "manual_words": 52,
+        "recognized_words": 66,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-39-01_mndpd.wav",
+        "alignment_ratio": 0.8041,
+        "low_confidence": false,
+        "manual_words": 46,
+        "recognized_words": 51,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-41-32_mpd.wav",
+        "alignment_ratio": 0.8986,
+        "low_confidence": false,
+        "manual_words": 69,
+        "recognized_words": 69,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_18-29-40_mndpd.wav",
+        "alignment_ratio": 0.8182,
+        "low_confidence": false,
+        "manual_words": 32,
+        "recognized_words": 34,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-29_21-05-55_pd.wav",
+        "alignment_ratio": 0.5424,
+        "low_confidence": false,
+        "manual_words": 25,
+        "recognized_words": 34,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_08-34-05_fd.wav",
+        "alignment_ratio": 0.7174,
+        "low_confidence": false,
+        "manual_words": 39,
+        "recognized_words": 53,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_12-22-41_mpd.wav",
+        "alignment_ratio": 0.6098,
+        "low_confidence": false,
+        "manual_words": 40,
+        "recognized_words": 42,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_13-32-36_blkpd.wav",
+        "alignment_ratio": 0.8533,
+        "low_confidence": false,
+        "manual_words": 73,
+        "recognized_words": 77,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_14-00-20_frkfd.wav",
+        "alignment_ratio": 0.7869,
+        "low_confidence": false,
+        "manual_words": 32,
+        "recognized_words": 29,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_14-11-29_frkfd.wav",
+        "alignment_ratio": 0.781,
+        "low_confidence": false,
+        "manual_words": 53,
+        "recognized_words": 52,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_15-04-20_frkfd.wav",
+        "alignment_ratio": 0.7619,
+        "low_confidence": false,
+        "manual_words": 42,
+        "recognized_words": 42,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_16-52-11_mpd.wav",
+        "alignment_ratio": 0.7294,
+        "low_confidence": false,
+        "manual_words": 41,
+        "recognized_words": 44,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_06-39-33_fd.wav",
+        "alignment_ratio": 0.562,
+        "low_confidence": false,
+        "manual_words": 57,
+        "recognized_words": 64,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_08-16-19_fd.wav",
+        "alignment_ratio": 0.8859,
+        "low_confidence": false,
+        "manual_words": 72,
+        "recognized_words": 77,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-38-12_mpd.wav",
+        "alignment_ratio": 0.9789,
+        "low_confidence": false,
+        "manual_words": 95,
+        "recognized_words": 95,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-41-09_mpd.wav",
+        "alignment_ratio": 0.9613,
+        "low_confidence": false,
+        "manual_words": 90,
+        "recognized_words": 91,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-41-42_mpd.wav",
+        "alignment_ratio": 0.9593,
+        "low_confidence": false,
+        "manual_words": 62,
+        "recognized_words": 61,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_10-33-57_pd.wav",
+        "alignment_ratio": 0.9032,
+        "low_confidence": false,
+        "manual_words": 44,
+        "recognized_words": 49,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_11-10-37_mpd.wav",
+        "alignment_ratio": 0.9182,
+        "low_confidence": false,
+        "manual_words": 109,
+        "recognized_words": 111,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_11-12-26_mfd.wav",
+        "alignment_ratio": 0.6875,
+        "low_confidence": false,
+        "manual_words": 47,
+        "recognized_words": 49,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_13-16-56_mndpd.wav",
+        "alignment_ratio": 0.7579,
+        "low_confidence": false,
+        "manual_words": 47,
+        "recognized_words": 48,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_15-50-48_blkfd.wav",
+        "alignment_ratio": 0.8333,
+        "low_confidence": false,
+        "manual_words": 41,
+        "recognized_words": 43,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_07-04-14_mfd.wav",
+        "alignment_ratio": 0.7073,
+        "low_confidence": false,
+        "manual_words": 39,
+        "recognized_words": 43,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_07-46-28_bpd.wav",
+        "alignment_ratio": 0.587,
+        "low_confidence": false,
+        "manual_words": 47,
+        "recognized_words": 45,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_07-49-18_bfd.wav",
+        "alignment_ratio": 0.7339,
+        "low_confidence": false,
+        "manual_words": 52,
+        "recognized_words": 57,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_08-52-36_mpd.wav",
+        "alignment_ratio": 0.8636,
+        "low_confidence": false,
+        "manual_words": 65,
+        "recognized_words": 67,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-06-47_mpd.wav",
+        "alignment_ratio": 0.8657,
+        "low_confidence": false,
+        "manual_words": 70,
+        "recognized_words": 64,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-16-01_mpd.wav",
+        "alignment_ratio": 0.7107,
+        "low_confidence": false,
+        "manual_words": 52,
+        "recognized_words": 69,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-34-08_mpd.wav",
+        "alignment_ratio": 0.6716,
+        "low_confidence": false,
+        "manual_words": 65,
+        "recognized_words": 69,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_10-52-32_mpd.wav",
+        "alignment_ratio": 0.4174,
+        "low_confidence": false,
+        "manual_words": 41,
+        "recognized_words": 74,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_11-12-16_mpd.wav",
+        "alignment_ratio": 0.7619,
+        "low_confidence": false,
+        "manual_words": 50,
+        "recognized_words": 55,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-12-00_mpd.wav",
+        "alignment_ratio": 0.8087,
+        "low_confidence": false,
+        "manual_words": 87,
+        "recognized_words": 96,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-14-07_mfd.wav",
+        "alignment_ratio": 0.8095,
+        "low_confidence": false,
+        "manual_words": 61,
+        "recognized_words": 65,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-20-06_mpd.wav",
+        "alignment_ratio": 0.8991,
+        "low_confidence": false,
+        "manual_words": 109,
+        "recognized_words": 109,
+        "segments": 3
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-28-13_mfd.wav",
+        "alignment_ratio": 0.8936,
+        "low_confidence": false,
+        "manual_words": 45,
+        "recognized_words": 49,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_00-41-01_mpd.wav",
+        "alignment_ratio": 0.8571,
+        "low_confidence": false,
+        "manual_words": 55,
+        "recognized_words": 57,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_01-19-36_mpd.wav",
+        "alignment_ratio": 0.7049,
+        "low_confidence": false,
+        "manual_words": 68,
+        "recognized_words": 54,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_01-23-54_mpd.wav",
+        "alignment_ratio": 0.6435,
+        "low_confidence": false,
+        "manual_words": 55,
+        "recognized_words": 60,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_01-26-15_mpd.wav",
+        "alignment_ratio": 0.8739,
+        "low_confidence": false,
+        "manual_words": 59,
+        "recognized_words": 60,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_05-17-33_blkpd.wav",
+        "alignment_ratio": 0.8714,
+        "low_confidence": false,
+        "manual_words": 68,
+        "recognized_words": 72,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_05-21-12_blkpd.wav",
+        "alignment_ratio": 0.3173,
+        "low_confidence": false,
+        "manual_words": 49,
+        "recognized_words": 159,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_06-08-25_mpd.wav",
+        "alignment_ratio": 0.6173,
+        "low_confidence": false,
+        "manual_words": 35,
+        "recognized_words": 46,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_08-01-42_mpd.wav",
+        "alignment_ratio": 0.8926,
+        "low_confidence": false,
+        "manual_words": 60,
+        "recognized_words": 61,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_08-15-48_fd.wav",
+        "alignment_ratio": 0.6905,
+        "low_confidence": false,
+        "manual_words": 49,
+        "recognized_words": 35,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_08-17-45_mpd.wav",
+        "alignment_ratio": 0.3333,
+        "low_confidence": false,
+        "manual_words": 32,
+        "recognized_words": 58,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-12-39_bpd.wav",
+        "alignment_ratio": 0.5714,
+        "low_confidence": false,
+        "manual_words": 33,
+        "recognized_words": 16,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-28-47_mfd.wav",
+        "alignment_ratio": 0.8525,
+        "low_confidence": false,
+        "manual_words": 32,
+        "recognized_words": 29,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-29-39_mfd.wav",
+        "alignment_ratio": 0.8057,
+        "low_confidence": false,
+        "manual_words": 100,
+        "recognized_words": 111,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-31-40_mfd.wav",
+        "alignment_ratio": 0.8298,
+        "low_confidence": false,
+        "manual_words": 47,
+        "recognized_words": 47,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-36-12_mpd.wav",
+        "alignment_ratio": 0.8861,
+        "low_confidence": false,
+        "manual_words": 41,
+        "recognized_words": 38,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-38-34_mfd.wav",
+        "alignment_ratio": 0.9007,
+        "low_confidence": false,
+        "manual_words": 74,
+        "recognized_words": 77,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_12-52-47_mfd.wav",
+        "alignment_ratio": 0.8829,
+        "low_confidence": false,
+        "manual_words": 52,
+        "recognized_words": 59,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_12-57-50_bpd.wav",
+        "alignment_ratio": 0.9,
+        "low_confidence": false,
+        "manual_words": 61,
+        "recognized_words": 59,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_13-45-43_bpd.wav",
+        "alignment_ratio": 0.8172,
+        "low_confidence": false,
+        "manual_words": 49,
+        "recognized_words": 44,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_15-11-39_pd.wav",
+        "alignment_ratio": 0.6853,
+        "low_confidence": false,
+        "manual_words": 62,
+        "recognized_words": 81,
+        "segments": 2
+      }
+    ]
+  },
+  "eval": {
+    "long_recordings": 4,
+    "created_segments": 8,
+    "details": [
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval/rec_2026-02-25_09-47-26_mpd.wav",
+        "alignment_ratio": 0.8125,
+        "low_confidence": false,
+        "manual_words": 42,
+        "recognized_words": 54,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval/rec_2026-02-25_09-54-32_mpd.wav",
+        "alignment_ratio": 0.8148,
+        "low_confidence": false,
+        "manual_words": 55,
+        "recognized_words": 53,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval/rec_2026-04-06_12-17-42_mfd.wav",
+        "alignment_ratio": 0.6099,
+        "low_confidence": false,
+        "manual_words": 58,
+        "recognized_words": 83,
+        "segments": 2
+      },
+      {
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval/rec_2026-04-06_12-20-14_mfd.wav",
+        "alignment_ratio": 0.7711,
+        "low_confidence": false,
+        "manual_words": 41,
+        "recognized_words": 42,
+        "segments": 2
+      }
+    ]
+  },
+  "test": {
+    "long_recordings": 0,
+    "created_segments": 0,
+    "details": []
+  }
+}

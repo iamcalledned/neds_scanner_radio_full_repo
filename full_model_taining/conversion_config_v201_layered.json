@@ -1,0 +1,4 @@
+{
+  "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v201_layered/stage2_language",
+  "ctranslate2_output_dir": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v201_layered_ct2"
+}

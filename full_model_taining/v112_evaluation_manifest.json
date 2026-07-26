@@ -1,0 +1,56 @@
+{
+  "version": "v112",
+  "status": "rejected_not_promoted",
+  "evaluated_at": "2026-07-25T16:02:07-04:00",
+  "lineage": {
+    "base": "V111 exact-export LoRA merged Hugging Face model",
+    "method": "corrective LoRA replay",
+    "source_train_unique_calls": 1082,
+    "training_presentations": 1137,
+    "eval_calls": 35,
+    "test_rows_loaded": 0
+  },
+  "candidate": {
+    "selected_checkpoint": "checkpoint-72",
+    "selected_checkpoint_epoch": 1,
+    "ct2_model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v112_corrective_lora_ct2",
+    "ct2_model_bin_sha256": "773e1275959577e840acef13ef28173dd8b9aa6c6ee8cac1d8ab484fa5f1dec2"
+  },
+  "external_eval": {
+    "source": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval",
+    "samples": 35,
+    "v111": {
+      "wer_percent": 7.73,
+      "cer_percent": 3.26
+    },
+    "v112": {
+      "wer_percent": 7.73,
+      "cer_percent": 3.22
+    },
+    "per_sample_output_ties": 35
+  },
+  "non_speech_probe": {
+    "samples": 25,
+    "v111_wer_percent": 27.59,
+    "v112_wer_percent": 27.59,
+    "per_sample_output_ties": 25
+  },
+  "contamination_probe": {
+    "id": "rec_2026-03-29_15-28-32_pd",
+    "reference": "(dead air)",
+    "v111_prediction": "Not Farting.",
+    "v112_prediction": "Not Farting.",
+    "v112_final_epoch_prediction": "Not Farting."
+  },
+  "final_epoch_audit": {
+    "checkpoint": "checkpoint-144",
+    "epoch": 2,
+    "ct2_model": "/home/ned/models/scanner_transcriber_models_candidates/whisper_medium_v112_corrective_lora_epoch2_ct2",
+    "ct2_model_bin_sha256": "50a8c0c369de3e4303a0ee365bb069fec99b076f02c3a31cfb11bff3f769efca",
+    "contamination_fixed": false
+  },
+  "decision": {
+    "promote": false,
+    "reason": "The candidate preserved V111 eval quality but did not change the targeted contamination or non-speech outputs."
+  }
+}

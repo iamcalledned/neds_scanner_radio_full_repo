@@ -1,0 +1,31 @@
+{
+  "train": {
+    "accepted": 1023,
+    "rejected": 1,
+    "queued_for_alignment": 58,
+    "rejection_reasons": {
+      "configured_exclusion": 1
+    },
+    "hours": 4.214,
+    "manual_targets": 1023,
+    "fallback_targets": 0
+  },
+  "eval": {
+    "accepted": 31,
+    "rejected": 0,
+    "queued_for_alignment": 4,
+    "rejection_reasons": {},
+    "hours": 0.145,
+    "manual_targets": 31,
+    "fallback_targets": 0
+  },
+  "test": {
+    "accepted": 26,
+    "rejected": 0,
+    "queued_for_alignment": 0,
+    "rejection_reasons": {},
+    "hours": 0.093,
+    "manual_targets": 26,
+    "fallback_targets": 0
+  }
+}

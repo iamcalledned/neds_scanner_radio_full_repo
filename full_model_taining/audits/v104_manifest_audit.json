@@ -1,0 +1,2350 @@
+{
+  "splits": {
+    "train": {
+      "rows": 756,
+      "hours": 3.192,
+      "recording_days": {
+        "2026-02-25": 235,
+        "2026-03-28": 9,
+        "2026-03-29": 9,
+        "2026-03-30": 6,
+        "2026-03-31": 1,
+        "2026-04-02": 158,
+        "2026-04-04": 6,
+        "2026-04-07": 331,
+        "2026-04-08": 1
+      },
+      "categories": {
+        "mpd": 196,
+        "mfd": 129,
+        "pd": 111,
+        "fd": 99,
+        "mndpd": 78,
+        "bpd": 48,
+        "blkpd": 43,
+        "frkfd": 30,
+        "bfd": 17,
+        "blkfd": 5
+      },
+      "unique_normalized_targets": 711,
+      "duplicate_rows": 45,
+      "most_common_targets": [
+        {
+          "text": "received",
+          "count": 12
+        },
+        {
+          "text": "",
+          "count": 12
+        },
+        {
+          "text": "10 4",
+          "count": 9
+        },
+        {
+          "text": "roger",
+          "count": 4
+        },
+        {
+          "text": "copy",
+          "count": 3
+        },
+        {
+          "text": "89 to control",
+          "count": 3
+        },
+        {
+          "text": "87 control",
+          "count": 3
+        },
+        {
+          "text": "fire alarm a 1 is back in quarters",
+          "count": 2
+        },
+        {
+          "text": "fire alarm from a 1",
+          "count": 2
+        },
+        {
+          "text": "14's out 10 4",
+          "count": 2
+        },
+        {
+          "text": "539 mendon control mendon control",
+          "count": 2
+        },
+        {
+          "text": "89 to control control",
+          "count": 2
+        },
+        {
+          "text": "fire alarm engine 3",
+          "count": 2
+        },
+        {
+          "text": "89 to control control starting for paul 2 44570 44570 checks ok i'll be up at the schools 10 4",
+          "count": 1
+        },
+        {
+          "text": "received a 1 i have you in route 8 21",
+          "count": 1
+        },
+        {
+          "text": "on scene 8 29",
+          "count": 1
+        },
+        {
+          "text": "fire alarm a 1 fire alarm a 1 is clear returning",
+          "count": 1
+        },
+        {
+          "text": "that should be fine",
+          "count": 1
+        },
+        {
+          "text": "244 to control we'll be clear from the courthouse and available for calls 10 4 control 208 8 bellingham said she's not living in their town anymore but they have an extensive history with her this is a",
+          "count": 1
+        },
+        {
+          "text": "normal occurrence significant mental health",
+          "count": 1
+        },
+        {
+          "text": "12 to control are they only asking for that one location i'm sorry i missed that because i can clear here no you're all set they're just looking for that one location",
+          "count": 1
+        },
+        {
+          "text": "244 to control go ahead yeah motor vehicle stop will be in front of casa brazil mass pc2 bravo hotel zulu 692 bhz69 10 4 control 203",
+          "count": 1
+        },
+        {
+          "text": "3 roger control 244 244 can i just confirm that plate with you 2 bravo hotel charlie 7 5 negative it's going to be 2 bravo hotel zulu 6 9 2bhz69 thank you",
+          "count": 1
+        },
+        {
+          "text": "12 to 3 3 you still on the other side of town because i'm going to be leaving the comfort inn and i can check beaver street i'm over on cape road right now if you're closer roger control i'll take that between maple and dino received",
+          "count": 1
+        },
+        {
+          "text": "i got that 3 has that thank you",
+          "count": 1
+        }
+      ],
+      "non_speech_targets": {},
+      "short_targets": [
+        {
+          "text": "received",
+          "count": 12
+        },
+        {
+          "text": "",
+          "count": 12
+        },
+        {
+          "text": "10 4",
+          "count": 9
+        },
+        {
+          "text": "roger",
+          "count": 4
+        },
+        {
+          "text": "copy",
+          "count": 3
+        },
+        {
+          "text": "89 to control",
+          "count": 3
+        },
+        {
+          "text": "87 control",
+          "count": 3
+        },
+        {
+          "text": "8 38",
+          "count": 1
+        },
+        {
+          "text": "9 03",
+          "count": 1
+        },
+        {
+          "text": "10 26",
+          "count": 1
+        },
+        {
+          "text": "affirmative roger",
+          "count": 1
+        },
+        {
+          "text": "in blackstone",
+          "count": 1
+        },
+        {
+          "text": "stand by one",
+          "count": 1
+        },
+        {
+          "text": "received control 214",
+          "count": 1
+        },
+        {
+          "text": "control 214",
+          "count": 1
+        },
+        {
+          "text": "526 mendon control",
+          "count": 1
+        },
+        {
+          "text": "511 538 538",
+          "count": 1
+        },
+        {
+          "text": "14 40",
+          "count": 1
+        },
+        {
+          "text": "26 to control",
+          "count": 1
+        },
+        {
+          "text": "mendon control 529",
+          "count": 1
+        },
+        {
+          "text": "well received",
+          "count": 1
+        },
+        {
+          "text": "21 05",
+          "count": 1
+        },
+        {
+          "text": "9 is clear",
+          "count": 1
+        },
+        {
+          "text": "station",
+          "count": 1
+        },
+        {
+          "text": "8 34",
+          "count": 1
+        }
+      ],
+      "aligned_rows": 70,
+      "alignment_below_0.50": 0,
+      "alignment_below_0.35": 0,
+      "alignment_ratio_min": 0.5424,
+      "alignment_ratio_median": 0.8125,
+      "median_words_per_second": 0.961
+    },
+    "eval": {
+      "rows": 198,
+      "hours": 0.87,
+      "recording_days": {
+        "2026-04-05": 198
+      },
+      "categories": {
+        "mpd": 33,
+        "pd": 32,
+        "mfd": 25,
+        "mndpd": 21,
+        "bpd": 19,
+        "fd": 17,
+        "frkfd": 17,
+        "bfd": 15,
+        "blkfd": 11,
+        "blkpd": 6,
+        "mndfd": 2
+      },
+      "unique_normalized_targets": 181,
+      "duplicate_rows": 17,
+      "most_common_targets": [
+        {
+          "text": "received",
+          "count": 6
+        },
+        {
+          "text": "10 4",
+          "count": 5
+        },
+        {
+          "text": "",
+          "count": 5
+        },
+        {
+          "text": "roger",
+          "count": 3
+        },
+        {
+          "text": "89 to control control",
+          "count": 2
+        },
+        {
+          "text": "mendon control 538 511 538 511",
+          "count": 2
+        },
+        {
+          "text": "511 to mendon control mendon control you can show me clear just the owners of country bunkin they're just picking something up building's secure received",
+          "count": 1
+        },
+        {
+          "text": "89 to control control just giving you an update we're code 4 received",
+          "count": 1
+        },
+        {
+          "text": "89 to control control we're going to be clear looks like it was just a couple of kids making a fort it's on the hazel street side 10 4",
+          "count": 1
+        },
+        {
+          "text": "a 1 to fire alarm fire alarm a 1 is responding received a 1 responding 12 03 again it's for an elderly female that fell bleeding from the back of the head",
+          "count": 1
+        },
+        {
+          "text": "9 blackstone street mendon housing authority apartment bravo 3 a little autistic girl was found wandering there 538 roger",
+          "count": 1
+        },
+        {
+          "text": "a 1 to fire alarm a 1 is on arrival landmark ending mileage 2 5 received on arrival landmark ending mileage 2 5 13 53",
+          "count": 1
+        },
+        {
+          "text": "squad 1 fire alarm squad 1 back in quarters received squad 1 back in quarters 14 23",
+          "count": 1
+        },
+        {
+          "text": "fire alarm support 1 is going to be in route to milville as well received support 1 en route 15 52",
+          "count": 1
+        },
+        {
+          "text": "engine 5 rescue 1 in quarters engine 5 rescue 1 i have you both back in quarters",
+          "count": 1
+        },
+        {
+          "text": "93 control control appears accidental we'll be clear 10 4",
+          "count": 1
+        },
+        {
+          "text": "fire alarm a 2 is back in quarters received",
+          "count": 1
+        },
+        {
+          "text": "538 mendon control mendon control confirmed accidental clear and clear received",
+          "count": 1
+        },
+        {
+          "text": "support 1 to fire alarm fire alarm's on support 1 is going to be clear of service returning received in service returning 14 04",
+          "count": 1
+        },
+        {
+          "text": "ladder 1 engine 4 back in quarters ladder 1 engine 4 back in quarters",
+          "count": 1
+        },
+        {
+          "text": "a 1 fire alarm back to town received a 1 back to town in service 15 02",
+          "count": 1
+        },
+        {
+          "text": "tone rescue 1 central station alarm 5 rich rd rescue 1 engine 5 central station alarm 5 rich rd",
+          "count": 1
+        },
+        {
+          "text": "control to 93 93",
+          "count": 1
+        },
+        {
+          "text": "bravo 31 bravo 35 can you respond to 151 north main street the charles apartment 2103 caller reports she hasn't been able to get a hold of her sister in two months she's going to be at an 82 year old female party",
+          "count": 1
+        },
+        {
+          "text": "control we got him in custody 1 in custody 1 02",
+          "count": 1
+        }
+      ],
+      "non_speech_targets": {},
+      "short_targets": [
+        {
+          "text": "received",
+          "count": 6
+        },
+        {
+          "text": "10 4",
+          "count": 5
+        },
+        {
+          "text": "",
+          "count": 5
+        },
+        {
+          "text": "roger",
+          "count": 3
+        },
+        {
+          "text": "control",
+          "count": 1
+        },
+        {
+          "text": "9 to station",
+          "count": 1
+        },
+        {
+          "text": "control 61",
+          "count": 1
+        },
+        {
+          "text": "negative",
+          "count": 1
+        },
+        {
+          "text": "center received",
+          "count": 1
+        },
+        {
+          "text": "roger roger",
+          "count": 1
+        },
+        {
+          "text": "15 50",
+          "count": 1
+        },
+        {
+          "text": "i'm alright",
+          "count": 1
+        }
+      ],
+      "aligned_rows": 20,
+      "alignment_below_0.50": 0,
+      "alignment_below_0.35": 0,
+      "alignment_ratio_min": 0.562,
+      "alignment_ratio_median": 0.8945,
+      "median_words_per_second": 1.014
+    },
+    "test": {
+      "rows": 209,
+      "hours": 0.892,
+      "recording_days": {
+        "2026-04-06": 209
+      },
+      "categories": {
+        "mfd": 81,
+        "mpd": 75,
+        "bpd": 24,
+        "bfd": 14,
+        "pd": 9,
+        "fd": 3,
+        "frkfd": 2,
+        "blkpd": 1
+      },
+      "unique_normalized_targets": 194,
+      "duplicate_rows": 15,
+      "most_common_targets": [
+        {
+          "text": "received",
+          "count": 8
+        },
+        {
+          "text": "roger",
+          "count": 4
+        },
+        {
+          "text": "",
+          "count": 4
+        },
+        {
+          "text": "rescue 1 on the air and available rescue 1 on the air available",
+          "count": 2
+        },
+        {
+          "text": "rescue 1 back in quarters rescue back in quarters",
+          "count": 2
+        },
+        {
+          "text": "control it's going to be ending mileage 31340 9 received",
+          "count": 1
+        },
+        {
+          "text": "7 to control you can show me out in the area received",
+          "count": 1
+        },
+        {
+          "text": "engine 2 franklin fire fire false detector is u208 there's no reading there's no ems here received faulty detector no reading no ems received sir",
+          "count": 1
+        },
+        {
+          "text": "control 206 6 106 beaver street again 106 beaver street you can go to that residence that's the tree warden's residence see if he's there you can make contact with him",
+          "count": 1
+        },
+        {
+          "text": "ladder 1 to fire alarm what's the nature of the medical going for the same male that needed the lift assistant to his car his wife called to say that he's dehydrated now received have the rescue go to that medical fire alarm copy fire alarm copies p chef we're",
+          "count": 1
+        },
+        {
+          "text": "clear we're available for a call c 4 what's your pleasure",
+          "count": 1
+        },
+        {
+          "text": "rescue 1 arriving on scene rescue 1 on scene he might be in papa gino's now trying to get a drink again if you want to check papa gino's rescue has that you can show p 10 on scene p 1 on scene as",
+          "count": 1
+        },
+        {
+          "text": "well",
+          "count": 1
+        },
+        {
+          "text": "received squad 1 on the air to headquarters 8 31",
+          "count": 1
+        },
+        {
+          "text": "engine 5 back in quarters engine 5 back in quarters",
+          "count": 1
+        },
+        {
+          "text": "246 control control's on can you put me out radar enforcement in front of the town park please received",
+          "count": 1
+        },
+        {
+          "text": "i'm off south main and cape it is in fact a seven car mva you can start at least three hooks received",
+          "count": 1
+        },
+        {
+          "text": "p2 i have you responding",
+          "count": 1
+        },
+        {
+          "text": "fire alarm's on",
+          "count": 1
+        },
+        {
+          "text": "received starting rescue 3 for evaluation milford fire alarm dispatching rescue 3 south main at cape for the mva multiple injuries repeated milford fire alarm dispatching rescue 3 south main at cape for evals multiple injuries from the car",
+          "count": 1
+        },
+        {
+          "text": "accident thank you",
+          "count": 1
+        },
+        {
+          "text": "189 milford fire's on",
+          "count": 1
+        },
+        {
+          "text": "189 to fire alarm we're on scene extra 189 i have you on scene at the motor vehicle accent",
+          "count": 1
+        },
+        {
+          "text": "control who's on tow it's the art's is towing art's is towing",
+          "count": 1
+        },
+        {
+          "text": "fire alarm rescue 3 is on rescue 3 you're responding south main at cape for that mva multiple casualties multiple injuries",
+          "count": 1
+        }
+      ],
+      "non_speech_targets": {},
+      "short_targets": [
+        {
+          "text": "received",
+          "count": 8
+        },
+        {
+          "text": "roger",
+          "count": 4
+        },
+        {
+          "text": "",
+          "count": 4
+        },
+        {
+          "text": "well",
+          "count": 1
+        },
+        {
+          "text": "fire alarm's on",
+          "count": 1
+        },
+        {
+          "text": "accident thank you",
+          "count": 1
+        },
+        {
+          "text": "control",
+          "count": 1
+        },
+        {
+          "text": "10 4",
+          "count": 1
+        },
+        {
+          "text": "control 212",
+          "count": 1
+        },
+        {
+          "text": "roger thank you",
+          "count": 1
+        },
+        {
+          "text": "control's on",
+          "count": 1
+        },
+        {
+          "text": "4 roger received",
+          "count": 1
+        },
+        {
+          "text": "ok",
+          "count": 1
+        },
+        {
+          "text": "for eversource",
+          "count": 1
+        }
+      ],
+      "aligned_rows": 29,
+      "alignment_below_0.50": 0,
+      "alignment_below_0.35": 0,
+      "alignment_ratio_min": 0.587,
+      "alignment_ratio_median": 0.7711,
+      "median_words_per_second": 0.994
+    }
+  },
+  "cross_split": {
+    "exact_shared_audio": [],
+    "exact_shared_targets_count": 10,
+    "exact_shared_targets": [
+      {
+        "text": "received",
+        "count": 26,
+        "splits": [
+          "eval",
+          "test",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 19,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-02-25_09-51-46_mpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 36,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_08-28-09_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 98,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-51-03_mndpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 128,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_13-01-38_mndpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 196,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-56-55_bpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 208,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_17-13-12_mndpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 214,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_17-58-08_mndpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 227,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_18-36-49_mndpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 230,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_18-42-52_mndpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 237,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-28_21-43-03_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 240,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-28_21-46-09_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 271,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_08-21-13_bpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 17,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-04-05_15-04-42_mndpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 38,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_04-56-51_mndpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 114,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_10-33-57_pd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 123,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_10-50-46_bpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 139,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_13-16-56_mndpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 163,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_15-23-56_mndpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 10,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-04-06_09-14-58_bpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 44,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_07-49-28_bfd.wav"
+          },
+          {
+            "split": "test",
+            "index": 107,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-19-32_bpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 118,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-39-26_bpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 133,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_10-48-25_mfd.wav"
+          },
+          {
+            "split": "test",
+            "index": 136,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_10-52-38_mpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 178,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-22-54_mpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 181,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-23-38_mfd.wav"
+          }
+        ]
+      },
+      {
+        "text": "",
+        "count": 21,
+        "splits": [
+          "eval",
+          "test",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 24,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_00-14-22_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 25,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_01-13-55_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 26,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_07-11-12_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 28,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_08-10-35_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 46,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_09-10-11_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 82,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-09-17_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 136,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-07-57_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 177,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-07-32_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 243,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-28_22-37-41_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 244,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-29_15-28-32_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 308,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_13-45-26_fd.wav"
+          },
+          {
+            "split": "train",
+            "index": 325,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_14-00-20_frkfd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 83,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-31-10_mfd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 112,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_10-31-14_mfd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 160,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_14-56-11_mfd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 178,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_16-34-04_mfd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 186,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_17-34-08_mfd.wav"
+          },
+          {
+            "split": "test",
+            "index": 83,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_08-57-10_mfd.wav"
+          },
+          {
+            "split": "test",
+            "index": 110,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-32-41_bpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 122,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-57-14_mfd.wav"
+          },
+          {
+            "split": "test",
+            "index": 140,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_10-57-18_mfd.wav"
+          }
+        ]
+      },
+      {
+        "text": "10 4",
+        "count": 15,
+        "splits": [
+          "eval",
+          "test",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 63,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_10-02-12_mpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 151,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-41-32_mpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 242,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-28_21-49-53_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 264,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_07-26-04_blkpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 265,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_07-28-11_blkpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 267,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_07-31-26_blkpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 431,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_00-35-54_mpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 650,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_12-16-57_blkpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 716,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_14-15-23_pd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 7,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval/rec_2026-04-05_15-40-34_pd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 25,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_01-24-06_pd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 26,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_01-32-56_pd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 46,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_07-44-54_blkpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 137,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_13-15-33_mndpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 92,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-09-08_pd.wav"
+          }
+        ]
+      },
+      {
+        "text": "roger",
+        "count": 11,
+        "splits": [
+          "eval",
+          "test",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 101,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-55-02_mpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 154,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-42-15_mndpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 175,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-03-58_mpd.wav"
+          },
+          {
+            "split": "train",
+            "index": 188,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-29-54_mpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 70,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-16-02_mpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 93,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-38-19_mpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 144,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_13-32-09_mndpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 9,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-04-06_08-52-43_mpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 71,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_08-35-00_mpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 102,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-15-21_mpd.wav"
+          },
+          {
+            "split": "test",
+            "index": 155,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_11-55-04_mpd.wav"
+          }
+        ]
+      },
+      {
+        "text": "89 to control control",
+        "count": 4,
+        "splits": [
+          "eval",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 534,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_08-51-45_pd.wav"
+          },
+          {
+            "split": "train",
+            "index": 662,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_12-33-21_pd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 13,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-04-05_13-55-14_pd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 89,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-37-22_pd.wav"
+          }
+        ]
+      },
+      {
+        "text": "89 to control i'm out 10 4",
+        "count": 2,
+        "splits": [
+          "eval",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 327,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_14-01-25_pd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 148,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_13-46-10_pd.wav"
+          }
+        ]
+      },
+      {
+        "text": "bravo 27 to control i'll be clear received",
+        "count": 2,
+        "splits": [
+          "eval",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 273,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_08-31-55_bpd.wav"
+          },
+          {
+            "split": "eval",
+            "index": 104,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-46-20_bpd.wav"
+          }
+        ]
+      },
+      {
+        "text": "control",
+        "count": 2,
+        "splits": [
+          "eval",
+          "test"
+        ],
+        "locations": [
+          {
+            "split": "eval",
+            "index": 22,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_01-18-16_pd.wav"
+          },
+          {
+            "split": "test",
+            "index": 73,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_08-40-31_bpd.wav"
+          }
+        ]
+      },
+      {
+        "text": "fire alarm a 2 radio check loud and clear a 2 how do you copy loud and clear thank you",
+        "count": 2,
+        "splits": [
+          "test",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 516,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_08-26-01_fd.wav"
+          },
+          {
+            "split": "test",
+            "index": 68,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_08-29-22_fd.wav"
+          }
+        ]
+      },
+      {
+        "text": "rescue 1 is on scene received rescue",
+        "count": 2,
+        "splits": [
+          "test",
+          "train"
+        ],
+        "locations": [
+          {
+            "split": "train",
+            "index": 693,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_13-28-09_mfd.wav"
+          },
+          {
+            "split": "test",
+            "index": 201,
+            "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_21-29-23_mfd.wav"
+          }
+        ]
+      }
+    ],
+    "shared_recording_days": {
+      "train_eval": [],
+      "train_test": [],
+      "eval_test": []
+    }
+  },
+  "flags": [],
+  "audio_checks": {
+    "checked_rows": 118,
+    "very_quiet_rows": 0,
+    "low_activity_rows": 0,
+    "rows": [
+      {
+        "split": "train",
+        "index": 19,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-02-25_09-51-46_mpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -24.2,
+        "active_ratio": 0.6095,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 24,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_00-14-22_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.46,
+        "active_ratio": 0.4324,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 25,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_01-13-55_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.43,
+        "active_ratio": 0.4324,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 26,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_07-11-12_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.48,
+        "active_ratio": 0.4324,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 28,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_08-10-35_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.48,
+        "active_ratio": 0.4324,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 36,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_08-28-09_pd.wav",
+        "text": "Received.",
+        "alignment_ratio": 0.825,
+        "rms_db": -23.12,
+        "active_ratio": 0.7724,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 39,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_08-38-08_fd.wav",
+        "text": "8:38",
+        "alignment_ratio": null,
+        "rms_db": -20.92,
+        "active_ratio": 0.3684,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 45,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_09-07-12_fd.wav",
+        "text": "9:03",
+        "alignment_ratio": null,
+        "rms_db": -18.87,
+        "active_ratio": 0.3762,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 46,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_09-10-11_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.4,
+        "active_ratio": 0.4368,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 56,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_09-57-21_mpd.wav",
+        "text": "copy",
+        "alignment_ratio": null,
+        "rms_db": -24.19,
+        "active_ratio": 0.5951,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 63,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_10-02-12_mpd.wav",
+        "text": "10-4",
+        "alignment_ratio": null,
+        "rms_db": -20.27,
+        "active_ratio": 0.3889,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 72,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_10-26-24_fd.wav",
+        "text": "10:26",
+        "alignment_ratio": null,
+        "rms_db": -19.9,
+        "active_ratio": 0.4159,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 82,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-09-17_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.38,
+        "active_ratio": 0.439,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 83,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-14-41_mndpd.wav",
+        "text": "Affirmative. Roger.",
+        "alignment_ratio": null,
+        "rms_db": -22.36,
+        "active_ratio": 0.7108,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 88,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-20-08_mndpd.wav",
+        "text": "in Blackstone.",
+        "alignment_ratio": 0.7143,
+        "rms_db": -29.34,
+        "active_ratio": 0.7083,
+        "peak": 0.89206
+      },
+      {
+        "split": "train",
+        "index": 98,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-51-03_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -29.32,
+        "active_ratio": 0.5019,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 101,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_11-55-02_mpd.wav",
+        "text": "Roger",
+        "alignment_ratio": null,
+        "rms_db": -24.23,
+        "active_ratio": 0.6,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 111,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_12-02-01_mpd.wav",
+        "text": "Control 214",
+        "alignment_ratio": null,
+        "rms_db": -22.53,
+        "active_ratio": 0.5417,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 128,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_13-01-38_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -29.28,
+        "active_ratio": 0.5541,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 136,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-07-57_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.41,
+        "active_ratio": 0.694,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 148,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-40-25_mpd.wav",
+        "text": "14:40",
+        "alignment_ratio": null,
+        "rms_db": -21.14,
+        "active_ratio": 0.551,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 151,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-41-32_mpd.wav",
+        "text": "10-4.",
+        "alignment_ratio": 0.8986,
+        "rms_db": -26.32,
+        "active_ratio": 0.3737,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 154,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_14-42-15_mndpd.wav",
+        "text": "Roger",
+        "alignment_ratio": null,
+        "rms_db": -28.57,
+        "active_ratio": 0.4923,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 175,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-03-58_mpd.wav",
+        "text": "Roger",
+        "alignment_ratio": null,
+        "rms_db": -24.02,
+        "active_ratio": 0.6,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 177,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-07-32_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.37,
+        "active_ratio": 0.4368,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 188,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-29-54_mpd.wav",
+        "text": "Roger.",
+        "alignment_ratio": null,
+        "rms_db": -23.28,
+        "active_ratio": 0.7067,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 192,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-47-34_pd.wav",
+        "text": "87 Control",
+        "alignment_ratio": null,
+        "rms_db": -23.01,
+        "active_ratio": 0.5818,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 196,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_15-56-55_bpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -28.97,
+        "active_ratio": 0.2919,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 208,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_17-13-12_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -28.63,
+        "active_ratio": 0.5464,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 214,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_17-58-08_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -30.51,
+        "active_ratio": 0.4762,
+        "peak": 0.94162
+      },
+      {
+        "split": "train",
+        "index": 220,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_18-29-40_mndpd.wav",
+        "text": "well. Received.",
+        "alignment_ratio": 0.8182,
+        "rms_db": -19.95,
+        "active_ratio": 0.8724,
+        "peak": 0.86365
+      },
+      {
+        "split": "train",
+        "index": 227,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_18-36-49_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -30.79,
+        "active_ratio": 0.4962,
+        "peak": 0.99997
+      },
+      {
+        "split": "train",
+        "index": 230,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-02-25_18-42-52_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -30.64,
+        "active_ratio": 0.5075,
+        "peak": 0.99997
+      },
+      {
+        "split": "train",
+        "index": 237,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-28_21-43-03_pd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -25.66,
+        "active_ratio": 0.5382,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 240,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-28_21-46-09_pd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -25.7,
+        "active_ratio": 0.5382,
+        "peak": 0.99997
+      },
+      {
+        "split": "train",
+        "index": 242,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-28_21-49-53_pd.wav",
+        "text": "10-4",
+        "alignment_ratio": null,
+        "rms_db": -24.95,
+        "active_ratio": 0.5124,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 243,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-28_22-37-41_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -16.69,
+        "active_ratio": 0.6702,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 244,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-29_15-28-32_pd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -26.66,
+        "active_ratio": 0.4327,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 251,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-29_21-05-55_pd.wav",
+        "text": "21:05.",
+        "alignment_ratio": 0.5424,
+        "rms_db": -25.37,
+        "active_ratio": 0.6351,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 259,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-03-31_18-53-22_pd.wav",
+        "text": "87 control.",
+        "alignment_ratio": null,
+        "rms_db": -23.19,
+        "active_ratio": 0.4817,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 264,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_07-26-04_blkpd.wav",
+        "text": "10-4",
+        "alignment_ratio": null,
+        "rms_db": -25.54,
+        "active_ratio": 0.4348,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 265,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_07-28-11_blkpd.wav",
+        "text": "10-4",
+        "alignment_ratio": null,
+        "rms_db": -26.01,
+        "active_ratio": 0.4658,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 266,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_07-29-59_blkpd.wav",
+        "text": "station",
+        "alignment_ratio": null,
+        "rms_db": -25.49,
+        "active_ratio": 0.4951,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 267,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_07-31-26_blkpd.wav",
+        "text": "10-4",
+        "alignment_ratio": null,
+        "rms_db": -25.66,
+        "active_ratio": 0.5271,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 271,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_08-21-13_bpd.wav",
+        "text": "Received.",
+        "alignment_ratio": null,
+        "rms_db": -28.06,
+        "active_ratio": 0.571,
+        "peak": 0.99997
+      },
+      {
+        "split": "train",
+        "index": 275,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_08-34-05_fd.wav",
+        "text": "8:34.",
+        "alignment_ratio": 0.7174,
+        "rms_db": -28.1,
+        "active_ratio": 0.6471,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 308,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_13-45-26_fd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -13.65,
+        "active_ratio": 0.7054,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 320,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_13-58-57_pd.wav",
+        "text": "89.",
+        "alignment_ratio": null,
+        "rms_db": -23.8,
+        "active_ratio": 0.443,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 325,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_14-00-20_frkfd.wav",
+        "text": ".",
+        "alignment_ratio": 0.7869,
+        "rms_db": -19.31,
+        "active_ratio": 0.4583,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 336,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_14-08-01_blkfd.wav",
+        "text": "copy",
+        "alignment_ratio": null,
+        "rms_db": -21.62,
+        "active_ratio": 0.5228,
+        "peak": 0.99997
+      },
+      {
+        "split": "train",
+        "index": 338,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_14-11-29_frkfd.wav",
+        "text": "the scene",
+        "alignment_ratio": 0.781,
+        "rms_db": -20.87,
+        "active_ratio": 0.4729,
+        "peak": 0.62045
+      },
+      {
+        "split": "train",
+        "index": 376,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_15-04-20_frkfd.wav",
+        "text": "door.",
+        "alignment_ratio": 0.7619,
+        "rms_db": -24.89,
+        "active_ratio": 0.3952,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 408,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_16-52-11_mpd.wav",
+        "text": "ID. Received.",
+        "alignment_ratio": 0.7294,
+        "rms_db": -19.86,
+        "active_ratio": 0.821,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 412,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-02_17-13-35_mndpd.wav",
+        "text": "Received standby.",
+        "alignment_ratio": null,
+        "rms_db": -26.98,
+        "active_ratio": 0.4249,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 431,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_00-35-54_mpd.wav",
+        "text": "10-4",
+        "alignment_ratio": null,
+        "rms_db": -25.04,
+        "active_ratio": 0.5552,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 434,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_00-41-01_mpd.wav",
+        "text": "them.",
+        "alignment_ratio": 0.8571,
+        "rms_db": -32.1,
+        "active_ratio": 0.3744,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 462,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_05-17-33_blkpd.wav",
+        "text": "5:17.",
+        "alignment_ratio": 0.8714,
+        "rms_db": -28.83,
+        "active_ratio": 0.4403,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 464,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_05-18-57_blkpd.wav",
+        "text": "copy",
+        "alignment_ratio": null,
+        "rms_db": -26.83,
+        "active_ratio": 0.4249,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 492,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_08-01-09_mpd.wav",
+        "text": "Control 206.",
+        "alignment_ratio": null,
+        "rms_db": -23.2,
+        "active_ratio": 0.4749,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 494,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_08-01-42_mpd.wav",
+        "text": "{Inaudible}",
+        "alignment_ratio": 0.8926,
+        "rms_db": -27.61,
+        "active_ratio": 0.5259,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 562,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-28-47_mfd.wav",
+        "text": "route.",
+        "alignment_ratio": 0.8525,
+        "rms_db": -30.14,
+        "active_ratio": 0.2791,
+        "peak": 0.76614
+      },
+      {
+        "split": "train",
+        "index": 579,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-36-12_mpd.wav",
+        "text": "Water.",
+        "alignment_ratio": 0.8861,
+        "rms_db": -23.82,
+        "active_ratio": 0.7297,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 592,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_09-43-01_mfd.wav",
+        "text": "L-4.",
+        "alignment_ratio": null,
+        "rms_db": -23.34,
+        "active_ratio": 0.5959,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 634,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_11-58-28_mpd.wav",
+        "text": "291.",
+        "alignment_ratio": null,
+        "rms_db": -23.75,
+        "active_ratio": 0.5169,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 644,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_12-09-29_blkpd.wav",
+        "text": "Stand by",
+        "alignment_ratio": null,
+        "rms_db": -25.5,
+        "active_ratio": 0.5169,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 650,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_12-16-57_blkpd.wav",
+        "text": "10-4.",
+        "alignment_ratio": null,
+        "rms_db": -25.08,
+        "active_ratio": 0.5213,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 668,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_12-52-47_mfd.wav",
+        "text": "update.",
+        "alignment_ratio": 0.8829,
+        "rms_db": -24.98,
+        "active_ratio": 0.7247,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 716,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_14-15-23_pd.wav",
+        "text": "10-4.",
+        "alignment_ratio": null,
+        "rms_db": -24.07,
+        "active_ratio": 0.5664,
+        "peak": 1.0
+      },
+      {
+        "split": "train",
+        "index": 733,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-07_15-03-42_pd.wav",
+        "text": "87 control.",
+        "alignment_ratio": null,
+        "rms_db": -22.25,
+        "active_ratio": 0.5567,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 7,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval/rec_2026-04-05_15-40-34_pd.wav",
+        "text": "10-4",
+        "alignment_ratio": null,
+        "rms_db": -24.19,
+        "active_ratio": 0.476,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 17,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-04-05_15-04-42_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -26.98,
+        "active_ratio": 0.4767,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 22,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_01-18-16_pd.wav",
+        "text": "Control.",
+        "alignment_ratio": null,
+        "rms_db": -27.47,
+        "active_ratio": 0.4133,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 25,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_01-24-06_pd.wav",
+        "text": "10-4.",
+        "alignment_ratio": null,
+        "rms_db": -27.52,
+        "active_ratio": 0.3993,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 26,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_01-32-56_pd.wav",
+        "text": "10-4.",
+        "alignment_ratio": null,
+        "rms_db": -27.04,
+        "active_ratio": 0.4304,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 33,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_02-06-08_pd.wav",
+        "text": "Control 61.",
+        "alignment_ratio": null,
+        "rms_db": -27.23,
+        "active_ratio": 0.4899,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 38,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_04-56-51_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -25.6,
+        "active_ratio": 0.578,
+        "peak": 0.99997
+      },
+      {
+        "split": "eval",
+        "index": 46,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_07-44-54_blkpd.wav",
+        "text": "10-4.",
+        "alignment_ratio": null,
+        "rms_db": -23.57,
+        "active_ratio": 0.4605,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 66,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-14-55_mpd.wav",
+        "text": "Negative.",
+        "alignment_ratio": null,
+        "rms_db": -22.42,
+        "active_ratio": 0.6025,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 70,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-16-02_mpd.wav",
+        "text": "Roger.",
+        "alignment_ratio": null,
+        "rms_db": -24.45,
+        "active_ratio": 0.5813,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 83,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-31-10_mfd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -19.45,
+        "active_ratio": 0.5734,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 93,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-38-19_mpd.wav",
+        "text": "Roger.",
+        "alignment_ratio": null,
+        "rms_db": -24.03,
+        "active_ratio": 0.5476,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 99,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_09-41-42_mpd.wav",
+        "text": "center. Received.",
+        "alignment_ratio": 0.9593,
+        "rms_db": -21.13,
+        "active_ratio": 0.6298,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 112,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_10-31-14_mfd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -19.45,
+        "active_ratio": 0.5734,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 114,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_10-33-57_pd.wav",
+        "text": "Received.",
+        "alignment_ratio": 0.9032,
+        "rms_db": -25.16,
+        "active_ratio": 0.6504,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 123,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_10-50-46_bpd.wav",
+        "text": "Received.",
+        "alignment_ratio": null,
+        "rms_db": -27.68,
+        "active_ratio": 0.3262,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 129,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_11-10-49_mpd.wav",
+        "text": "Roger. Roger.",
+        "alignment_ratio": null,
+        "rms_db": -23.76,
+        "active_ratio": 0.7161,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 137,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_13-15-33_mndpd.wav",
+        "text": "10-4",
+        "alignment_ratio": null,
+        "rms_db": -19.09,
+        "active_ratio": 0.4886,
+        "peak": 0.99997
+      },
+      {
+        "split": "eval",
+        "index": 139,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_13-16-56_mndpd.wav",
+        "text": "Received.",
+        "alignment_ratio": 0.7579,
+        "rms_db": -26.93,
+        "active_ratio": 0.5861,
+        "peak": 0.99997
+      },
+      {
+        "split": "eval",
+        "index": 144,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_13-32-09_mndpd.wav",
+        "text": "Roger.",
+        "alignment_ratio": null,
+        "rms_db": -25.83,
+        "active_ratio": 0.4185,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 160,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_14-56-11_mfd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -19.47,
+        "active_ratio": 0.5734,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 163,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_15-23-56_mndpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -25.05,
+        "active_ratio": 0.5341,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 166,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_15-50-48_blkfd.wav",
+        "text": "15:50.",
+        "alignment_ratio": 0.8333,
+        "rms_db": -22.75,
+        "active_ratio": 0.4604,
+        "peak": 0.61087
+      },
+      {
+        "split": "eval",
+        "index": 178,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_16-34-04_mfd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -19.49,
+        "active_ratio": 0.5734,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 186,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_17-34-08_mfd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -19.47,
+        "active_ratio": 0.5734,
+        "peak": 1.0
+      },
+      {
+        "split": "eval",
+        "index": 197,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-05_20-59-29_mndpd.wav",
+        "text": "I'm alright.",
+        "alignment_ratio": null,
+        "rms_db": -20.49,
+        "active_ratio": 0.4291,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 7,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval/rec_2026-04-06_12-20-14_mfd.wav",
+        "text": "well.",
+        "alignment_ratio": 0.7711,
+        "rms_db": -27.56,
+        "active_ratio": 0.4052,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 9,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-04-06_08-52-43_mpd.wav",
+        "text": "Roger",
+        "alignment_ratio": null,
+        "rms_db": -24.02,
+        "active_ratio": 0.5396,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 10,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/test/rec_2026-04-06_09-14-58_bpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -26.05,
+        "active_ratio": 0.4373,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 44,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_07-49-28_bfd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -22.39,
+        "active_ratio": 0.5802,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 71,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_08-35-00_mpd.wav",
+        "text": "Roger",
+        "alignment_ratio": null,
+        "rms_db": -25.07,
+        "active_ratio": 0.5699,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 73,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_08-40-31_bpd.wav",
+        "text": "Control.",
+        "alignment_ratio": null,
+        "rms_db": -24.26,
+        "active_ratio": 0.644,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 83,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_08-57-10_mfd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -19.31,
+        "active_ratio": 0.5734,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 92,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-09-08_pd.wav",
+        "text": "10-4.",
+        "alignment_ratio": null,
+        "rms_db": -25.15,
+        "active_ratio": 0.4272,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 98,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-13-47_mpd.wav",
+        "text": "Control 212",
+        "alignment_ratio": null,
+        "rms_db": -19.58,
+        "active_ratio": 0.4605,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 102,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-15-21_mpd.wav",
+        "text": "Roger",
+        "alignment_ratio": null,
+        "rms_db": -23.89,
+        "active_ratio": 0.5476,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 107,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-19-32_bpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -27.66,
+        "active_ratio": 0.3915,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 110,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-32-41_bpd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -30.49,
+        "active_ratio": 0.5806,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 118,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-39-26_bpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -26.35,
+        "active_ratio": 0.3539,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 122,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_09-57-14_mfd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -19.31,
+        "active_ratio": 0.5734,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 133,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_10-48-25_mfd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -27.25,
+        "active_ratio": 0.4468,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 136,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_10-52-38_mpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -23.68,
+        "active_ratio": 0.3938,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 140,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_10-57-18_mfd.wav",
+        "text": "",
+        "alignment_ratio": null,
+        "rms_db": -19.48,
+        "active_ratio": 0.5734,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 144,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_11-10-12_mfd.wav",
+        "text": "Control's on.",
+        "alignment_ratio": null,
+        "rms_db": -26.93,
+        "active_ratio": 0.4228,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 155,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_11-55-04_mpd.wav",
+        "text": "Roger.",
+        "alignment_ratio": null,
+        "rms_db": -24.77,
+        "active_ratio": 0.5476,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 174,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-20-06_mpd.wav",
+        "text": "Ok",
+        "alignment_ratio": 0.8991,
+        "rms_db": -23.57,
+        "active_ratio": 0.9344,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 178,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-22-54_mpd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -21.19,
+        "active_ratio": 0.6414,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 181,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-23-38_mfd.wav",
+        "text": "Received",
+        "alignment_ratio": null,
+        "rms_db": -23.17,
+        "active_ratio": 0.5642,
+        "peak": 1.0
+      },
+      {
+        "split": "test",
+        "index": 192,
+        "audio": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/train/rec_2026-04-06_12-28-13_mfd.wav",
+        "text": "for Eversource.",
+        "alignment_ratio": 0.8936,
+        "rms_db": -22.91,
+        "active_ratio": 0.9711,
+        "peak": 1.0
+      }
+    ]
+  },
+  "audit_id": "db4fd232014f447c8ae3899f345f6109ba1b0649ec57947703aa64dcc9c91a66"
+}

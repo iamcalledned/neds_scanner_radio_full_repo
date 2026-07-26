@@ -1,0 +1,23 @@
+{
+  "model_catalog": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v111_v112_eval_catalog.json",
+  "models": [
+    {
+      "key": "v111",
+      "label": "V111"
+    },
+    {
+      "key": "v113_stage1",
+      "label": "V113 Stage 1 selected"
+    },
+    {
+      "key": "v113_stage1_epoch5",
+      "label": "V113 Stage 1 epoch 5"
+    }
+  ],
+  "sample_source": {
+    "validation_dir": "/tmp/v201_contamination_probe"
+  },
+  "output": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/v113_stage1_checkpoint_probe"
+  }
+}

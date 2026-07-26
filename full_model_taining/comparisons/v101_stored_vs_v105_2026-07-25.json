@@ -1,0 +1,76 @@
+{
+  "summary": {
+    "date": "2026-07-25",
+    "samples": 6,
+    "reference": "stored top-level transcript field (V101)",
+    "candidate_model": "/home/ned/models/scanner_transcriber_models_active/whisper_medium_v105_lora_ct2",
+    "candidate_name": "V105-LoRA",
+    "beam_size": 2,
+    "aggregate_raw_wer": 15.66265060240964,
+    "aggregate_normalized_wer": 16.847826086956523,
+    "aggregate_raw_cer": 6.189967982924227,
+    "exact_normalized_matches": 1
+  },
+  "calls": [
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-00-00_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-00-00_mpd.json",
+      "stored_v101_transcript": "246 control. Control's on. Can you put me on the board, traffic are in today, starting 4245 again 4245, I'll be doing 1101 today. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "246 control. Control's on. Can you put me on the board, traffic are in today, starting 4245 again 4245, I'll be doing 11-1 today. Received.",
+      "raw_wer": 4.0,
+      "normalized_wer": 7.4074074074074066,
+      "raw_cer": 0.7194244604316548
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-07-38_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-07-38_mpd.json",
+      "stored_v101_transcript": "246 control. Control's on. En route to the front of Brookside with MASS reg 6 Romeo, Bravo Lima 91, MASS 6R BL 91. Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "246 control. Control's on. Onger's in front of Brookside with MASS reg 6 Romeo Bravo Lima 91. MASS 6RBL91. Received.",
+      "raw_wer": 37.5,
+      "normalized_wer": 28.000000000000004,
+      "raw_cer": 12.903225806451612
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-10-09_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-10-09_mpd.json",
+      "stored_v101_transcript": "246 control. Go ahead 46. Operator's MASS Sierra 359-387-41, S-359-387-41.  10-4, you want the return? Negative also, thank you. Bailey, can you give it to me again? I think I missed a little return number, I'm sorry. Yeah, Roger, it's going to be MASS, OLN Sierra 359-387-41, again S 359-387-41.  Thank you.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "246 control. Go ahead 46. Operator's MASS Sierra 35938741, S35938741. 10-4, you want the return? Negative also, thank you. Bailey, can you give it to me again, I think I missed a letter or number, I'm sorry. Yeah, Roger, it's going to be MASS, OLN Sierra 35938741, again S35938741. Thank you.",
+      "raw_wer": 15.384615384615385,
+      "normalized_wer": 24.615384615384617,
+      "raw_cer": 6.493506493506493
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-13-11_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-13-11_mpd.json",
+      "stored_v101_transcript": "246 control, you can show me clear of red warning issued. Received. Control 208, 204. 208.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "246 control, you can show me clear of written warning issued. Received. Control 208 204. 208.",
+      "raw_wer": 12.5,
+      "normalized_wer": 6.25,
+      "raw_cer": 6.666666666666667
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-13-37_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-13-37_mpd.json",
+      "stored_v101_transcript": "4. Can you guys check Countryside Drive again, Countryside Drive? Caller reports for the last 50 minutes there's been a black infinity parked on the side of the road. Received to be occupied. Received that. 4 over.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4. Can you guys check Countryside Drive again, Countryside Drive? Caller reports for the last 50 minutes there's been a black infinity parking side by the road. Received to be occupied. Received. 4 over.",
+      "raw_wer": 16.216216216216218,
+      "normalized_wer": 13.157894736842104,
+      "raw_cer": 7.009345794392523
+    },
+    {
+      "audio": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-19-44_mpd.wav",
+      "json": "/home/ned/data/scanner_calls/scanner_archive/clean/mpd/rec_2026-07-25_11-19-44_mpd.json",
+      "stored_v101_transcript": "4 control. Control's on. Can you put me in the area? Received.",
+      "stored_model": "whisper_medium_v101_scanner_ct2",
+      "candidate_transcript": "4 control. Control's on. Can you put me in the area? Received.",
+      "raw_wer": 0.0,
+      "normalized_wer": 0.0,
+      "raw_cer": 0.0
+    }
+  ]
+}

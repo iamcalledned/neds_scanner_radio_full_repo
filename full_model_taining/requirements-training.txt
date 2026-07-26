@@ -1,0 +1,8 @@
+# Install PyTorch separately so its CUDA build matches the host driver:
+# https://pytorch.org/get-started/locally/
+transformers>=4.48
+accelerate>=1.2,<2
+safetensors>=0.4
+soundfile>=0.12
+jiwer>=3.0,<5
+numpy>=1.26

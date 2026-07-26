@@ -1,0 +1,19 @@
+{
+  "model_catalog": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/v111_v112_eval_catalog.json",
+  "models": [
+    {
+      "key": "v111",
+      "label": "V111 exact-export LoRA"
+    },
+    {
+      "key": "v113",
+      "label": "V113 two-stage corrective"
+    }
+  ],
+  "sample_source": {
+    "validation_dir": "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/full_model_taining/exports/eval"
+  },
+  "output": {
+    "output_dir": "/home/ned/models/scanner_transcriber_models_candidates/v111_v113_eval_comparison"
+  }
+}
