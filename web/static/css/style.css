@@ -325,6 +325,227 @@ body {
   border-color: rgba(125, 211, 252, 0.2);
 }
 
+.scanner-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(71, 85, 105, 0.72);
+  background: rgba(6, 11, 21, 0.96);
+  box-shadow: 0 -14px 34px rgba(2, 8, 23, 0.42);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.scanner-bottom-nav-item {
+  appearance: none;
+  display: flex;
+  min-width: 0;
+  min-height: 3.35rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border: 0;
+  border-radius: 0.85rem;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.scanner-bottom-nav-item svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.scanner-bottom-nav-item.is-active {
+  color: #7dd3fc;
+  background: rgba(14, 116, 144, 0.16);
+}
+
+.scanner-bottom-nav-item:hover,
+.scanner-bottom-nav-item:focus-visible {
+  color: #e0f2fe;
+  background: rgba(30, 41, 59, 0.72);
+  outline: none;
+}
+
+.scanner-global-player {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  border-top: 1px solid rgba(125, 211, 252, 0.22);
+  background: rgba(7, 13, 24, 0.97);
+  box-shadow: 0 -18px 42px rgba(2, 8, 23, 0.58);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: scannerPlayerIn 0.24s ease-out;
+}
+
+.scanner-global-player.hidden {
+  display: none;
+}
+
+.scanner-global-player-inner {
+  width: min(72rem, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.85fr) minmax(24rem, 1.65fr);
+  gap: 1.25rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.scanner-global-player-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.scanner-player-badge {
+  flex: 0 0 auto;
+  padding: 0.28rem 0.5rem;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 999px;
+  background: rgba(14, 116, 144, 0.16);
+  color: #7dd3fc;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.scanner-player-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.scanner-player-copy strong,
+.scanner-player-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scanner-player-copy strong {
+  color: #f8fafc;
+  font-size: 0.9rem;
+}
+
+.scanner-player-copy span {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.scanner-player-controls {
+  display: grid;
+  grid-template-columns: auto 2.5rem minmax(7rem, 1fr) 2.5rem auto auto;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.scanner-player-control {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border: 1px solid rgba(71, 85, 105, 0.82);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.scanner-player-control:hover,
+.scanner-player-control:focus-visible {
+  border-color: rgba(125, 211, 252, 0.52);
+  background: rgba(30, 41, 59, 0.95);
+  color: #fff;
+  outline: none;
+}
+
+.scanner-player-primary {
+  width: 2.65rem;
+  height: 2.65rem;
+  border-color: rgba(56, 189, 248, 0.42);
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.46), rgba(14, 116, 144, 0.26));
+  color: #e0f2fe;
+}
+
+.scanner-player-control svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.scanner-player-close svg {
+  fill: none;
+}
+
+.scanner-player-speed {
+  width: auto;
+  min-width: 2.8rem;
+  padding: 0 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.scanner-player-time {
+  color: #94a3b8;
+  font-family: "Roboto Mono", monospace;
+  font-size: 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.scanner-player-progress {
+  width: 100%;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: #38bdf8;
+  cursor: pointer;
+}
+
+.scanner-player-progress:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.72);
+  outline-offset: 3px;
+}
+
+body.scanner-player-open .scanner-main {
+  padding-bottom: 6.5rem !important;
+}
+
+@keyframes scannerPlayerIn {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 .menu-item {
   display: block;
   width: 100%;
@@ -424,6 +645,14 @@ body {
 }
 
 @media (max-width: 767px) {
+  .scanner-main {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.scanner-player-open .scanner-main {
+    padding-bottom: calc(12rem + env(safe-area-inset-bottom)) !important;
+  }
+
   .scanner-page-shell {
     padding-left: 0.9rem;
     padding-right: 0.9rem;
@@ -436,7 +665,7 @@ body {
   }
 
   .scanner-live-now-bar {
-    top: 7.9rem;
+    top: 4.45rem;
   }
 
   .scanner-brand-mark {
@@ -455,9 +684,62 @@ body {
   .scanner-live-inline {
     font-size: 0.7rem;
   }
+
+  .scanner-global-player {
+    bottom: calc(4.05rem + env(safe-area-inset-bottom));
+  }
+
+  .scanner-global-player-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    align-items: stretch;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .scanner-global-player-heading {
+    gap: 0.55rem;
+  }
+
+  .scanner-player-badge {
+    font-size: 0.52rem;
+  }
+
+  .scanner-player-copy strong {
+    font-size: 0.82rem;
+  }
+
+  .scanner-player-copy span {
+    font-size: 0.68rem;
+  }
+
+  .scanner-player-controls {
+    grid-template-columns: auto 2.25rem minmax(4rem, 1fr) 2.25rem auto auto;
+    gap: 0.4rem;
+  }
+
+  .scanner-player-primary {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .scanner-player-control {
+    width: 2.15rem;
+    height: 2.15rem;
+  }
+
+  .scanner-player-speed {
+    width: auto;
+    min-width: 2.55rem;
+    padding: 0 0.4rem;
+  }
 }
 
 @media (min-width: 768px) {
+  .scanner-bottom-nav {
+    display: none;
+  }
+
   #ios-install-banner {
     left: auto;
     right: 1.25rem;
@@ -474,5 +756,12 @@ body {
   50% {
     transform: scale(1.12);
     opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanner-global-player,
+  .scanner-live-dot {
+    animation: none;
   }
 }

@@ -114,14 +114,6 @@
       animation: pulse 2.5s ease-in-out infinite;
     }
 
-    /* === Player Dock === */
-    #player-dock {
-      background: rgba(11,15,25,0.92);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid rgba(148,163,184,0.08);
-      animation: slideUp 0.35s ease;
-    }
-
     /* === Animations === */
     @keyframes fadeUp {
       0% { opacity: 0; transform: translate3d(0, 24px, 0); }
@@ -231,20 +223,4 @@
     </section>
 
   </div>
-{% endblock %}
-
-<!-- ===== Player Dock ===== -->
-{% block body_after_main %}
-<footer id="player-dock" class="hidden fixed bottom-0 left-0 w-full z-40">
-  <div class="max-w-5xl mx-auto flex items-center justify-between p-3">
-    <div id="player-info" class="text-sm text-slate-300">
-      🔊 Listening to <span class="text-blue-400" id="dock-feed"></span>
-    </div>
-    <div class="flex gap-3 text-lg text-slate-400">
-      <button id="dock-play" class="hover:text-scannerBlue">▶️</button>
-      <button id="dock-pause" class="hover:text-scannerBlue">⏸️</button>
-      <button id="dock-stop" class="hover:text-scannerBlue">⏹️</button>
-    </div>
-  </div>
-</footer>
 {% endblock %}

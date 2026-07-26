@@ -59,6 +59,7 @@
   {% block head_pre_scripts %}{% endblock %}
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/scanner/static/js/scanner_player.js?v={{ asset_version('js/scanner_player.js') }}" defer></script>
   <script src="/scanner/static/js/scanner_app_new.js?v={{ asset_version('js/scanner_app_new.js') }}" defer></script>
   <script src="/scanner/static/js/pwa.js?v={{ asset_version('js/pwa.js') }}" defer></script>
   {% block head_scripts %}{% endblock %}
@@ -75,6 +76,72 @@
 <main class="{% block main_classes %}scanner-main main-content-area min-h-0 flex-1 overflow-y-auto pb-20{% endblock %}">
   {% block content %}{% endblock %}
 </main>
+
+<section id="scanner-global-player" class="scanner-global-player hidden" role="region" aria-label="Scanner audio player">
+  <audio id="scanner-global-audio" preload="metadata" playsinline></audio>
+  <div class="scanner-global-player-inner">
+    <div class="scanner-global-player-heading">
+      <span id="scanner-player-badge" class="scanner-player-badge">Scanner</span>
+      <div class="scanner-player-copy">
+        <strong id="scanner-player-title">Scanner audio</strong>
+        <span id="scanner-player-subtitle">Select a call to begin listening</span>
+      </div>
+    </div>
+
+    <div class="scanner-player-controls">
+      <button id="scanner-player-toggle" class="scanner-player-control scanner-player-primary" type="button" aria-label="Play scanner audio">
+        <svg class="scanner-player-play-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 5v14l11-7z"></path>
+        </svg>
+        <svg class="scanner-player-pause-icon hidden" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 5h4v14H6zm8 0h4v14h-4z"></path>
+        </svg>
+      </button>
+      <span id="scanner-player-current" class="scanner-player-time">0:00</span>
+      <input
+        id="scanner-player-progress"
+        class="scanner-player-progress"
+        type="range"
+        min="0"
+        max="1000"
+        value="0"
+        aria-label="Audio playback position"
+      >
+      <span id="scanner-player-duration" class="scanner-player-time">0:00</span>
+      <button id="scanner-player-speed" class="scanner-player-control scanner-player-speed" type="button" aria-label="Playback speed">1×</button>
+      <button id="scanner-player-close" class="scanner-player-control scanner-player-close" type="button" aria-label="Close audio player">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<nav class="scanner-bottom-nav md:hidden" aria-label="Primary navigation">
+  <a href="/scanner/" class="scanner-bottom-nav-item {{ 'is-active' if active_page == 'home' else '' }}" {% if active_page == 'home' %}aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M9 20v-6h6v6"></path></svg>
+    <span>Live</span>
+  </a>
+  <a href="/scanner/archive" class="scanner-bottom-nav-item {{ 'is-active' if active_page == 'archive' else '' }}" {% if active_page == 'archive' %}aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM3 4h18v3H3zM9 11h6"></path></svg>
+    <span>Archive</span>
+  </a>
+  <a href="/scanner/heatmap" class="scanner-bottom-nav-item {{ 'is-active' if active_page == 'heatmap' else '' }}" {% if active_page == 'heatmap' %}aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11z"></path><circle cx="12" cy="10" r="2"></circle></svg>
+    <span>Map</span>
+  </a>
+  <button
+    id="mobile-more-btn"
+    class="scanner-bottom-nav-item {{ 'is-active' if active_page not in ['home', 'archive', 'heatmap'] else '' }}"
+    type="button"
+    aria-controls="menu-dropdown"
+    aria-expanded="false"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>
+    <span>More</span>
+  </button>
+</nav>
 
 {% block body_after_main %}{% endblock %}
 </body>

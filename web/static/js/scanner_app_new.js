@@ -388,16 +388,24 @@ function updateTransmittingStatus(dept, isTransmitting) {
 // --- Header Init (No changes) ---
 function initHeader() {
     const REFRESH_INTERVAL_MS = 30000;
-    const menuBtn = document.getElementById('menu-btn');
+    const menuButtons = [
+        document.getElementById('menu-btn'),
+        document.getElementById('mobile-more-btn')
+    ].filter(Boolean);
     const menuDropdown = document.getElementById('menu-dropdown');
 
-    if (menuBtn && menuDropdown) {
+    if (menuButtons.length && menuDropdown) {
         console.log("[Header] Initializing menu dropdown.");
+        const setMenuOpen = (isOpen) => {
+            menuDropdown.classList.toggle('hidden', !isOpen);
+            menuButtons.forEach((button) => button.setAttribute('aria-expanded', isOpen ? 'true' : 'false'));
+        };
         document.addEventListener('click', (e) => {
-            if (menuBtn.contains(e.target)) {
-                menuDropdown.classList.toggle('hidden');
+            const clickedButton = menuButtons.some((button) => button.contains(e.target));
+            if (clickedButton) {
+                setMenuOpen(menuDropdown.classList.contains('hidden'));
             } else if (!menuDropdown.contains(e.target)) {
-                menuDropdown.classList.add('hidden');
+                setMenuOpen(false);
             }
         });
     } else {

@@ -84,15 +84,6 @@
     }
     .menu-item:hover { background:#1e293b; color:#38bdf8; }
 
-    /* === Bottom player dock === */
-    #player-dock {
-      backdrop-filter: blur(10px);
-      background: rgba(17,24,39,0.95);
-      border-top: 1px solid rgba(71,85,105,0.4);
-      animation: slideUp 0.4s ease forwards;
-    }
-    @keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
-
     :root {
       --electric-blue: #38bdf8;
       --emergency-red: #fb7185;
@@ -275,44 +266,13 @@
 
 {% block content %}
   <div class="scanner-page-shell space-y-6">
-    <section class="panel px-5 py-6 sm:px-7 sm:py-7 overflow-hidden relative">
-      <div class="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-scannerBlue/10 to-transparent pointer-events-none"></div>
-      <div class="relative flex items-center gap-4 sm:gap-5">
-        <img src="/scanner/static/icons/icon-192x192-v2.png" alt="Ned's Scanner Network" class="h-16 w-16 rounded-3xl border border-sky-300/10 bg-slate-950/50 p-2 shadow-[0_14px_34px_rgba(56,189,248,0.2)] sm:h-20 sm:w-20">
-        <div>
-          <p class="text-[0.62rem] tracking-[0.32em] uppercase text-scannerBlue/80">Scanner Network</p>
-          <h2 class="text-2xl sm:text-3xl font-semibold text-white tracking-tight mt-1">Ned's Scanner Network</h2>
-          <p class="text-sm text-slate-400 mt-1.5">Live dispatch audio, town feeds, mapped activity, and searchable archive in one place.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Summary stats -->
-    <article id="stats" class="panel p-5">
-      <div class="grid grid-cols-4 gap-4 text-center">
-        <div class="flex flex-col-reverse">
-          <span id="total-calls" class="stat-value text-scannerBlue">--</span>
-          <span class="stat-label mb-1">Calls Today</span>
-        </div>
-        <div class="flex flex-col-reverse">
-          <span id="hooks-today" class="stat-value text-amber-400">--</span>
-          <span class="stat-label mb-1">Hooks Today</span>
-        </div>
-        <div class="flex flex-col-reverse">
-          <span id="active-feeds" class="stat-value text-purple-400">--</span>
-          <span class="stat-label mb-1">Minutes Recorded</span>
-        </div>
-        <div class="flex flex-col-reverse">
-          <span id="listeners" class="stat-value text-emerald-400">--</span>
-          <span class="stat-label mb-1">Listeners</span>
-        </div>
-      </div>
-    </article>
-
-    <!-- Call board -->
+    <!-- Playable calls are the primary mobile and desktop action. -->
     <section id="call-board" class="panel p-5 space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-base font-semibold text-slate-200 tracking-wide">Live Calls</h2>
+        <div>
+          <p class="text-[0.6rem] tracking-[0.22em] uppercase text-scannerBlue/80">Listen now</p>
+          <h1 class="text-lg font-semibold text-white tracking-wide mt-0.5">Latest Scanner Calls</h1>
+        </div>
         <span class="text-[10px] text-slate-500 uppercase tracking-widest">Latest across all feeds</span>
       </div>
 
@@ -335,6 +295,40 @@
       </div>
     </section>
 
+    <section class="panel px-5 py-5 sm:px-7 sm:py-6 overflow-hidden relative">
+      <div class="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-scannerBlue/10 to-transparent pointer-events-none"></div>
+      <div class="relative flex items-center gap-4 sm:gap-5">
+        <img src="/scanner/static/icons/icon-192x192-v2.png" alt="" class="h-14 w-14 rounded-2xl border border-sky-300/10 bg-slate-950/50 p-2 shadow-[0_14px_34px_rgba(56,189,248,0.2)] sm:h-16 sm:w-16">
+        <div>
+          <p class="text-[0.62rem] tracking-[0.32em] uppercase text-scannerBlue/80">Scanner Network</p>
+          <h2 class="text-xl sm:text-2xl font-semibold text-white tracking-tight mt-1">Local dispatch, in one place</h2>
+          <p class="text-sm text-slate-400 mt-1.5">Live town feeds, mapped activity, and a searchable call archive.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary stats -->
+    <article id="stats" class="panel p-5">
+      <div class="grid grid-cols-2 gap-5 text-center sm:grid-cols-4">
+        <div class="flex flex-col-reverse">
+          <span id="total-calls" class="stat-value text-scannerBlue">--</span>
+          <span class="stat-label mb-1">Calls Today</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="hooks-today" class="stat-value text-amber-400">--</span>
+          <span class="stat-label mb-1">Hooks Today</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="active-feeds" class="stat-value text-purple-400">--</span>
+          <span class="stat-label mb-1">Minutes Recorded</span>
+        </div>
+        <div class="flex flex-col-reverse">
+          <span id="listeners" class="stat-value text-emerald-400">--</span>
+          <span class="stat-label mb-1">Listeners</span>
+        </div>
+      </div>
+    </article>
+
     <!-- Town grid (kept for live indicators, hidden visually via the filter tabs above) -->
     <section id="towns" class="space-y-3">
       <h2 class="text-base font-semibold text-slate-200 tracking-wide">Towns</h2>
@@ -344,19 +338,6 @@
 {% endblock %}
 
 {% block body_after_main %}
-<footer id="player-dock" class="hidden fixed bottom-0 left-0 w-full z-40">
-  <div class="max-w-5xl mx-auto flex items-center justify-between p-3">
-    <div id="player-info" class="text-sm text-slate-300">
-      🔊 Listening to <span class="text-blue-400" id="dock-feed"></span>
-    </div>
-    <div class="flex gap-3 text-lg text-slate-400">
-      <button id="dock-play" class="hover:text-scannerBlue">▶️</button>
-      <button id="dock-pause" class="hover:text-scannerBlue">⏸️</button>
-      <button id="dock-stop" class="hover:text-scannerBlue">⏹️</button>
-    </div>
-  </div>
-</footer>
-
 <!-- ===== Notifications Settings Overlay ===== -->
 <div id="notif-overlay" class="hidden fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
   <!-- Backdrop -->
@@ -400,10 +381,4 @@
   </div>
 </div>
 
-<script>
-function showPlayerDock(feedName){
-  document.getElementById('dock-feed').textContent=feedName;
-  document.getElementById('player-dock').classList.remove('hidden');
-}
-</script>
 {% endblock %}
