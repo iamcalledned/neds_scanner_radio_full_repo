@@ -54,3 +54,4 @@ Thumbs.db
 # --- Temp / runtime ---
 /tmp/
 *.tmp
+full_model_taining/
