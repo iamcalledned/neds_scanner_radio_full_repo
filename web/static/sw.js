@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scanner-cache-v20260726-player-r1';
+const CACHE_NAME = 'scanner-cache-v20260726-player-r2';
 const OFFLINE_URL = 'offline.html';
 
 // Use relative paths so this worker works under /scanner/ when installed there.

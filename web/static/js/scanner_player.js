@@ -22,6 +22,7 @@
     let currentEl;
     let durationEl;
     let speedBtn;
+    let downloadLink;
     let closeBtn;
     let metadata = {};
     let lastSavedSecond = -1;
@@ -47,6 +48,28 @@
         const normalized = String(feed).toLowerCase();
         const type = normalized.includes('fd') ? 'Fire' : 'Police';
         return `${String(feed).toUpperCase()} ${type}`;
+    }
+
+    function downloadNameFromSource(source) {
+        if (!source) return 'scanner-call.wav';
+        try {
+            const pathname = new URL(source, window.location.href).pathname;
+            const filename = decodeURIComponent(pathname.split('/').filter(Boolean).pop() || '');
+            return filename || 'scanner-call.wav';
+        } catch (_) {
+            return 'scanner-call.wav';
+        }
+    }
+
+    function setDownloadSource(source) {
+        if (!downloadLink) return;
+        const normalized = normalizeSource(source);
+        downloadLink.href = normalized || '#';
+        downloadLink.download = downloadNameFromSource(normalized);
+        downloadLink.setAttribute(
+            'aria-label',
+            normalized ? `Download ${downloadLink.download}` : 'Download scanner audio'
+        );
     }
 
     function isCurrentSource(source) {
@@ -181,6 +204,7 @@
 
         if (!sameSource) {
             audio.src = source;
+            setDownloadSource(source);
             setMetadata(item);
             audio.load();
         } else if (item?.title) {
@@ -221,6 +245,7 @@
         audio.pause();
         audio.removeAttribute('src');
         audio.load();
+        setDownloadSource('');
         metadata = {};
         setDockVisible(false);
         clearPersistedState();
@@ -342,6 +367,7 @@
         setMetadata(saved.metadata || {});
         setDockVisible(true);
         audio.src = saved.src;
+        setDownloadSource(saved.src);
         audio.playbackRate = saved.playbackRate || 1;
         audio.addEventListener('loadedmetadata', () => {
             if (Number.isFinite(saved.currentTime)) {
@@ -370,6 +396,7 @@
         currentEl = document.getElementById('scanner-player-current');
         durationEl = document.getElementById('scanner-player-duration');
         speedBtn = document.getElementById('scanner-player-speed');
+        downloadLink = document.getElementById('scanner-player-download');
         closeBtn = document.getElementById('scanner-player-close');
         if (!audio || !dock || !toggleBtn || !progressEl) return;
 

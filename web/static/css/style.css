@@ -458,7 +458,7 @@ body {
 
 .scanner-player-controls {
   display: grid;
-  grid-template-columns: auto 2.5rem minmax(7rem, 1fr) 2.5rem auto auto;
+  grid-template-columns: auto 2.5rem minmax(7rem, 1fr) 2.5rem auto auto auto;
   gap: 0.65rem;
   align-items: center;
 }
@@ -505,6 +505,14 @@ body {
 }
 
 .scanner-player-close svg {
+  fill: none;
+}
+
+.scanner-player-download {
+  text-decoration: none;
+}
+
+.scanner-player-download svg {
   fill: none;
 }
 
@@ -714,7 +722,7 @@ body.scanner-player-open .scanner-main {
   }
 
   .scanner-player-controls {
-    grid-template-columns: auto 2.25rem minmax(4rem, 1fr) 2.25rem auto auto;
+    grid-template-columns: auto 2.25rem minmax(3rem, 1fr) 2.25rem auto auto auto;
     gap: 0.4rem;
   }
 
