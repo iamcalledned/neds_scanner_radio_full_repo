@@ -5,7 +5,6 @@
 // --- Globals ---
 let socket;
 let isLoggedIn = false;
-let deferredInstallPrompt = null; // For PWA installation
 
 const FEED_TOWN_MAP = {
     pd: "Hopedale", fd: "Hopedale",
