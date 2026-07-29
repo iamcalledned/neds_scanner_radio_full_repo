@@ -225,6 +225,100 @@
       background-image: linear-gradient(90deg, rgba(56,189,248,0.85), rgba(45,212,255,0.45));
     }
 
+    .neds-take-bug {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex: none;
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      background: rgba(120, 53, 15, 0.24);
+      color: #fde68a;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      transition: border-color .2s ease, background .2s ease, color .2s ease;
+    }
+    .neds-take-bug:hover,
+    .neds-take-bug:focus-visible {
+      border-color: rgba(251, 191, 36, 0.7);
+      background: rgba(146, 64, 14, 0.38);
+      color: #fff7d6;
+      outline: none;
+    }
+    .neds-take-bug-dot {
+      width: 0.42rem;
+      height: 0.42rem;
+      border-radius: 999px;
+      background: #fbbf24;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.75);
+    }
+    .neds-take-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 85;
+      pointer-events: none;
+      visibility: hidden;
+    }
+    .neds-take-overlay.is-open {
+      pointer-events: auto;
+      visibility: visible;
+    }
+    .neds-take-backdrop {
+      position: absolute;
+      inset: 0;
+      border: 0;
+      background: rgba(2, 6, 23, 0.72);
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+    .neds-take-overlay.is-open .neds-take-backdrop { opacity: 1; }
+    .neds-take-drawer {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      max-height: min(84dvh, 780px);
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      border-bottom: 0;
+      border-radius: 1.5rem 1.5rem 0 0;
+      background: #080f1f;
+      box-shadow: 0 -24px 70px rgba(2, 6, 23, 0.7);
+      transform: translateY(105%);
+      transition: transform .28s cubic-bezier(.22, 1, .36, 1);
+    }
+    .neds-take-overlay.is-open .neds-take-drawer { transform: translateY(0); }
+    .neds-take-drawer-body {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .neds-take-tab[aria-selected="true"] {
+      border-color: rgba(251, 191, 36, 0.55);
+      background: rgba(120, 53, 15, 0.38);
+      color: #fde68a;
+    }
+    body.neds-take-open { overflow: hidden; }
+    @media (min-width: 640px) {
+      .neds-take-drawer {
+      top: 0;
+      bottom: 0;
+      left: auto;
+      width: min(42rem, 94vw);
+      max-height: none;
+        border-width: 0 0 0 1px;
+        border-radius: 0;
+        box-shadow: -24px 0 70px rgba(2, 6, 23, 0.65);
+        transform: translateX(105%);
+      }
+      .neds-take-overlay.is-open .neds-take-drawer { transform: translateX(0); }
+      #neds-take-tabs { flex-wrap: wrap; overflow-x: visible; }
+    }
+
     @keyframes fadeUp {
       0% { opacity: 0; transform: translate3d(0, 24px, 0); }
       100% { opacity: 1; transform: translate3d(0, 0, 0); }
@@ -255,10 +349,46 @@
 <div id="live-now-bar" class="scanner-live-now-bar px-4 py-2 overflow-x-auto">
   <div class="max-w-6xl mx-auto flex gap-3 items-center min-h-[28px]">
     <span class="text-slate-600 text-[10px] uppercase tracking-widest shrink-0">Live</span>
-    <div id="live-now-chips" class="flex gap-2 items-center flex-wrap">
+    <div id="live-now-chips" class="flex flex-1 gap-2 items-center flex-wrap">
       <span id="live-bar-quiet" class="text-slate-600 text-xs italic">All quiet</span>
     </div>
+    <button
+      id="neds-take-trigger"
+      type="button"
+      class="neds-take-bug"
+      aria-haspopup="dialog"
+      aria-controls="neds-take-overlay"
+      aria-expanded="false"
+    >
+      <span class="neds-take-bug-dot" aria-hidden="true"></span>
+      Ned’s Take
+    </button>
   </div>
+</div>
+
+<div id="neds-take-overlay" class="neds-take-overlay" aria-hidden="true">
+  <button id="neds-take-backdrop" class="neds-take-backdrop" type="button" aria-label="Close Ned’s Take"></button>
+  <aside
+    id="neds-take-drawer"
+    class="neds-take-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="neds-take-title"
+  >
+    <header class="flex items-start justify-between gap-4 border-b border-slate-800/80 px-5 py-4 sm:px-6">
+      <div>
+        <p class="text-[0.6rem] uppercase tracking-[0.25em] text-amber-300/70">Daily scanner briefing</p>
+        <h2 id="neds-take-title" class="mt-1 text-xl font-semibold text-white">Ned’s Take</h2>
+        <p id="neds-take-meta" class="mt-1 text-[10px] uppercase tracking-widest text-slate-500">Open for the latest edition</p>
+      </div>
+      <button id="neds-take-close" type="button" class="rounded-full border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:border-slate-500 hover:text-white" aria-label="Close Ned’s Take">Close</button>
+    </header>
+    <div id="neds-take-tabs" class="flex gap-2 overflow-x-auto border-b border-slate-800/70 px-5 py-3 sm:px-6" role="tablist" aria-label="Ned’s Take location"></div>
+    <div class="neds-take-drawer-body px-5 py-5 sm:px-6">
+      <div id="neds-take-loading" class="py-12 text-center text-sm text-slate-400" role="status">Open the briefing to load today’s calls.</div>
+      <div id="neds-take-content" class="hidden" aria-live="polite"></div>
+    </div>
+  </aside>
 </div>
 {% endblock %}
 

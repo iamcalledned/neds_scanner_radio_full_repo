@@ -1,81 +1,567 @@
 {% extends "scanner_base.html" %}
 
-{% block page_title %}Heat Map - Ned's Scanner Network{% endblock %}
-{% block meta_description %}Explore a geographic heat map of scanner activity across the towns covered by Ned's Scanner Network.{% endblock %}
+{% block page_title %}Activity Map - Ned's Scanner Network{% endblock %}
+{% block meta_description %}Explore geocoded scanner activity by time range, town, and department across Ned's Scanner Network.{% endblock %}
 {% block page_key %}heatmap{% endblock %}
 
 {% block head_extra %}
   <style>
+    .hm-shell {
+      width: min(80rem, 100%);
+    }
+
+    .hm-hero {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hm-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      width: min(100%, 32rem);
+    }
+
+    .hm-summary-card {
+      min-width: 0;
+      padding: 0.8rem 0.9rem;
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 1rem;
+      background: rgba(15, 23, 42, 0.58);
+    }
+
+    .hm-summary-label {
+      display: block;
+      color: #64748b;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .hm-summary-value {
+      display: block;
+      overflow: hidden;
+      margin-top: 0.25rem;
+      color: #e2e8f0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .hm-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.9rem 1.25rem;
+      padding: 0.9rem;
+      border: 1px solid rgba(71, 85, 105, 0.56);
+      border-radius: 1.15rem;
+      background: rgba(9, 16, 28, 0.72);
+      box-shadow: 0 16px 36px rgba(2, 8, 23, 0.28);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .hm-filter-group {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 0.38rem;
+    }
+
+    .hm-filter-label {
+      color: #64748b;
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .hm-segments {
+      display: inline-flex;
+      gap: 0.25rem;
+      padding: 0.22rem;
+      border: 1px solid rgba(71, 85, 105, 0.56);
+      border-radius: 0.85rem;
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    .hm-segment {
+      min-height: 2.15rem;
+      padding: 0.4rem 0.72rem;
+      border: 0;
+      border-radius: 0.65rem;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .hm-segment:hover,
+    .hm-segment:focus-visible {
+      color: #e0f2fe;
+      background: rgba(30, 41, 59, 0.82);
+      outline: none;
+    }
+
+    .hm-segment.is-active {
+      color: #e0f2fe;
+      background: rgba(2, 132, 199, 0.28);
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
+
+    .hm-segment[data-department="fire"].is-active {
+      color: #ffe4e6;
+      background: rgba(190, 24, 93, 0.26);
+      box-shadow: inset 0 0 0 1px rgba(251, 113, 133, 0.32);
+    }
+
+    .hm-select {
+      min-height: 2.65rem;
+      border: 1px solid rgba(71, 85, 105, 0.72);
+      border-radius: 0.8rem;
+      appearance: none;
+      background-color: rgba(15, 23, 42, 0.88);
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.65rem center;
+      background-repeat: no-repeat;
+      background-size: 1.15rem;
+      color: #e2e8f0;
+      cursor: pointer;
+      font-size: 0.84rem;
+      padding: 0.55rem 2.2rem 0.55rem 0.8rem;
+    }
+
+    .hm-select:focus {
+      border-color: rgba(56, 189, 248, 0.75);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
+      outline: none;
+    }
+
+    .hm-layer-controls {
+      display: flex;
+      gap: 0.45rem;
+      margin-left: auto;
+    }
+
+    .hm-layer-toggle {
+      display: inline-flex;
+      min-height: 2.65rem;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.5rem 0.72rem;
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      border-radius: 0.8rem;
+      background: rgba(15, 23, 42, 0.64);
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.76rem;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .hm-layer-toggle input {
+      width: 1rem;
+      height: 1rem;
+      margin: 0;
+      accent-color: #38bdf8;
+    }
+
+    .hm-map-frame {
+      position: relative;
+      height: clamp(26rem, 64vh, 42rem);
+      min-height: 26rem;
+      overflow: hidden;
+      border: 1px solid rgba(71, 85, 105, 0.58);
+      border-radius: 1.35rem;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(56, 189, 248, 0.08), transparent 34%),
+        #07101d;
+      box-shadow: 0 24px 54px rgba(2, 8, 23, 0.42);
+    }
+
     #map {
       width: 100%;
       height: 100%;
-      min-height: 520px;
-      border-radius: 16px;
-      overflow: hidden;
     }
 
-    /* Filter selects */
-    .hm-select {
-      background: rgba(15,23,42,0.9);
-      border: 1px solid rgba(71,85,105,0.6);
-      border-radius: 8px;
-      color: #e2e8f0;
-      font-size: 0.875rem;
-      padding: 0.45rem 2rem 0.45rem 0.75rem;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-      background-position: right 0.4rem center;
-      background-repeat: no-repeat;
-      background-size: 1.4em 1.4em;
+    .hm-map-legend {
+      position: absolute;
+      left: 0.85rem;
+      bottom: 0.85rem;
+      z-index: 5;
+      width: min(14rem, calc(100% - 1.7rem));
+      padding: 0.65rem 0.75rem;
+      border: 1px solid rgba(71, 85, 105, 0.72);
+      border-radius: 0.85rem;
+      background: rgba(7, 13, 24, 0.9);
+      box-shadow: 0 10px 28px rgba(2, 8, 23, 0.42);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .hm-legend-title {
+      color: #cbd5e1;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .hm-legend-gradient {
+      height: 0.42rem;
+      margin-top: 0.45rem;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #1e3a8a, #38bdf8, #facc15, #f97316, #ef4444, #ff4d78);
+    }
+
+    .hm-legend-scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.28rem;
+      color: #94a3b8;
+      font-size: 0.62rem;
+    }
+
+    .hm-reset-view {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      z-index: 5;
+      min-height: 2.35rem;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid rgba(71, 85, 105, 0.72);
+      border-radius: 0.75rem;
+      background: rgba(7, 13, 24, 0.9);
+      color: #cbd5e1;
       cursor: pointer;
-      transition: border-color .15s;
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
-    .hm-select:focus { outline: none; border-color: #38bdf8; }
 
-    /* Google Maps info window overrides */
-    .gm-style .gm-style-iw-c {
-      background: #0f172a !important;
-      border: 1px solid rgba(148,163,184,0.2) !important;
-      border-radius: 12px !important;
-      box-shadow: 0 8px 32px rgba(2,6,23,0.7) !important;
+    .hm-reset-view:hover,
+    .hm-reset-view:focus-visible {
+      border-color: rgba(56, 189, 248, 0.52);
+      color: #fff;
+      outline: none;
     }
-    .gm-style .gm-style-iw-d { overflow: hidden !important; }
-    .gm-style .gm-style-iw-t::after { background: #0f172a !important; }
-    .gm-style .gm-ui-hover-effect { filter: invert(1) !important; }
 
-    .iw-town { font-family: Inter, sans-serif; padding: 4px 2px; min-width: 160px; }
-    .iw-town-name { font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 6px; text-transform: capitalize; }
-    .iw-town-row { font-size: 0.8rem; color: #94a3b8; margin: 2px 0; }
-    .iw-town-row span { color: #38bdf8; font-weight: 600; }
-    .iw-town-link { display:inline-block; margin-top:8px; font-size:0.8rem; color:#38bdf8; text-decoration:none; }
-    .iw-town-link:hover { text-decoration:underline; }
+    .hm-map-state {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: rgba(7, 13, 24, 0.74);
+      text-align: center;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
 
-    #no-api-key-banner {
+    .hm-map-state.hidden {
       display: none;
-      background: rgba(120,53,15,0.85);
-      border: 1px solid #d97706;
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
-      color: #fde68a;
-      font-size: 0.875rem;
     }
 
-    #loading-overlay {
-      position: absolute; inset: 0; z-index: 10;
-      display: none;
-      align-items: center; justify-content: center;
-      background: rgba(11,15,25,0.6);
-      border-radius: 16px;
+    .hm-map-state-card {
+      width: min(24rem, 100%);
+      padding: 1.15rem;
+      border: 1px solid rgba(71, 85, 105, 0.66);
+      border-radius: 1rem;
+      background: rgba(15, 23, 42, 0.92);
+      color: #cbd5e1;
     }
-    #loading-overlay.visible { display: flex; }
-    .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid rgba(56,189,248,0.2);
+
+    .hm-map-state-card strong {
+      display: block;
+      color: #f8fafc;
+      font-size: 0.95rem;
+    }
+
+    .hm-map-state-card span {
+      display: block;
+      margin-top: 0.35rem;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .hm-spinner {
+      width: 2rem;
+      height: 2rem;
+      margin: 0 auto 0.7rem;
+      border: 3px solid rgba(56, 189, 248, 0.18);
       border-top-color: #38bdf8;
       border-radius: 50%;
-      animation: spin .7s linear infinite;
+      animation: hmSpin 0.72s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hm-town-panel {
+      padding: 1rem;
+      border: 1px solid rgba(71, 85, 105, 0.52);
+      border-radius: 1.2rem;
+      background: rgba(9, 16, 28, 0.68);
+    }
+
+    .hm-town-panel-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .hm-town-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .hm-town-card {
+      min-width: 0;
+      padding: 0.8rem;
+      border: 1px solid rgba(71, 85, 105, 0.48);
+      border-radius: 0.9rem;
+      background: rgba(15, 23, 42, 0.62);
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+      transition: transform 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+    }
+
+    .hm-town-card:hover,
+    .hm-town-card:focus-visible,
+    .hm-town-card.is-active {
+      border-color: rgba(56, 189, 248, 0.42);
+      background: rgba(14, 116, 144, 0.12);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .hm-town-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.55rem;
+    }
+
+    .hm-town-name {
+      overflow: hidden;
+      color: #e2e8f0;
+      font-size: 0.84rem;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      text-transform: capitalize;
+      white-space: nowrap;
+    }
+
+    .hm-town-count {
+      flex: 0 0 auto;
+      color: #7dd3fc;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .hm-town-bar {
+      height: 0.28rem;
+      margin-top: 0.6rem;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(51, 65, 85, 0.72);
+    }
+
+    .hm-town-bar span {
+      display: block;
+      width: var(--activity-width, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+    }
+
+    .hm-town-meta {
+      display: block;
+      margin-top: 0.45rem;
+      color: #64748b;
+      font-size: 0.66rem;
+    }
+
+    .hm-unavailable {
+      padding: 0.9rem 1rem;
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      border-radius: 1rem;
+      background: rgba(120, 53, 15, 0.22);
+      color: #fde68a;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .hm-unavailable.hidden {
+      display: none;
+    }
+
+    .gm-style .gm-style-iw-c {
+      border: 1px solid rgba(148, 163, 184, 0.2) !important;
+      border-radius: 12px !important;
+      background: #0f172a !important;
+      box-shadow: 0 8px 32px rgba(2, 6, 23, 0.7) !important;
+    }
+
+    .gm-style .gm-style-iw-d {
+      overflow: hidden !important;
+    }
+
+    .gm-style .gm-style-iw-t::after {
+      background: #0f172a !important;
+    }
+
+    .gm-style .gm-ui-hover-effect {
+      filter: invert(1) !important;
+    }
+
+    .iw-town {
+      min-width: 170px;
+      padding: 4px 2px;
+      font-family: Inter, sans-serif;
+    }
+
+    .iw-town-name {
+      margin-bottom: 6px;
+      color: #f8fafc;
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .iw-town-row {
+      margin: 3px 0;
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+
+    .iw-town-row span {
+      color: #7dd3fc;
+      font-weight: 700;
+    }
+
+    .iw-town-link {
+      display: inline-block;
+      margin-top: 8px;
+      color: #38bdf8;
+      font-size: 0.8rem;
+      text-decoration: none;
+    }
+
+    @keyframes hmSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 767px) {
+      .hm-shell {
+        padding-top: 0.75rem;
+      }
+
+      .hm-hero {
+        align-items: stretch;
+      }
+
+      .hm-hero .scanner-title {
+        font-size: 1.85rem;
+      }
+
+      .hm-summary {
+        width: 100%;
+      }
+
+      .hm-summary-card {
+        padding: 0.68rem;
+      }
+
+      .hm-summary-value {
+        font-size: 0.88rem;
+      }
+
+      .hm-toolbar {
+        align-items: stretch;
+        gap: 0.75rem;
+      }
+
+      .hm-filter-group {
+        width: 100%;
+      }
+
+      .hm-segments {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .hm-department-segments {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .hm-segment {
+        padding-right: 0.4rem;
+        padding-left: 0.4rem;
+      }
+
+      .hm-select {
+        width: 100%;
+      }
+
+      .hm-layer-controls {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .hm-layer-toggle {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .hm-map-frame {
+        height: min(62svh, 32rem);
+        min-height: 23rem;
+        border-radius: 1.1rem;
+      }
+
+      .hm-reset-view {
+        top: 0.6rem;
+        right: 0.6rem;
+      }
+
+      .hm-map-legend {
+        left: 0.6rem;
+        bottom: 0.6rem;
+      }
+
+      .hm-town-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hm-spinner {
+        animation: none;
+      }
+
+      .hm-town-card {
+        transition: none;
+      }
+    }
   </style>
 {% endblock %}
 
@@ -84,77 +570,114 @@
 {% endblock %}
 
 {% block content %}
-  <div class="scanner-page-shell space-y-4">
+  <div class="scanner-page-shell hm-shell space-y-4">
+    <section class="hm-hero">
+      <div class="scanner-page-hero">
+        <p class="scanner-eyebrow">Local activity</p>
+        <h1 class="scanner-title">Scanner Activity Map</h1>
+        <p class="scanner-subtitle">See where geocoded Police and Fire calls are concentrating across the network.</p>
+      </div>
 
-    <!-- Page header -->
-    <section class="scanner-page-hero">
-      <p class="scanner-eyebrow">Coverage</p>
-      <h1 class="scanner-title">Activity Heat Map</h1>
-      <p class="scanner-subtitle">Call locations geocoded from transcripts. Filter by time range or town to see where activity concentrates.</p>
+      <div class="hm-summary" aria-live="polite">
+        <div class="hm-summary-card">
+          <span class="hm-summary-label">Plotted</span>
+          <span id="hm-summary-count" class="hm-summary-value">—</span>
+        </div>
+        <div class="hm-summary-card">
+          <span class="hm-summary-label">Busiest</span>
+          <span id="hm-summary-busiest" class="hm-summary-value">—</span>
+        </div>
+        <div class="hm-summary-card">
+          <span class="hm-summary-label">Active towns</span>
+          <span id="hm-summary-towns" class="hm-summary-value">—</span>
+        </div>
+      </div>
     </section>
 
-    <!-- No API key warning -->
-    <div id="no-api-key-banner">
-      <strong>Google Maps API key not configured.</strong>
-      Set <code>GOOGLE_MAPS_API_KEY</code> in your <code>.env</code> file and restart the web service.
-      See <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" class="underline">Google Maps documentation</a> for setup instructions.
+    <div id="map-unavailable" class="hm-unavailable hidden" role="status">
+      The activity map is temporarily unavailable. Town activity below will return when the map service reconnects.
     </div>
 
-    <!-- Filters + stats row -->
-    <div class="glass rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3">
-      <!-- Time range -->
-      <div class="flex items-center gap-2">
-        <label class="text-[0.7rem] uppercase tracking-widest text-slate-500">Range</label>
-        <select id="filter-range" class="hm-select">
-          <option value="day">Today</option>
-          <option value="week" selected>Last 7 Days</option>
-          <option value="month">Last 30 Days</option>
-          <option value="all">All Time</option>
-        </select>
+    <section class="hm-toolbar" aria-label="Map filters">
+      <div class="hm-filter-group">
+        <span class="hm-filter-label">Time range</span>
+        <div id="range-segments" class="hm-segments" role="group" aria-label="Time range">
+          <button class="hm-segment" type="button" data-range="day">Today</button>
+          <button class="hm-segment is-active" type="button" data-range="week">7 days</button>
+          <button class="hm-segment" type="button" data-range="month">30 days</button>
+          <button class="hm-segment" type="button" data-range="all">All</button>
+        </div>
       </div>
 
-      <!-- Town filter -->
-      <div class="flex items-center gap-2">
-        <label class="text-[0.7rem] uppercase tracking-widest text-slate-500">Town</label>
+      <div class="hm-filter-group">
+        <label for="filter-town" class="hm-filter-label">Town</label>
         <select id="filter-town" class="hm-select">
-          <option value="all">All Towns</option>
-          <!-- populated by JS -->
+          <option value="all">All towns</option>
         </select>
       </div>
 
-      <!-- Spacer + call count badge -->
-      <div class="ml-auto flex items-center gap-3">
-        <span id="point-count" class="text-xs text-slate-400 tabular-nums"></span>
-        <!-- Town centroid toggles -->
-        <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
-          <input type="checkbox" id="toggle-town-pins" checked class="accent-sky-400">
-          Town pins
+      <div class="hm-filter-group">
+        <span class="hm-filter-label">Department</span>
+        <div id="department-segments" class="hm-segments hm-department-segments" role="group" aria-label="Department">
+          <button class="hm-segment is-active" type="button" data-department="all">All</button>
+          <button class="hm-segment" type="button" data-department="police">Police</button>
+          <button class="hm-segment" type="button" data-department="fire">Fire</button>
+        </div>
+      </div>
+
+      <div class="hm-layer-controls">
+        <label class="hm-layer-toggle">
+          <input type="checkbox" id="toggle-heatmap" checked>
+          Heat
         </label>
-        <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
-          <input type="checkbox" id="toggle-heatmap" checked class="accent-sky-400">
-          Heat layer
+        <label class="hm-layer-toggle">
+          <input type="checkbox" id="toggle-town-pins" checked>
+          Town labels
         </label>
       </div>
-    </div>
+    </section>
 
-    <!-- Map container -->
-    <div class="glass rounded-2xl p-1 relative" style="height: 580px;">
+    <section class="hm-map-frame" aria-label="Geocoded scanner activity">
       <div id="map"></div>
-      <div id="loading-overlay"><div class="spinner"></div></div>
-    </div>
+      <button id="reset-map-view" class="hm-reset-view" type="button">Reset view</button>
 
-    <!-- Town list -->
-    <div class="glass rounded-2xl p-5">
-      <p class="text-[0.62rem] tracking-[0.28em] uppercase text-slate-500 mb-3">Covered Towns</p>
-      <div id="town-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-        <p class="text-slate-500 italic text-sm col-span-full">Loading…</p>
+      <div class="hm-map-legend" aria-label="Heat intensity legend">
+        <div class="hm-legend-title">Call concentration</div>
+        <div class="hm-legend-gradient"></div>
+        <div class="hm-legend-scale"><span>Lower</span><span>Higher</span></div>
       </div>
-    </div>
 
+      <div id="loading-overlay" class="hm-map-state">
+        <div class="hm-map-state-card">
+          <div class="hm-spinner"></div>
+          <strong>Building activity map</strong>
+          <span>Plotting geocoded scanner calls…</span>
+        </div>
+      </div>
+
+      <div id="empty-overlay" class="hm-map-state hidden">
+        <div class="hm-map-state-card">
+          <strong>No mapped calls for these filters</strong>
+          <span>Try a longer time range, another town, or both departments.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="hm-town-panel">
+      <div class="hm-town-panel-heading">
+        <div>
+          <p class="hm-filter-label">Activity by town</p>
+          <h2 class="text-base font-semibold text-slate-200 mt-1">Tap a town to focus the map</h2>
+        </div>
+        <span id="point-count" class="text-xs text-slate-400 tabular-nums"></span>
+      </div>
+      <div id="town-list" class="hm-town-grid">
+        <p class="text-slate-500 italic text-sm col-span-full">Loading town activity…</p>
+      </div>
+    </section>
   </div>
 {% endblock %}
 
-<!-- Pass API key to JS -->
 {% block body_after_main %}
 <script>
   window.GOOGLE_MAPS_API_KEY = {{ google_maps_api_key | tojson }};

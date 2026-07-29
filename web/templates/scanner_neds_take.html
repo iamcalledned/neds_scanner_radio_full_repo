@@ -1,0 +1,28 @@
+{% extends "scanner_base.html" %}
+
+{% block page_title %}Ned's Take · {{ take_day }}{% endblock %}
+{% block meta_description %}The full town-by-town daily scanner recap with grouped incident evidence.{% endblock %}
+{% block page_key %}neds-take{% endblock %}
+
+{% block head_scripts %}
+  <script src="/scanner/static/js/scanner_neds_take.js?v={{ asset_version('js/scanner_neds_take.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div id="daily-take-page" class="scanner-page-shell" data-take-day="{{ take_day }}">
+  <div class="mx-auto max-w-5xl">
+    <a href="/scanner/" class="text-xs font-semibold text-sky-300 hover:text-white">← Back to live scanner</a>
+
+    <header class="mt-4">
+      <p class="text-[0.62rem] uppercase tracking-[0.28em] text-amber-300/70">Full daily report</p>
+      <h1 class="mt-1 text-3xl font-semibold text-white">Ned’s Take</h1>
+      <p id="daily-take-meta" class="mt-2 text-xs uppercase tracking-wider text-slate-500">{{ take_day }}</p>
+    </header>
+
+    <div id="daily-take-loading" class="panel mt-6 px-5 py-14 text-center text-sm text-slate-400" role="status">
+      Building the town-by-town report…
+    </div>
+    <div id="daily-take-content" class="mt-6 hidden space-y-6"></div>
+  </div>
+</div>
+{% endblock %}

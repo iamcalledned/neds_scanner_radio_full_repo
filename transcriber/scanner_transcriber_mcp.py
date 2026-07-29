@@ -308,17 +308,12 @@ async def lifespan(_: FastMCP):
         if gk_path not in sys.path:
             sys.path.append(gk_path)
         from gpu_gatekeeper.client import GpuGatekeeperClient
+        from mcp_functions.gatekeeper_registration import ensure_scanner_reservation
         
         client = GpuGatekeeperClient()
         log.info("Registering scanner service with GPU Gatekeeper for permanent highest protection reservation...")
         
-        ensure_resp = client.ensure_runtime(
-            capability="scanner_transcription",
-            owner="scanner-mcp",
-            allow_protected=True,
-            ttl_seconds=315360000,  # 10-year virtually permanent lease
-            force=True
-        )
+        ensure_resp = ensure_scanner_reservation(client, log)
         if ensure_resp.get("ok"):
             lease = ensure_resp.get("lease")
             if lease:

@@ -17,6 +17,14 @@ TOWNS: Dict[str, Dict[str, Any]] = {
 
 CHAT_PRESET_TEMPLATES: List[Dict[str, Any]] = [
     {
+        "id": "neds_take",
+        "label": "Ned’s Take",
+        "teaser": "A grounded recap with a little personality.",
+        "prompt_template": "Give me Ned’s Take for {town} today.",
+        "tool_name": "get_neds_take",
+        "arguments": {"date": "today"},
+    },
+    {
         "id": "calls_today",
         "label": "Calls Today",
         "teaser": "Quick call volume check.",

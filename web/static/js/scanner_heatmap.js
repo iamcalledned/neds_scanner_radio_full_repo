@@ -1,119 +1,355 @@
-/* scanner_heatmap.js — Geographic call activity map with heat layer + town pins */
+/* scanner_heatmap.js — Responsive scanner activity map with useful filters and summaries. */
 
 (function () {
   "use strict";
 
-  // ── Constants ────────────────────────────────────────────────────
-  const COLOR_ACTIVE   = "#38bdf8";
-  const COLOR_INACTIVE = "#475569";
-  const STROKE_COLOR   = "#0f172a";
+  const DEFAULT_CENTER = { lat: 42.13, lng: -71.52 };
+  const HEAT_COLORS = [
+    [0, [30, 58, 138]],
+    [0.24, [37, 99, 235]],
+    [0.43, [56, 189, 248]],
+    [0.62, [250, 204, 21]],
+    [0.78, [249, 115, 22]],
+    [0.93, [239, 68, 68]],
+    [1, [255, 77, 120]],
+  ];
 
-  // ── State ────────────────────────────────────────────────────────
-  let map         = null;
-  let heatLayer   = null;
+  let map = null;
+  let heatLayer = null;
+  let HeatmapOverlay = null;
+  let heatColorLookup = null;
+  let infoWindow = null;
+  let coverageBounds = null;
   let townMarkers = [];
-  let infoWindow  = null;
-  let allTowns    = [];     // from geo_towns API
+  let allTowns = [];
+  let currentPoints = [];
+  let selectedRange = "week";
+  let selectedDepartment = "all";
 
-  // ── DOM refs (set after DOMContentLoaded) ────────────────────────
-  let elRange, elTown, elPointCount, elLoading, elTogglePins, elToggleHeat;
+  let elTown;
+  let elPointCount;
+  let elLoading;
+  let elEmpty;
+  let elTogglePins;
+  let elToggleHeat;
+  let elUnavailable;
+  let elSummaryCount;
+  let elSummaryBusiest;
+  let elSummaryTowns;
+  let elTownList;
 
-  // ── Load Google Maps JS API ──────────────────────────────────────
+  function normalizeTown(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function displayTown(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    })[character]);
+  }
+
+  function rangeLabel(range) {
+    return {
+      day: "today",
+      week: "in 7 days",
+      month: "in 30 days",
+      all: "all time",
+    }[range] || "in this range";
+  }
+
   function loadMapsAPI(apiKey) {
     return new Promise((resolve, reject) => {
-      if (window.google && window.google.maps) { resolve(); return; }
-      const s = document.createElement("script");
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=visualization&callback=__mapsReady`;
-      s.async = true;
-      s.onerror = () => reject(new Error("Failed to load Google Maps API"));
-      window.__mapsReady = resolve;
-      document.head.appendChild(s);
+      if (window.google?.maps) {
+        resolve();
+        return;
+      }
+
+      const callbackName = "__scannerMapsReady";
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&loading=async&callback=${callbackName}`;
+      script.async = true;
+      script.defer = true;
+      script.onerror = () => reject(new Error("The map service did not load."));
+      window[callbackName] = () => {
+        delete window[callbackName];
+        resolve();
+      };
+      document.head.appendChild(script);
     });
   }
 
-  // ── Dark map style ───────────────────────────────────────────────
   function darkMapStyles() {
     return [
-      { elementType: "geometry",   stylers: [{ color: "#0f172a" }] },
-      { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
-      { elementType: "labels.text.fill",   stylers: [{ color: "#64748b" }] },
-      { featureType: "road",         elementType: "geometry",           stylers: [{ color: "#1e293b" }] },
-      { featureType: "road",         elementType: "geometry.stroke",    stylers: [{ color: "#0f172a" }] },
-      { featureType: "road",         elementType: "labels.text.fill",   stylers: [{ color: "#475569" }] },
-      { featureType: "road.highway", elementType: "geometry",           stylers: [{ color: "#334155" }] },
-      { featureType: "road.highway", elementType: "labels.text.fill",   stylers: [{ color: "#94a3b8" }] },
-      { featureType: "water",        elementType: "geometry",           stylers: [{ color: "#020617" }] },
-      { featureType: "water",        elementType: "labels.text.fill",   stylers: [{ color: "#1e3a5f" }] },
-      { featureType: "poi",          elementType: "geometry",           stylers: [{ color: "#0f172a" }] },
-      { featureType: "poi",          elementType: "labels.text.fill",   stylers: [{ color: "#334155" }] },
-      { featureType: "poi.park",     elementType: "geometry",           stylers: [{ color: "#0a1628" }] },
-      { featureType: "transit",      elementType: "geometry",           stylers: [{ color: "#0f172a" }] },
-      { featureType: "administrative",             elementType: "geometry.stroke",  stylers: [{ color: "#1e293b" }] },
-      { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#334155" }] },
+      { elementType: "geometry", stylers: [{ color: "#0b1423" }] },
+      { elementType: "labels.text.stroke", stylers: [{ color: "#0b1423" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#7c8da5" }] },
+      { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#26364b" }] },
+      { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#0d1727" }] },
+      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#101b2d" }] },
+      { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#50627a" }] },
+      { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#0b1b22" }] },
+      { featureType: "road", elementType: "geometry", stylers: [{ color: "#243247" }] },
+      { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#101827" }] },
+      { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#718198" }] },
+      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#34445b" }] },
+      { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#b6c3d3" }] },
+      { featureType: "transit", elementType: "geometry", stylers: [{ color: "#172235" }] },
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#020817" }] },
+      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#355a78" }] },
     ];
   }
 
-  // ── Initialise the map (once, on first load) ─────────────────────
   function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
-      center: { lat: 42.13, lng: -71.52 },
+      center: DEFAULT_CENTER,
       zoom: 11,
       styles: darkMapStyles(),
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: true,
+      zoomControl: true,
+      gestureHandling: "cooperative",
+      clickableIcons: false,
     });
-    infoWindow = new google.maps.InfoWindow({ maxWidth: 220 });
+    infoWindow = new google.maps.InfoWindow({ maxWidth: 240 });
   }
 
-  // ── Town centroid markers ────────────────────────────────────────
-  function infoHTML(town) {
-    const slug = town.name.toLowerCase();
-    return `<div style="font-family:Inter,sans-serif;padding:4px 2px;min-width:160px">
-      <div style="font-size:1rem;font-weight:600;color:#f8fafc;margin-bottom:6px;text-transform:capitalize">${town.name}</div>
-      <div style="font-size:.8rem;color:#94a3b8;margin:2px 0">Streets: <span style="color:#38bdf8;font-weight:600">${town.street_count.toLocaleString()}</span></div>
-      <div style="font-size:.8rem;color:#94a3b8;margin:2px 0">Calls logged: <span style="color:#38bdf8;font-weight:600">${town.call_count.toLocaleString()}</span></div>
-      <a style="display:inline-block;margin-top:8px;font-size:.8rem;color:#38bdf8;text-decoration:none"
-         href="/scanner/town?town=${encodeURIComponent(slug)}">View scanner feed &rarr;</a>
+  function heatColor(intensity) {
+    for (let index = 1; index < HEAT_COLORS.length; index += 1) {
+      const [stop, color] = HEAT_COLORS[index];
+      const [previousStop, previousColor] = HEAT_COLORS[index - 1];
+      if (intensity <= stop) {
+        const mix = (intensity - previousStop) / Math.max(0.001, stop - previousStop);
+        return previousColor.map((channel, channelIndex) => (
+          Math.round(channel + ((color[channelIndex] - channel) * mix))
+        ));
+      }
+    }
+    return HEAT_COLORS[HEAT_COLORS.length - 1][1];
+  }
+
+  function getHeatColorLookup() {
+    if (!heatColorLookup) {
+      heatColorLookup = Array.from({ length: 256 }, (_, index) => heatColor(index / 255));
+    }
+    return heatColorLookup;
+  }
+
+  function getHeatmapOverlayClass() {
+    if (HeatmapOverlay) return HeatmapOverlay;
+
+    HeatmapOverlay = class ScannerHeatmapOverlay extends google.maps.OverlayView {
+      constructor(points, options = {}) {
+        super();
+        this.points = points.map((point) => new google.maps.LatLng(Number(point.lat), Number(point.lng)));
+        this.radius = Number(options.radius || 34);
+        this.container = null;
+        this.canvas = null;
+        this.drawFrame = null;
+      }
+
+      onAdd() {
+        this.container = document.createElement("div");
+        this.container.className = "scanner-heat-overlay";
+        this.container.style.position = "absolute";
+        this.container.style.pointerEvents = "none";
+
+        this.canvas = document.createElement("canvas");
+        this.canvas.style.display = "block";
+        this.container.appendChild(this.canvas);
+        this.getPanes().overlayLayer.appendChild(this.container);
+      }
+
+      draw() {
+        if (this.drawFrame) window.cancelAnimationFrame(this.drawFrame);
+        this.drawFrame = window.requestAnimationFrame(() => {
+          this.drawFrame = null;
+          this.render();
+        });
+      }
+
+      render() {
+        if (!this.canvas || !this.container || !map?.getBounds()) return;
+
+        const projection = this.getProjection();
+        const bounds = map.getBounds();
+        const southWest = projection.fromLatLngToDivPixel(bounds.getSouthWest());
+        const northEast = projection.fromLatLngToDivPixel(bounds.getNorthEast());
+        const width = Math.max(1, Math.ceil(northEast.x - southWest.x));
+        const height = Math.max(1, Math.ceil(southWest.y - northEast.y));
+        const pixelRatio = Math.min(1.5, window.devicePixelRatio || 1);
+
+        this.container.style.left = `${Math.floor(southWest.x)}px`;
+        this.container.style.top = `${Math.floor(northEast.y)}px`;
+        this.container.style.width = `${width}px`;
+        this.container.style.height = `${height}px`;
+        this.canvas.style.width = `${width}px`;
+        this.canvas.style.height = `${height}px`;
+        this.canvas.width = Math.ceil(width * pixelRatio);
+        this.canvas.height = Math.ceil(height * pixelRatio);
+
+        const context = this.canvas.getContext("2d", { willReadFrequently: true });
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        context.clearRect(0, 0, width, height);
+
+        const binSize = window.matchMedia("(max-width: 767px)").matches ? 10 : 8;
+        const bins = new Map();
+        this.points.forEach((point) => {
+          const pixel = projection.fromLatLngToDivPixel(point);
+          const x = pixel.x - southWest.x;
+          const y = pixel.y - northEast.y;
+          if (x < -this.radius || y < -this.radius || x > width + this.radius || y > height + this.radius) return;
+
+          const binX = Math.round(x / binSize) * binSize;
+          const binY = Math.round(y / binSize) * binSize;
+          const key = `${binX}:${binY}`;
+          const bin = bins.get(key);
+          if (bin) {
+            bin.count += 1;
+          } else {
+            bins.set(key, { x: binX, y: binY, count: 1 });
+          }
+        });
+
+        const maxBinCount = Math.max(1, ...[...bins.values()].map((bin) => bin.count));
+        const maxLogCount = Math.log1p(maxBinCount);
+        bins.forEach((bin) => {
+          const relativeDensity = Math.log1p(bin.count) / maxLogCount;
+          const strength = 0.12 + (relativeDensity * 0.36);
+          const gradient = context.createRadialGradient(bin.x, bin.y, 0, bin.x, bin.y, this.radius);
+          gradient.addColorStop(0, `rgba(0, 0, 0, ${strength})`);
+          gradient.addColorStop(0.32, `rgba(0, 0, 0, ${strength * 0.72})`);
+          gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+          context.fillStyle = gradient;
+          context.fillRect(
+            bin.x - this.radius,
+            bin.y - this.radius,
+            this.radius * 2,
+            this.radius * 2,
+          );
+        });
+
+        const image = context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        const colors = getHeatColorLookup();
+        for (let index = 0; index < image.data.length; index += 4) {
+          const alpha = image.data[index + 3];
+          if (alpha < 4) {
+            image.data[index + 3] = 0;
+            continue;
+          }
+          const intensity = Math.min(255, Math.round(alpha * 2));
+          const color = colors[intensity];
+          image.data[index] = color[0];
+          image.data[index + 1] = color[1];
+          image.data[index + 2] = color[2];
+          image.data[index + 3] = Math.min(210, Math.round(alpha * 1.08));
+        }
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.putImageData(image, 0, 0);
+      }
+
+      onRemove() {
+        if (this.drawFrame) window.cancelAnimationFrame(this.drawFrame);
+        this.container?.remove();
+        this.container = null;
+        this.canvas = null;
+        this.drawFrame = null;
+      }
+    };
+
+    return HeatmapOverlay;
+  }
+
+  function countByTown(points) {
+    const counts = new Map();
+    points.forEach((point) => {
+      const town = normalizeTown(point.town);
+      if (!town || town === "unknown") return;
+      counts.set(town, (counts.get(town) || 0) + 1);
+    });
+    return counts;
+  }
+
+  function activitySummary(points) {
+    const counts = countByTown(points);
+    const busiestEntry = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+
+    elSummaryCount.textContent = points.length.toLocaleString();
+    elSummaryBusiest.textContent = busiestEntry ? displayTown(busiestEntry[0]) : "—";
+    elSummaryTowns.textContent = counts.size.toLocaleString();
+    elPointCount.textContent = points.length
+      ? `${points.length.toLocaleString()} mapped call${points.length === 1 ? "" : "s"} ${rangeLabel(selectedRange)}`
+      : `No mapped calls ${rangeLabel(selectedRange)}`;
+
+    return counts;
+  }
+
+  function townInfoHTML(town, filteredCount) {
+    const slug = normalizeTown(town.name);
+    return `<div class="iw-town">
+      <div class="iw-town-name">${escapeHTML(displayTown(town.name))}</div>
+      <div class="iw-town-row">Mapped in this view: <span>${Number(filteredCount || 0).toLocaleString()}</span></div>
+      <div class="iw-town-row">All calls logged: <span>${Number(town.call_count || 0).toLocaleString()}</span></div>
+      <div class="iw-town-row">Known streets: <span>${Number(town.street_count || 0).toLocaleString()}</span></div>
+      <a class="iw-town-link" href="/scanner/town?town=${encodeURIComponent(slug)}">Open town scanner →</a>
     </div>`;
   }
 
-  function renderTownMarkers(towns) {
-    townMarkers.forEach(m => m.setMap(null));
+  function renderTownMarkers(towns, filteredCounts) {
+    townMarkers.forEach((marker) => marker.setMap(null));
     townMarkers = [];
 
-    towns.forEach(town => {
-      // Small crosshair pin — just enough to mark the town center, won't obscure heat layer
+    const selectedTown = normalizeTown(elTown.value);
+    const maxCount = Math.max(1, ...filteredCounts.values());
+
+    towns.forEach((town) => {
+      const slug = normalizeTown(town.name);
+      const count = filteredCounts.get(slug) || 0;
+      const selected = selectedTown !== "all" && selectedTown === slug;
+      const active = count > 0;
+      const scale = active ? 5 + Math.min(4, Math.round((count / maxCount) * 4)) : 4;
+
       const marker = new google.maps.Marker({
-        position: { lat: town.lat, lng: town.lng },
+        position: { lat: Number(town.lat), lng: Number(town.lng) },
         map: elTogglePins.checked ? map : null,
-        title: town.name,
+        title: `${displayTown(town.name)} — ${count} mapped calls`,
         label: {
-          text: town.name.charAt(0).toUpperCase() + town.name.slice(1).toLowerCase(),
-          color: "#94a3b8",
-          fontSize: "10px",
-          fontWeight: "600",
+          text: displayTown(town.name),
+          color: selected ? "#f8fafc" : (active ? "#d9f4ff" : "#74849a"),
+          fontSize: selected ? "12px" : "10px",
+          fontWeight: selected ? "800" : "700",
           fontFamily: "Inter, sans-serif",
         },
         icon: {
-          path:         google.maps.SymbolPath.CIRCLE,
-          scale:        4,
-          fillColor:    "#1e293b",
-          fillOpacity:  0.9,
-          strokeColor:  "#38bdf8",
-          strokeWeight: 1.5,
+          path: google.maps.SymbolPath.CIRCLE,
+          scale,
+          fillColor: selected ? "#f8fafc" : (active ? "#38bdf8" : "#334155"),
+          fillOpacity: active || selected ? 0.94 : 0.78,
+          strokeColor: selected ? "#38bdf8" : "#07101d",
+          strokeWeight: selected ? 3 : 2,
         },
-        zIndex: 20,
+        zIndex: selected ? 40 : (active ? 30 : 20),
       });
+
       marker.addListener("click", () => {
-        infoWindow.setContent(infoHTML(town));
+        infoWindow.setContent(townInfoHTML(town, count));
         infoWindow.open(map, marker);
       });
       townMarkers.push(marker);
     });
   }
 
-  // ── Heat layer ───────────────────────────────────────────────────
   function buildHeatLayer(points) {
     if (heatLayer) {
       heatLayer.setMap(null);
@@ -121,182 +357,261 @@
     }
     if (!points.length) return;
 
-    const latLngs = points.map(p => new google.maps.LatLng(p.lat, p.lng));
-    heatLayer = new google.maps.visualization.HeatmapLayer({
-      data: latLngs,
-      map: elToggleHeat.checked ? map : null,
-      radius: 30,
-      opacity: 0.9,
-      gradient: [
-        "rgba(0,0,0,0)",
-        "rgba(30,58,138,0.6)",   // deep blue
-        "rgba(37,99,235,0.75)",  // blue
-        "rgba(56,189,248,0.85)", // sky blue
-        "rgba(250,204,21,0.9)",  // yellow
-        "rgba(249,115,22,0.95)", // orange
-        "rgba(239,68,68,1)",     // red
-        "rgba(255,255,255,1)",   // white-hot
-      ],
+    const OverlayClass = getHeatmapOverlayClass();
+    heatLayer = new OverlayClass(points, {
+      radius: window.matchMedia("(max-width: 767px)").matches ? 26 : 34,
+    });
+    if (elToggleHeat.checked) heatLayer.setMap(map);
+  }
+
+  function renderTownList(towns, filteredCounts = new Map()) {
+    if (!towns.length) {
+      elTownList.innerHTML = '<p class="text-slate-500 italic text-sm col-span-full">No town activity is available.</p>';
+      return;
+    }
+
+    const selectedTown = normalizeTown(elTown.value);
+    const maxCount = Math.max(1, ...filteredCounts.values());
+    const sorted = [...towns].sort((a, b) => {
+      const difference = (filteredCounts.get(normalizeTown(b.name)) || 0) - (filteredCounts.get(normalizeTown(a.name)) || 0);
+      return difference || displayTown(a.name).localeCompare(displayTown(b.name));
+    });
+
+    elTownList.innerHTML = sorted.map((town) => {
+      const slug = normalizeTown(town.name);
+      const count = filteredCounts.get(slug) || 0;
+      const width = count > 0 ? Math.max(6, Math.round((count / maxCount) * 100)) : 0;
+      const activeClass = selectedTown === slug ? " is-active" : "";
+      return `<button
+          type="button"
+          class="hm-town-card${activeClass}"
+          data-town="${escapeHTML(slug)}"
+          aria-label="Focus map on ${escapeHTML(displayTown(town.name))}, ${count} mapped calls">
+        <span class="hm-town-card-top">
+          <span class="hm-town-name">${escapeHTML(displayTown(town.name))}</span>
+          <span class="hm-town-count">${count.toLocaleString()}</span>
+        </span>
+        <span class="hm-town-bar" aria-hidden="true"><span style="--activity-width:${width}%"></span></span>
+        <span class="hm-town-meta">${Number(town.street_count || 0).toLocaleString()} known streets</span>
+      </button>`;
+    }).join("");
+  }
+
+  function setLoading(loading) {
+    elLoading.classList.toggle("hidden", !loading);
+  }
+
+  function showUnavailable(show) {
+    elUnavailable.classList.toggle("hidden", !show);
+  }
+
+  function setEmpty(show) {
+    elEmpty.classList.toggle("hidden", !show);
+  }
+
+  function validPoints(rawPoints) {
+    return (rawPoints || []).filter((point) => (
+      Number.isFinite(Number(point.lat)) &&
+      Number.isFinite(Number(point.lng)) &&
+      Math.abs(Number(point.lat)) <= 90 &&
+      Math.abs(Number(point.lng)) <= 180
+    ));
+  }
+
+  function fitPoints(points) {
+    if (!map || !points.length) return;
+    const bounds = new google.maps.LatLngBounds();
+    points.forEach((point) => bounds.extend({ lat: Number(point.lat), lng: Number(point.lng) }));
+    map.fitBounds(bounds, { top: 70, right: 55, bottom: 80, left: 55 });
+    google.maps.event.addListenerOnce(map, "idle", () => {
+      if ((map.getZoom() || 0) > 15) map.setZoom(15);
     });
   }
 
-  // ── Fetch call coords and refresh heat layer ─────────────────────
-  async function loadCallCoords() {
+  function fitCoverage() {
+    if (map && coverageBounds && !coverageBounds.isEmpty()) {
+      map.fitBounds(coverageBounds, { top: 45, right: 45, bottom: 45, left: 45 });
+    }
+  }
+
+  async function loadCallCoords(options = {}) {
+    if (!map) return;
     setLoading(true);
-    const range = elRange.value;
-    const town  = elTown.value;
-    const url   = `/scanner/api/call_coords?range=${range}&town=${encodeURIComponent(town)}`;
+    setEmpty(false);
+    showUnavailable(false);
+
+    const town = normalizeTown(elTown.value) || "all";
+    const params = new URLSearchParams({
+      range: selectedRange,
+      town,
+      department: selectedDepartment,
+    });
 
     try {
-      const res  = await fetch(url);
-      const data = await res.json();
-      const pts  = data.points || [];
+      const response = await fetch(`/scanner/api/call_coords?${params}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Call location request failed with ${response.status}`);
+      const data = await response.json();
+      currentPoints = validPoints(data.points);
 
-      buildHeatLayer(pts);
+      const counts = activitySummary(currentPoints);
+      buildHeatLayer(currentPoints);
+      renderTownMarkers(allTowns, counts);
+      renderTownList(allTowns, counts);
+      setEmpty(currentPoints.length === 0);
 
-      elPointCount.textContent = pts.length
-        ? `${pts.length.toLocaleString()} call${pts.length === 1 ? "" : "s"} plotted`
-        : "No geocoded calls for this filter";
-
-      // Auto-fit bounds when filtering to a specific town
-      if (town !== "all" && pts.length > 0) {
-        const bounds = new google.maps.LatLngBounds();
-        pts.forEach(p => bounds.extend(p));
-        map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+      if (currentPoints.length) {
+        if (town !== "all" || options.fitPoints) fitPoints(currentPoints);
+        else if (options.resetView) fitCoverage();
+      } else if (town === "all") {
+        fitCoverage();
       }
-    } catch (err) {
-      console.error("call_coords fetch failed:", err);
-      elPointCount.textContent = "Error loading data";
+    } catch (error) {
+      console.error("[HeatMap] Could not load call coordinates:", error);
+      currentPoints = [];
+      activitySummary([]);
+      buildHeatLayer([]);
+      renderTownMarkers(allTowns, new Map());
+      renderTownList(allTowns, new Map());
+      showUnavailable(true);
     } finally {
       setLoading(false);
     }
   }
 
-  // ── Fetch town geo data ──────────────────────────────────────────
   async function loadTownData() {
-    try {
-      const res  = await fetch("/scanner/api/geo_towns");
-      const data = await res.json();
-      return data.towns || [];
-    } catch (err) {
-      console.error("geo_towns fetch failed:", err);
-      return [];
-    }
+    const response = await fetch("/scanner/api/geo_towns", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Town location request failed with ${response.status}`);
+    const data = await response.json();
+    return (data.towns || []).filter((town) => (
+      Number.isFinite(Number(town.lat)) && Number.isFinite(Number(town.lng))
+    ));
   }
 
-  // ── Populate town filter dropdown ────────────────────────────────
   function populateTownFilter(towns) {
-    const sel = elTown;
-    // keep "All Towns" option, append the rest
-    towns.forEach(t => {
-      const opt = document.createElement("option");
-      opt.value = t.name.toLowerCase();
-      opt.textContent = t.name.charAt(0).toUpperCase() + t.name.slice(1).toLowerCase();
-      sel.appendChild(opt);
+    const fragment = document.createDocumentFragment();
+    towns.forEach((town) => {
+      const option = document.createElement("option");
+      option.value = normalizeTown(town.name);
+      option.textContent = displayTown(town.name);
+      fragment.appendChild(option);
+    });
+    elTown.appendChild(fragment);
+  }
+
+  function setSegmentActive(container, attribute, value) {
+    container.querySelectorAll(`[${attribute}]`).forEach((button) => {
+      const active = button.getAttribute(attribute) === value;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
     });
   }
 
-  // ── Town grid below the map ──────────────────────────────────────
-  function renderTownList(towns) {
-    const container = document.getElementById("town-list");
-    if (!towns.length) {
-      container.innerHTML = '<p class="text-slate-500 italic text-sm col-span-full">No town data found.</p>';
-      return;
-    }
-    container.innerHTML = towns.map(t => {
-      const slug = t.name.toLowerCase();
-      return `<a href="/scanner/town?town=${encodeURIComponent(slug)}"
-                 class="flex flex-col gap-0.5 px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/60 transition group">
-        <span class="text-sm font-medium text-slate-200 capitalize group-hover:text-scannerBlue transition">${t.name}</span>
-        <span class="text-[0.7rem] text-slate-500">${t.street_count.toLocaleString()} streets</span>
-      </a>`;
-    }).join("");
+  function bindControls() {
+    const rangeSegments = document.getElementById("range-segments");
+    const departmentSegments = document.getElementById("department-segments");
+
+    rangeSegments.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-range]");
+      if (!button || button.dataset.range === selectedRange) return;
+      selectedRange = button.dataset.range;
+      setSegmentActive(rangeSegments, "data-range", selectedRange);
+      loadCallCoords({ fitPoints: elTown.value !== "all", resetView: elTown.value === "all" });
+    });
+
+    departmentSegments.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-department]");
+      if (!button || button.dataset.department === selectedDepartment) return;
+      selectedDepartment = button.dataset.department;
+      setSegmentActive(departmentSegments, "data-department", selectedDepartment);
+      loadCallCoords({ fitPoints: elTown.value !== "all" });
+    });
+
+    elTown.addEventListener("change", () => {
+      loadCallCoords({ fitPoints: elTown.value !== "all", resetView: elTown.value === "all" });
+    });
+
+    elTownList.addEventListener("click", (event) => {
+      const card = event.target.closest("[data-town]");
+      if (!card) return;
+      const town = card.dataset.town;
+      elTown.value = elTown.value === town ? "all" : town;
+      loadCallCoords({ fitPoints: elTown.value !== "all", resetView: elTown.value === "all" });
+    });
+
+    elTogglePins.addEventListener("change", () => {
+      townMarkers.forEach((marker) => marker.setMap(elTogglePins.checked ? map : null));
+    });
+
+    elToggleHeat.addEventListener("change", () => {
+      if (heatLayer) heatLayer.setMap(elToggleHeat.checked ? map : null);
+    });
+
+    document.getElementById("reset-map-view").addEventListener("click", () => {
+      const hadTownFilter = elTown.value !== "all";
+      elTown.value = "all";
+      if (hadTownFilter) loadCallCoords({ resetView: true });
+      else fitCoverage();
+    });
   }
 
-  // ── Loading overlay ──────────────────────────────────────────────
-  function setLoading(on) {
-    elLoading.classList.toggle("visible", on);
-  }
-
-  // ── Toggle visibility helpers ────────────────────────────────────
-  function applyTownPinsToggle() {
-    const show = elTogglePins.checked;
-    townMarkers.forEach(m => m.setMap(show ? map : null));
-  }
-
-  function applyHeatToggle() {
-    if (!heatLayer) return;
-    heatLayer.setMap(elToggleHeat.checked ? map : null);
-  }
-
-  // ── Entry point ──────────────────────────────────────────────────
   async function main() {
-    // Grab DOM refs
-    elRange       = document.getElementById("filter-range");
-    elTown        = document.getElementById("filter-town");
-    elPointCount  = document.getElementById("point-count");
-    elLoading     = document.getElementById("loading-overlay");
-    elTogglePins  = document.getElementById("toggle-town-pins");
-    elToggleHeat  = document.getElementById("toggle-heatmap");
+    elTown = document.getElementById("filter-town");
+    elPointCount = document.getElementById("point-count");
+    elLoading = document.getElementById("loading-overlay");
+    elEmpty = document.getElementById("empty-overlay");
+    elTogglePins = document.getElementById("toggle-town-pins");
+    elToggleHeat = document.getElementById("toggle-heatmap");
+    elUnavailable = document.getElementById("map-unavailable");
+    elSummaryCount = document.getElementById("hm-summary-count");
+    elSummaryBusiest = document.getElementById("hm-summary-busiest");
+    elSummaryTowns = document.getElementById("hm-summary-towns");
+    elTownList = document.getElementById("town-list");
 
     const apiKey = window.GOOGLE_MAPS_API_KEY || "";
 
+    try {
+      allTowns = await loadTownData();
+      populateTownFilter(allTowns);
+      renderTownList(allTowns);
+    } catch (error) {
+      console.error("[HeatMap] Could not load town data:", error);
+      elTownList.innerHTML = '<p class="text-slate-500 text-sm col-span-full">Town activity is temporarily unavailable.</p>';
+    }
+
     if (!apiKey) {
-      document.getElementById("no-api-key-banner").style.display = "block";
-      document.getElementById("map").innerHTML =
-        '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:.875rem;font-style:italic">Map unavailable — no API key configured.</div>';
+      showUnavailable(true);
+      setLoading(false);
+      return;
     }
 
-    // Load town data + Maps API in parallel
-    const [towns] = await Promise.all([
-      loadTownData(),
-      apiKey ? loadMapsAPI(apiKey).catch(err => console.error("Maps API load failed:", err)) : Promise.resolve(),
-    ]);
+    try {
+      await loadMapsAPI(apiKey);
+      initMap();
 
-    allTowns = towns;
-    populateTownFilter(towns);
-    renderTownList(towns);
+      coverageBounds = new google.maps.LatLngBounds();
+      allTowns.forEach((town) => coverageBounds.extend({
+        lat: Number(town.lat),
+        lng: Number(town.lng),
+      }));
+      fitCoverage();
 
-    if (!apiKey || !window.google || !window.google.maps) return;
-
-    initMap();
-    renderTownMarkers(towns);
-
-    // Fit map to town bounds initially
-    if (towns.length > 0) {
-      const bounds = new google.maps.LatLngBounds();
-      towns.forEach(t => bounds.extend({ lat: t.lat, lng: t.lng }));
-      map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+      bindControls();
+      await loadCallCoords();
+    } catch (error) {
+      console.error("[HeatMap] Map startup failed:", error);
+      showUnavailable(true);
+      setLoading(false);
     }
-
-    // Load initial call coords (last 7 days, all towns)
-    await loadCallCoords();
-
-    // Filter change handlers
-    elRange.addEventListener("change", loadCallCoords);
-    elTown.addEventListener("change", () => {
-      // When switching to a specific town, re-fit after load
-      loadCallCoords();
-    });
-
-    // Toggle handlers
-    elTogglePins.addEventListener("change", applyTownPinsToggle);
-    elToggleHeat.addEventListener("change", applyHeatToggle);
   }
 
-  // ── Mobile menu toggle ───────────────────────────────────────────
-  document.addEventListener("DOMContentLoaded", () => {
-    const btn      = document.getElementById("menu-btn");
-    const dropdown = document.getElementById("menu-dropdown");
-    if (btn && dropdown) {
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
-        dropdown.classList.toggle("hidden");
-      });
-      document.addEventListener("click", () => dropdown.classList.add("hidden"));
-    }
+  window.gm_authFailure = () => {
+    showUnavailable(true);
+    setLoading(false);
+  };
 
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", main);
+  } else {
     main();
-  });
-
+  }
 })();

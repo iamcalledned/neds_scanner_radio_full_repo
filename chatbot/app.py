@@ -25,19 +25,24 @@ def extract_and_execute_tool_call_from_response(response: str) -> dict:
 # ai_response = "...<tools>\n{\n  \"name\": \"find_fire_announcements\", ...}\n</tools>..."
 # result = extract_and_execute_tool_call_from_response(ai_response)
 import json
+import logging
 import os
 import sqlite3
+import copy
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from flask import Flask, jsonify, request
+from scanner_intelligence import get_or_generate_daily_take
+
+logger = logging.getLogger("scanner_chatbot")
 
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
 
-VLLM_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://127.0.0.1:30000/v1")
+VLLM_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://127.0.0.1:30001/v1")
 MODEL_CATALOG_PATH = os.environ.get(
     "MODEL_CATALOG_PATH",
     "/home/ned/Documents/neds_scanner_radio_full_pipeline_with_git/transcriber/model_catalog.json",
@@ -209,6 +214,8 @@ Rules:
 10. If the user asks about fire recall announcements, recalling units, coverage, or fire broadcast traffic, use find_fire_announcements.
 11. If a tool returns citations, include a short Evidence section with call IDs and timestamps. Do not invent citations.
 12. For "tickets", treat that as enforcement outcome analysis and return a breakdown of likely warnings versus likely citations when available.
+13. If the user asks for "Ned's Take", a daily recap, or what happened today, use get_neds_take.
+14. Treat incident counts from get_neds_take as estimates because one incident may span several transmissions.
 """
 
 # -----------------------------------------------------------------------------
@@ -417,6 +424,28 @@ TOOLS: List[Dict[str, Any]] = [
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 25
+                    }
+                },
+                "additionalProperties": False
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_neds_take",
+            "description": "Get a grounded daily scanner recap with department-aware incident lifecycle grouping, source citations, and Ned-style humor without subject filtering.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "town": {"type": "string"},
+                    "date": {
+                        "type": "string",
+                        "description": "Date in YYYY-MM-DD format or a relative value like today or yesterday."
+                    },
+                    "edition_type": {
+                        "type": "string",
+                        "enum": ["rolling", "final"]
                     }
                 },
                 "additionalProperties": False
@@ -634,12 +663,7 @@ def tool_get_stats(
     transcript_where.append(f"{transcript_expr} IS NOT NULL")
     transcript_sql += " WHERE " + " AND ".join(transcript_where)
 
-    print("\n[SQL:get_stats]")
-    print(sql)
-    print("PARAMS:", params)
-    print("[SQL:get_stats transcripts]")
-    print(transcript_sql)
-    print("PARAMS:", params)
+    logger.debug("tool.get_stats.query filters=%s", len(params))
 
     with db_connect() as conn:
         total_calls = conn.execute(sql, params).fetchone()["total_calls"]
@@ -748,9 +772,7 @@ def tool_search_calls(
     sql += f" ORDER BY {COL_TIMESTAMP} DESC LIMIT ?"
     params.append(limit)
 
-    print("\n[SQL:search_calls]")
-    print(sql)
-    print("PARAMS:", params)
+    logger.debug("tool.search_calls.query filters=%s limit=%s", len(params) - 1, limit)
 
     with db_connect() as conn:
         rows = conn.execute(sql, params).fetchall()
@@ -793,9 +815,7 @@ def tool_get_call_details(call_id: int) -> Dict[str, Any]:
         LIMIT 1
     """
 
-    print("\n[SQL:get_call_details]")
-    print(sql)
-    print("PARAMS:", [call_id])
+    logger.debug("tool.get_call_details.query call_id=%s", call_id)
 
     with db_connect() as conn:
         row = conn.execute(sql, (call_id,)).fetchone()
@@ -900,9 +920,7 @@ def _count_outcome_by_patterns(
     filtered_sql = base_sql + " WHERE " + " AND ".join(where)
     count_sql = f"SELECT COUNT(*) AS outcome_count FROM ({filtered_sql})"
 
-    print(f"\n[SQL:{label} count]")
-    print(count_sql)
-    print("PARAMS:", params)
+    logger.debug("tool.%s.count_query filters=%s", label, len(params))
 
     with db_connect() as conn:
         outcome_count = conn.execute(count_sql, params).fetchone()["outcome_count"]
@@ -912,9 +930,12 @@ def _count_outcome_by_patterns(
             examples_sql = filtered_sql + f" ORDER BY {COL_TIMESTAMP} DESC LIMIT ?"
             example_params = params + [limit_examples]
 
-            print(f"[SQL:{label} examples]")
-            print(examples_sql)
-            print("PARAMS:", example_params)
+            logger.debug(
+                "tool.%s.examples_query filters=%s limit=%s",
+                label,
+                len(params),
+                limit_examples,
+            )
 
             rows = conn.execute(examples_sql, example_params).fetchall()
 
@@ -1092,9 +1113,7 @@ def tool_find_fire_announcements(
     sql += f" ORDER BY {COL_TIMESTAMP} DESC LIMIT ?"
     params.append(limit)
 
-    print("\n[SQL:find_fire_announcements]")
-    print(sql)
-    print("PARAMS:", params)
+    logger.debug("tool.find_fire_announcements.query filters=%s limit=%s", len(params) - 1, limit)
 
     with db_connect() as conn:
         rows = conn.execute(sql, params).fetchall()
@@ -1130,6 +1149,25 @@ def tool_find_fire_announcements(
     }
 
 
+def tool_get_neds_take(
+    town: Optional[str] = None,
+    date: Optional[str] = None,
+    edition_type: Optional[str] = None,
+) -> Dict[str, Any]:
+    result = get_or_generate_daily_take(
+        db_path=SCANNER_DB_PATH,
+        town=normalize_town(town),
+        day=date,
+        edition_type=edition_type,
+        commentary_generator=generate_neds_take_commentary,
+    )
+    citations: List[Dict[str, Any]] = []
+    for highlight in result.get("take", {}).get("highlights", []):
+        citations.extend(highlight.get("citations", []))
+    result["citations"] = citations
+    return result
+
+
 # -----------------------------------------------------------------------------
 # Tool registry
 # -----------------------------------------------------------------------------
@@ -1143,6 +1181,7 @@ TOOL_FUNCTIONS = {
     "count_citations": tool_count_citations,
     "count_tickets": tool_count_tickets,
     "find_fire_announcements": tool_find_fire_announcements,
+    "get_neds_take": tool_get_neds_take,
 }
 
 # -----------------------------------------------------------------------------
@@ -1198,14 +1237,30 @@ def get_served_vllm_models() -> List[str]:
     return models
 
 
-def call_vllm_chat(messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+def call_vllm_chat(
+    messages: List[Dict[str, Any]],
+    tools: Optional[List[Dict[str, Any]]] = None,
+    temperature: float = 0,
+    max_tokens: Optional[int] = None,
+    timeout_seconds: Optional[int] = None,
+    reasoning_effort: Optional[str] = None,
+    response_format: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     global VLLM_MODEL
 
     payload: Dict[str, Any] = {
         "model": VLLM_MODEL,
         "messages": messages,
-        "temperature": 0,
+        "temperature": temperature,
     }
+    if max_tokens is not None:
+        payload["max_tokens"] = max_tokens
+    if reasoning_effort:
+        payload["chat_template_kwargs"] = {
+            "reasoning_effort": reasoning_effort,
+        }
+    if response_format:
+        payload["response_format"] = response_format
 
     if tools:
         payload["tools"] = tools
@@ -1216,7 +1271,7 @@ def call_vllm_chat(messages: List[Dict[str, Any]], tools: Optional[List[Dict[str
         url,
         headers={"Content-Type": "application/json"},
         json=payload,
-        timeout=REQUEST_TIMEOUT_SECONDS,
+        timeout=timeout_seconds or REQUEST_TIMEOUT_SECONDS,
     )
 
     if response.status_code == 404:
@@ -1229,16 +1284,600 @@ def call_vllm_chat(messages: List[Dict[str, Any]], tools: Optional[List[Dict[str
             old_model = VLLM_MODEL
             VLLM_MODEL = served_models[0]
             payload["model"] = VLLM_MODEL
-            print(f"[vLLM] Model {old_model!r} was not served; retrying with {VLLM_MODEL!r}.")
+            logger.warning(
+                "vllm.model_fallback requested=%s served=%s",
+                old_model,
+                VLLM_MODEL,
+            )
             response = requests.post(
                 url,
                 headers={"Content-Type": "application/json"},
                 json=payload,
-                timeout=REQUEST_TIMEOUT_SECONDS,
+                timeout=timeout_seconds or REQUEST_TIMEOUT_SECONDS,
             )
 
     response.raise_for_status()
     return response.json()
+
+
+def _neds_take_scope_key(scope: Dict[str, Any]) -> str:
+    town = scope.get("town")
+    department = scope.get("department")
+    if town and department:
+        return f"town:{town}/department:{department}"
+    if town:
+        return f"town:{town}"
+    if department:
+        return f"network/department:{department}"
+    return "network"
+
+
+def _neds_take_section_facts(
+    take_section: Dict[str, Any],
+    fact_section: Dict[str, Any],
+) -> Dict[str, Any]:
+    breakdowns = fact_section.get("breakdowns", {})
+    classified_types = [
+        (call_type, count)
+        for call_type, count in breakdowns.get("call_types", {}).items()
+        if call_type != "Unclassified"
+    ]
+    return {
+        "key": _neds_take_scope_key(take_section.get("scope", {})),
+        "scope": take_section.get("scope", {}),
+        "top_call_types": classified_types[:5],
+        "enforcement": breakdowns.get("enforcement", {}),
+    }
+
+
+def _build_neds_take_commentary_facts(result: Dict[str, Any]) -> Dict[str, Any]:
+    take = result.get("take", {})
+    fact_pack = result.get("fact_pack", {})
+    sections = [_neds_take_section_facts(take, fact_pack)]
+    fact_towns = {
+        town.get("scope", {}).get("town"): town
+        for town in fact_pack.get("towns", [])
+    }
+    for take_town in take.get("towns", []):
+        town_name = take_town.get("scope", {}).get("town")
+        fact_town = fact_towns.get(town_name, {})
+        sections.append(_neds_take_section_facts(take_town, fact_town))
+        fact_departments = {
+            department.get("scope", {}).get("department"): department
+            for department in fact_town.get("departments", [])
+        }
+        for take_department in take_town.get("departments", []):
+            department_name = take_department.get("scope", {}).get("department")
+            sections.append(
+                _neds_take_section_facts(
+                    take_department,
+                    fact_departments.get(department_name, {}),
+                )
+            )
+    incidents: Dict[str, Dict[str, Any]] = {}
+
+    def collect_incidents(section: Any) -> None:
+        if isinstance(section, dict):
+            incident_key = section.get("incident_key")
+            if isinstance(incident_key, str) and incident_key not in incidents:
+                incidents[incident_key] = {
+                    "key": incident_key,
+                    "town": section.get("town"),
+                    "service": section.get("service"),
+                    "call_type": section.get("call_type"),
+                    "verified_summary": section.get("summary"),
+                    "verified_outcome": section.get("outcome"),
+                    "transmissions": [
+                        {
+                            "call_id": citation.get("call_id"),
+                            "transcript": citation.get("excerpt"),
+                        }
+                        for citation in section.get("citations", [])
+                        if isinstance(citation, dict)
+                    ],
+                }
+            for nested in section.values():
+                collect_incidents(nested)
+        elif isinstance(section, list):
+            for nested in section:
+                collect_incidents(nested)
+
+    collect_incidents(take)
+    return {
+        "day": result.get("day"),
+        "source_watermark": result.get("source_watermark", {}),
+        "sections": sections,
+        "incidents": list(incidents.values()),
+    }
+
+
+def _parse_json_object(text: str) -> Dict[str, Any]:
+    normalized = (text or "").strip()
+    if normalized.startswith("```"):
+        normalized = re.sub(r"^```(?:json)?\s*", "", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\s*```$", "", normalized)
+    parsed = json.loads(normalized)
+    if not isinstance(parsed, dict):
+        raise ValueError("LLM commentary response was not a JSON object")
+    return parsed
+
+
+def _valid_generated_commentary(
+    value: Any,
+) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    normalized = re.sub(r"\s+", " ", value).strip()
+    if not normalized or len(normalized) > 600:
+        return None
+    # Counts and timings remain code-rendered facts. Reject prose that tries to
+    # introduce new numeric claims.
+    if re.search(r"\d", normalized):
+        return None
+    return normalized
+
+
+def generate_neds_take_commentary(result: Dict[str, Any]) -> Dict[str, Any]:
+    """Use one variable-temperature LLM call to rewrite grounded commentary."""
+    facts = _build_neds_take_commentary_facts(result)
+    system_prompt = """
+You write only the sarcastic riff for "Ned's Take." Verified summaries and call
+details are rendered separately. Return JSON only. Do not summarize the calls
+and do not infer what happened. Never add an incident, motive, severity,
+outcome, response, unit, timing, person, fire condition, medical condition,
+arrest, transport, weapon, or enforcement action. Treat each supplied section
+as a comedy brief, not as an invitation to complete a story.
+
+Write one or two concise punchline sentences for every supplied section key,
+plus one concise sentence for each supplied incident. Incident jokes may use
+only that incident's verified summary, outcome, and actual transcript excerpts.
+Use dry local humor about radio chatter, bureaucracy, paperwork, dispatch
+rhythms, and the exact supplied call-type or enforcement labels. Vary metaphors,
+sentence structures, and targets on every request. Avoid reusable catchphrases.
+Do not write any digits. Commentary can be conversational and profane.
+
+Special rule: if a Hopedale section has citations greater than zero, its
+commentary must begin exactly: "Holy shit, they gave a citation!!!" If Hopedale
+has warnings but no citations, riff freshly on Hopedale's tendency to issue
+warnings; do not use a fixed stock line.
+
+Required shape:
+{"sections":{"<section key>":{"commentary":"..."}},"incidents":{"<incident key>":{"commentary":"..."}}}
+""".strip()
+    response = call_vllm_chat(
+        [
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": json.dumps(facts, separators=(",", ":")),
+            },
+        ],
+        temperature=float(os.environ.get("NEDS_TAKE_LLM_TEMPERATURE", "0.9")),
+        max_tokens=int(os.environ.get("NEDS_TAKE_LLM_MAX_TOKENS", "3000")),
+        timeout_seconds=int(os.environ.get("NEDS_TAKE_LLM_TIMEOUT_SECONDS", "30")),
+        reasoning_effort="low",
+        response_format={"type": "json_object"},
+    )
+    content = (
+        response.get("choices", [{}])[0]
+        .get("message", {})
+        .get("content", "")
+    )
+    generated = _parse_json_object(content)
+    generated_sections = generated.get("sections")
+    if not isinstance(generated_sections, dict):
+        raise ValueError("LLM commentary response did not contain sections")
+    generated_incidents = generated.get("incidents")
+    if not isinstance(generated_incidents, dict):
+        generated_incidents = {}
+
+    enriched = copy.deepcopy(result.get("take", {}))
+    def apply_section(section: Dict[str, Any]) -> None:
+        scope_key = _neds_take_scope_key(section.get("scope", {}))
+        generated_section = generated_sections.get(scope_key, {})
+        if isinstance(generated_section, dict):
+            commentary = _valid_generated_commentary(
+                generated_section.get("commentary"),
+            )
+            if commentary:
+                section["ned_take"] = commentary
+        for highlight in section.get("highlights", []):
+            incident = generated_incidents.get(highlight.get("incident_key"), {})
+            commentary = _valid_generated_commentary(
+                incident.get("commentary") if isinstance(incident, dict) else None
+            )
+            if commentary:
+                highlight["ned_note"] = commentary
+        for department in section.get("departments", []):
+            apply_section(department)
+
+    apply_section(enriched)
+    for town in enriched.get("towns", []):
+        apply_section(town)
+    return enriched
+
+
+def generate_incident_commentary(detail: Dict[str, Any]) -> Dict[str, Any]:
+    """Write one variable riff using an incident's actual grouped transmissions."""
+    facts = {
+        "town": detail.get("town"),
+        "department": detail.get("department"),
+        "call_type": detail.get("call_type"),
+        "verified_summary": detail.get("summary"),
+        "outcome": detail.get("outcome"),
+        "closed": detail.get("closed"),
+        "lifecycle_stages": detail.get("lifecycle_stages", []),
+        "transmissions": [
+            {
+                "lifecycle_stage": call.get("lifecycle_stage"),
+                "transcript": (call.get("transcript") or "")[:500],
+            }
+            for call in detail.get("calls", [])[:20]
+        ],
+    }
+    prompt = """
+Write one short, variable "Ned's Take" paragraph about this grouped scanner
+incident. Use only the supplied facts and actual transcript text. Sarcasm,
+local color, and profanity are allowed. Do not invent a person, action, motive,
+severity, outcome, response, citation, arrest, transport, fire condition, or
+medical condition. If the radio never stated an outcome, do not supply one.
+Do not repeat numeric timing; the page renders that separately.
+
+Return JSON only: {"commentary":"..."}
+""".strip()
+    response = call_vllm_chat(
+        [
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": json.dumps(facts, separators=(",", ":"))},
+        ],
+        temperature=float(os.environ.get("NEDS_TAKE_LLM_TEMPERATURE", "0.9")),
+        max_tokens=int(os.environ.get("NEDS_TAKE_INCIDENT_MAX_TOKENS", "500")),
+        timeout_seconds=int(os.environ.get("NEDS_TAKE_LLM_TIMEOUT_SECONDS", "30")),
+        reasoning_effort="low",
+        response_format={"type": "json_object"},
+    )
+    content = (
+        response.get("choices", [{}])[0]
+        .get("message", {})
+        .get("content", "")
+    )
+    generated = _parse_json_object(content)
+    commentary = _valid_generated_commentary(generated.get("commentary"))
+    if not commentary:
+        raise ValueError("incident commentary was empty or introduced numeric claims")
+    return {
+        **detail,
+        "commentary": commentary,
+        "commentary_generator": "local-llm",
+        "commentary_generated_at": datetime.now().isoformat(timespec="seconds"),
+    }
+
+
+def _bounded_generated_text(value: Any, max_chars: int) -> str:
+    if not isinstance(value, str):
+        return ""
+    normalized = re.sub(r"\s+", " ", value).strip()
+    return normalized[:max_chars].rstrip()
+
+
+def _verified_evidence_quotes(
+    transcript: str,
+    value: Any,
+) -> List[str]:
+    """Keep only model evidence that is actually present in the transcript."""
+    if not isinstance(value, list):
+        return []
+    normalized_transcript = re.sub(r"\s+", " ", transcript).casefold()
+    verified: List[str] = []
+    for item in value[:5]:
+        quote = _bounded_generated_text(item, 180)
+        if not quote:
+            continue
+        if re.sub(r"\s+", " ", quote).casefold() in normalized_transcript:
+            verified.append(quote)
+    return verified
+
+
+def _validated_enhanced_transcript(original: str, value: Any) -> str:
+    """Accept conservative cleanups while rejecting summary-like inventions."""
+    enhanced = _bounded_generated_text(value, 3000)
+    normalized_original = re.sub(r"\s+", " ", original or "").strip()
+    if not enhanced or not normalized_original:
+        return ""
+    if enhanced.casefold() == normalized_original.casefold():
+        return ""
+    original_tokens = re.findall(r"[a-z0-9]+", normalized_original.casefold())
+    enhanced_tokens = re.findall(r"[a-z0-9]+", enhanced.casefold())
+    if not enhanced_tokens:
+        return ""
+    if len(enhanced_tokens) > (len(original_tokens) * 1.6) + 8:
+        return ""
+    if len(original_tokens) >= 4:
+        original_vocabulary = set(original_tokens)
+        overlap = sum(
+            token in original_vocabulary for token in set(enhanced_tokens)
+        ) / max(len(set(enhanced_tokens)), 1)
+        if overlap < 0.45:
+            return ""
+    return enhanced
+
+
+def generate_call_enrichment_batch(
+    candidates: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Generate validated suggestions for a batch of completed transmissions."""
+    if not candidates:
+        return []
+    request_calls = [
+        {
+            "call_id": candidate.get("call_id"),
+            "town": candidate.get("town"),
+            "department": candidate.get("department"),
+            "feed": candidate.get("feed"),
+            "timestamp": candidate.get("timestamp"),
+            "duration_seconds": candidate.get("duration_seconds"),
+            "audio_quality": {
+                "rms": candidate.get("rms"),
+                "transcription_score": candidate.get("transcription_score"),
+                "needs_retry": candidate.get("needs_retry"),
+                "needs_review": candidate.get("needs_review"),
+                "quality_reasons": candidate.get("quality_reasons") or [],
+                "profile_used": candidate.get("profile_used"),
+            },
+            "existing_classification": candidate.get("classification") or {},
+            "transcript": candidate.get("transcript") or "",
+        }
+        for candidate in candidates
+    ]
+    prompt = """
+You prepare asynchronous scanner-call enrichment suggestions. Each input is one
+completed radio transmission, which may be only a fragment of a larger
+incident. Use only its transcript and supplied metadata. Do not invent missing
+facts or complete an unfinished story.
+
+For every call return:
+- an enhanced_transcript that conservatively cleans punctuation, spacing, and
+  obvious scanner transcription formatting while preserving the original
+  meaning and uncertainty;
+- a concise factual summary;
+- an optional one-sentence sarcastic "Ned's Take" only when the transcript
+  contains enough substance for a fair joke; otherwise use an empty string;
+- suggested classification fields: call_type, agency, urgency,
+  lifecycle_hint, outcome_type, and continuity_terms;
+- confidence from zero to one;
+- up to five short verbatim evidence quotes copied from the transcript.
+- transcript_validation with status, request_retranscription, confidence,
+  reasons, and a short explanation.
+
+Allowed urgency values: routine, elevated, urgent, emergency, unknown.
+Allowed lifecycle_hint values: dispatched, responding, on_scene, update,
+returning, in_quarters, cleared, terminated, unknown.
+Allowed outcome_type values: warning, citation, arrest, transport,
+report_taken, gone_on_arrival, no_action, cleared, not_heard, unknown.
+Allowed transcript validation statuses: plausible, questionable, unusable.
+Allowed validation reasons: repetition, incoherent, hallucination_pattern,
+language_mismatch, truncated, impossible_phrase, metadata_conflict.
+
+Use unknown or an empty value when evidence is absent. A classification is a
+suggestion and must not claim that an outcome occurred unless an evidence quote
+states it. Commentary may be conversational or profane, but cannot invent a
+person, action, severity, motive, outcome, weapon, medical condition, fire
+condition, citation, arrest, or transport.
+
+Transcript validation cannot hear the audio. It may use the supplied acoustic
+quality metrics and internal transcript coherence only. Do not request another
+transcription merely because a scanner transmission is short, says "received,"
+or contains jargon. The enhanced transcript is not a chance to summarize,
+expand abbreviations speculatively, add missing words, or repair uncertainty by
+guessing. Use "[unclear]" when necessary. Request another transcription only
+for a concrete allowed reason with high confidence. Return JSON only.
+
+Required shape:
+{"calls":[{"call_id":1,"enhanced_transcript":"","factual_summary":"","commentary":"","classification":{"call_type":"","agency":"","urgency":"unknown","lifecycle_hint":"unknown","outcome_type":"unknown","continuity_terms":[]},"confidence":0.0,"evidence":[],"transcript_validation":{"status":"plausible","request_retranscription":false,"confidence":0.0,"reasons":[],"explanation":""}}]}
+""".strip()
+    response = call_vllm_chat(
+        [
+            {"role": "system", "content": prompt},
+            {
+                "role": "user",
+                "content": json.dumps(
+                    {"calls": request_calls},
+                    separators=(",", ":"),
+                ),
+            },
+        ],
+        temperature=float(
+            os.environ.get("NEDS_TAKE_CALL_ENRICHMENT_TEMPERATURE", "0.35")
+        ),
+        max_tokens=int(
+            os.environ.get("NEDS_TAKE_CALL_ENRICHMENT_MAX_TOKENS", "6000")
+        ),
+        timeout_seconds=int(
+            os.environ.get("NEDS_TAKE_CALL_ENRICHMENT_TIMEOUT_SECONDS", "60")
+        ),
+        reasoning_effort="low",
+        response_format={"type": "json_object"},
+    )
+    content = (
+        response.get("choices", [{}])[0]
+        .get("message", {})
+        .get("content", "")
+    )
+    parsed = _parse_json_object(content)
+    raw_calls = parsed.get("calls")
+    if not isinstance(raw_calls, list):
+        raise ValueError("call enrichment response did not contain calls")
+
+    candidate_by_id = {
+        int(candidate["call_id"]): candidate
+        for candidate in candidates
+        if isinstance(candidate.get("call_id"), int)
+    }
+    allowed_urgency = {"routine", "elevated", "urgent", "emergency", "unknown"}
+    allowed_lifecycle = {
+        "dispatched",
+        "responding",
+        "on_scene",
+        "update",
+        "returning",
+        "in_quarters",
+        "cleared",
+        "terminated",
+        "unknown",
+    }
+    allowed_outcomes = {
+        "warning",
+        "citation",
+        "arrest",
+        "transport",
+        "report_taken",
+        "gone_on_arrival",
+        "no_action",
+        "cleared",
+        "not_heard",
+        "unknown",
+    }
+    allowed_validation_statuses = {"plausible", "questionable", "unusable"}
+    allowed_validation_reasons = {
+        "repetition",
+        "incoherent",
+        "hallucination_pattern",
+        "language_mismatch",
+        "truncated",
+        "impossible_phrase",
+        "metadata_conflict",
+    }
+    results: List[Dict[str, Any]] = []
+    seen: set[int] = set()
+    for raw in raw_calls:
+        if not isinstance(raw, dict):
+            continue
+        try:
+            call_id = int(raw.get("call_id"))
+        except (TypeError, ValueError):
+            continue
+        candidate = candidate_by_id.get(call_id)
+        if not candidate or call_id in seen:
+            continue
+        seen.add(call_id)
+        transcript = candidate.get("transcript") or ""
+        evidence = _verified_evidence_quotes(transcript, raw.get("evidence"))
+        raw_classification = raw.get("classification")
+        if not isinstance(raw_classification, dict):
+            raw_classification = {}
+        urgency = _bounded_generated_text(
+            raw_classification.get("urgency"),
+            20,
+        ).lower()
+        lifecycle = _bounded_generated_text(
+            raw_classification.get("lifecycle_hint"),
+            30,
+        ).lower()
+        outcome = _bounded_generated_text(
+            raw_classification.get("outcome_type"),
+            30,
+        ).lower()
+        continuity_terms = []
+        normalized_transcript = re.sub(r"\s+", " ", transcript).casefold()
+        raw_terms = raw_classification.get("continuity_terms")
+        if isinstance(raw_terms, list):
+            for term_value in raw_terms[:12]:
+                term = _bounded_generated_text(term_value, 80)
+                if (
+                    term
+                    and term.casefold() in normalized_transcript
+                    and term not in continuity_terms
+                ):
+                    continuity_terms.append(term)
+        try:
+            confidence = max(0.0, min(float(raw.get("confidence")), 1.0))
+        except (TypeError, ValueError):
+            confidence = 0.0
+        if not evidence:
+            confidence = min(confidence, 0.45)
+            if outcome not in {"not_heard", "unknown"}:
+                outcome = "unknown"
+        classification = {
+            "call_type": _bounded_generated_text(
+                raw_classification.get("call_type"),
+                80,
+            ),
+            "agency": _bounded_generated_text(
+                raw_classification.get("agency"),
+                80,
+            ),
+            "urgency": urgency if urgency in allowed_urgency else "unknown",
+            "lifecycle_hint": (
+                lifecycle if lifecycle in allowed_lifecycle else "unknown"
+            ),
+            "outcome_type": (
+                outcome if outcome in allowed_outcomes else "unknown"
+            ),
+            "continuity_terms": continuity_terms,
+        }
+        raw_validation = raw.get("transcript_validation")
+        if not isinstance(raw_validation, dict):
+            raw_validation = {}
+        validation_status = _bounded_generated_text(
+            raw_validation.get("status"),
+            20,
+        ).lower()
+        if validation_status not in allowed_validation_statuses:
+            validation_status = "plausible"
+        validation_reasons = []
+        raw_reasons = raw_validation.get("reasons")
+        if isinstance(raw_reasons, list):
+            for reason_value in raw_reasons:
+                reason = _bounded_generated_text(reason_value, 40).lower()
+                if (
+                    reason in allowed_validation_reasons
+                    and reason not in validation_reasons
+                ):
+                    validation_reasons.append(reason)
+        try:
+            validation_confidence = max(
+                0.0,
+                min(float(raw_validation.get("confidence")), 1.0),
+            )
+        except (TypeError, ValueError):
+            validation_confidence = 0.0
+        request_retranscription = bool(
+            raw_validation.get("request_retranscription") is True
+            and validation_status in {"questionable", "unusable"}
+            and validation_confidence >= 0.8
+            and validation_reasons
+        )
+        transcript_validation = {
+            "status": validation_status,
+            "request_retranscription": request_retranscription,
+            "confidence": round(validation_confidence, 3),
+            "reasons": validation_reasons,
+            "explanation": _bounded_generated_text(
+                raw_validation.get("explanation"),
+                300,
+            ),
+        }
+        commentary = _valid_generated_commentary(raw.get("commentary")) or ""
+        results.append(
+            {
+                "call_id": call_id,
+                "enhanced_transcript": _validated_enhanced_transcript(
+                    transcript,
+                    raw.get("enhanced_transcript"),
+                ),
+                "factual_summary": _bounded_generated_text(
+                    raw.get("factual_summary"),
+                    320,
+                ),
+                "commentary": commentary,
+                "classification": classification,
+                "confidence": round(confidence, 3),
+                "evidence": evidence,
+                "transcript_validation": transcript_validation,
+                "model": VLLM_MODEL,
+            }
+        )
+    return results
 
 
 def execute_tool_call(tool_call: Dict[str, Any]) -> Dict[str, Any]:
@@ -1246,10 +1885,7 @@ def execute_tool_call(tool_call: Dict[str, Any]) -> Dict[str, Any]:
     name = fn.get("name")
     raw_arguments = fn.get("arguments", "{}")
 
-    print("\n================ TOOL CALL ================")
-    print("Tool:", name)
-    print("Args Raw:", raw_arguments)
-    print("==========================================\n")
+    logger.info("tool.execute name=%s", name)
 
     if name not in TOOL_FUNCTIONS:
         return {
@@ -1267,18 +1903,7 @@ def execute_tool_call(tool_call: Dict[str, Any]) -> Dict[str, Any]:
 
     try:
         result = TOOL_FUNCTIONS[name](**arguments)
-        print("[TOOL RESULT SUMMARY]")
-        print(
-            json.dumps(
-                {
-                    k: v
-                    for k, v in result.items()
-                    if k not in ["examples", "results", "warning_examples", "citation_examples"]
-                },
-                indent=2,
-                default=str,
-            )
-        )
+        logger.info("tool.execute.complete name=%s ok=%s", name, result.get("ok"))
         return result
     except TypeError as exc:
         return {
@@ -1343,12 +1968,13 @@ def run_tool_loop(user_messages: List[Dict[str, Any]]) -> Dict[str, Any]:
     messages.extend(user_messages)
 
     for round_num in range(CHAT_MAX_TOOL_ROUNDS):
-        print(f"\n[run_tool_loop] === Tool round {round_num+1} ===")
-        print("[run_tool_loop] Messages sent to vLLM:")
-        print(json.dumps(messages, indent=2, default=str))
+        logger.debug(
+            "tool_loop.round.start round=%s messages=%s",
+            round_num + 1,
+            len(messages),
+        )
         response = call_vllm_chat(messages, tools=TOOLS)
-        print("[run_tool_loop] vLLM response:")
-        print(json.dumps(response, indent=2, default=str))
+        logger.debug("tool_loop.round.response round=%s", round_num + 1)
         choice = response["choices"][0]["message"]
 
 

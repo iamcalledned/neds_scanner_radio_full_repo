@@ -1,0 +1,97 @@
+{% extends "scanner_base.html" %}
+
+{% block page_title %}Call #{{ call_id }} · Ned's Scanner Network{% endblock %}
+{% block meta_description %}Grounded scanner-call evidence, transcript, and audio.{% endblock %}
+{% block page_key %}call-evidence{% endblock %}
+
+{% block content %}
+<div class="scanner-page-shell">
+  <article class="panel p-5 sm:p-7 max-w-3xl mx-auto">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <p class="text-[0.62rem] uppercase tracking-[0.28em] text-slate-500">Source evidence</p>
+        <h1 class="text-2xl font-semibold text-white mt-1">Call #{{ call_id }}</h1>
+        <p class="text-sm text-slate-400 mt-1">{{ call.timestamp_human }}</p>
+      </div>
+      <span class="rounded-full border border-sky-700/50 bg-sky-950/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-sky-300">
+        {{ feed|upper }}
+      </span>
+    </div>
+
+    <div class="mt-6 rounded-2xl border border-slate-700/60 bg-slate-950/35 p-4">
+      <audio class="w-full" controls preload="metadata" src="{{ call.path }}"></audio>
+    </div>
+
+    <section class="mt-6">
+      <h2 class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Original transcript</h2>
+      <p class="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-200">{{ call.edited_transcript or call.transcript or "No transcript available." }}</p>
+    </section>
+
+    {% if call_enrichment %}
+    <section class="mt-6 rounded-2xl border border-amber-500/25 bg-amber-950/15 p-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300/80">AI enhanced call</h2>
+        {% if call_enrichment.confidence is not none %}
+        <span class="text-[10px] uppercase tracking-wider text-slate-500">{{ (call_enrichment.confidence * 100)|round|int }}% model confidence</span>
+        {% endif %}
+      </div>
+      {% if call_enrichment.enhanced_transcript %}
+      <div class="mt-3 rounded-xl border border-amber-500/20 bg-slate-950/35 p-3">
+        <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-300/70">Enhanced transcript</p>
+        <p class="mt-2 whitespace-pre-wrap text-sm leading-7 text-white">{{ call_enrichment.enhanced_transcript }}</p>
+      </div>
+      {% endif %}
+      {% if call_enrichment.factual_summary %}
+      <div class="mt-3">
+        <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500">AI factual summary</p>
+        <p class="mt-1.5 text-sm leading-6 text-slate-200">{{ call_enrichment.factual_summary }}</p>
+      </div>
+      {% endif %}
+      {% if call_enrichment.commentary %}
+      <div class="mt-3">
+        <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500">Ned’s take on this transmission</p>
+        <blockquote class="mt-1.5 border-l-2 border-amber-400/60 pl-3 text-sm leading-6 text-amber-100">{{ call_enrichment.commentary }}</blockquote>
+      </div>
+      {% endif %}
+      {% set ai = call_enrichment.classification %}
+      {% set validation = call_enrichment.transcript_validation %}
+      <div class="mt-3 flex flex-wrap gap-2">
+        {% if ai.call_type %}<span class="rounded-full border border-slate-700 px-2.5 py-1 text-[10px] text-slate-300">{{ ai.call_type }}</span>{% endif %}
+        {% if ai.urgency and ai.urgency != "unknown" %}<span class="rounded-full border border-slate-700 px-2.5 py-1 text-[10px] text-slate-300">{{ ai.urgency }} urgency</span>{% endif %}
+        {% if ai.lifecycle_hint and ai.lifecycle_hint != "unknown" %}<span class="rounded-full border border-slate-700 px-2.5 py-1 text-[10px] text-slate-300">{{ ai.lifecycle_hint|replace("_", " ") }}</span>{% endif %}
+        {% if ai.outcome_type and ai.outcome_type not in ("unknown", "not_heard") %}<span class="rounded-full border border-sky-700/50 px-2.5 py-1 text-[10px] text-sky-300">{{ ai.outcome_type|replace("_", " ") }}</span>{% endif %}
+        {% if validation and validation.status != "plausible" %}<span class="rounded-full border border-red-700/50 px-2.5 py-1 text-[10px] text-red-300">transcript {{ validation.status }}</span>{% endif %}
+      </div>
+      {% if validation and validation.status != "plausible" %}
+      <p class="mt-3 text-xs leading-5 text-red-200/80">
+        {{ validation.explanation }}
+        {% if validation.request_retranscription %} A comparison transcription was requested automatically.{% endif %}
+      </p>
+      {% endif %}
+      <p class="mt-3 text-[10px] leading-4 text-slate-500">The enhanced transcript and classifications are model-generated and stored separately. The original audio and transcript remain authoritative.</p>
+    </section>
+    {% endif %}
+
+    {% set classification = call.metadata.classification if call.metadata else {} %}
+    {% if classification and classification.call_type %}
+    <div class="mt-5 text-xs text-slate-400">
+      Classified as <span class="font-semibold text-slate-200">{{ classification.call_type }}</span>.
+      Automated classifications can be wrong; the audio and transcript remain the source evidence.
+    </div>
+    {% endif %}
+
+    <div class="mt-7 flex flex-wrap gap-3">
+      {% if incident_key %}
+      <a href="/scanner/incident/{{ incident_key }}" class="scanner-icon-button text-sm">Open complete incident</a>
+      {% endif %}
+      <a href="/scanner/archive?day={{ call_day }}&feed={{ feed }}" class="scanner-icon-button text-sm">Open day archive</a>
+      <button
+        type="button"
+        data-ask-ned-open
+        data-ask-ned-prefill="Tell me about scanner call #{{ call_id }}."
+        class="scanner-icon-button text-sm"
+      >Ask Ned about this call</button>
+    </div>
+  </article>
+</div>
+{% endblock %}

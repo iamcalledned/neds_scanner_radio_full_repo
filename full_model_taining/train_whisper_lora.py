@@ -120,11 +120,19 @@ def main() -> None:
         model.generation_config.language = "en"
         model.generation_config.task = "transcribe"
 
+    target_regex = config.get("lora_target_regex")
+    if target_regex is not None:
+        if not isinstance(target_regex, str) or not target_regex.strip():
+            raise SystemExit("lora_target_regex must be a non-empty string")
+        target_modules: str | list[str] = target_regex
+    else:
+        target_modules = list(config.get("lora_targets", ["q_proj", "v_proj"]))
+
     lora_config = LoraConfig(
         r=int(config.get("lora_r", 16)),
         lora_alpha=int(config.get("lora_alpha", 32)),
         lora_dropout=float(config.get("lora_dropout", 0.05)),
-        target_modules=list(config.get("lora_targets", ["q_proj", "v_proj"])),
+        target_modules=target_modules,
         bias="none",
     )
     model = get_peft_model(model, lora_config)
@@ -202,7 +210,7 @@ def main() -> None:
     trainer.save_state()
 
     # Reload and merge from disk so the deployable model is provably composed
-    # from the untouched V1 base plus the selected adapter.
+    # from the configured base plus the selected adapter.
     del trainer, model
     torch.cuda.empty_cache()
     base_model = WhisperForConditionalGeneration.from_pretrained(
@@ -223,7 +231,11 @@ def main() -> None:
             "r": lora_config.r,
             "alpha": lora_config.lora_alpha,
             "dropout": lora_config.lora_dropout,
-            "targets": list(lora_config.target_modules),
+            "targets": (
+                [lora_config.target_modules]
+                if isinstance(lora_config.target_modules, str)
+                else sorted(lora_config.target_modules)
+            ),
             "trainable_parameters": trainable,
             "total_parameters": total,
             "trainable_percent": 100.0 * trainable / total,

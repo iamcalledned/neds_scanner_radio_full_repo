@@ -1,16 +1,77 @@
 import json
 import logging
+import os
+import sqlite3
+import threading
+import time
+from collections import defaultdict, deque
 from typing import Any, Dict, List
 
 import requests
 from flask import Blueprint, jsonify, request
 
 import chatbot.app as chatbot_app
+from scanner_intelligence import get_incident_detail, get_or_generate_daily_take
 from scanner_config import build_chat_preset_tool_call, get_chat_preset_catalog
 
 
 chat_bp = Blueprint("scanner_chat", __name__)
 logger = logging.getLogger("scanner_web.chat")
+MAX_CHAT_MESSAGES = 12
+MAX_CHAT_MESSAGE_CHARS = 4000
+MAX_CHAT_TOTAL_CHARS = 16000
+CHAT_RATE_LIMIT = int(os.environ.get("CHAT_RATE_LIMIT_PER_MINUTE", "30"))
+_RATE_WINDOW_SECONDS = 60
+_rate_buckets = defaultdict(deque)
+_rate_lock = threading.Lock()
+
+
+def _no_store_json(payload: Dict[str, Any], status: int = 200):
+    response = jsonify(payload)
+    response.status_code = status
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
+def _chat_rate_limited() -> bool:
+    client_key = request.remote_addr or "unknown"
+    cutoff = time.monotonic() - _RATE_WINDOW_SECONDS
+    with _rate_lock:
+        bucket = _rate_buckets[client_key]
+        while bucket and bucket[0] < cutoff:
+            bucket.popleft()
+        if len(bucket) >= CHAT_RATE_LIMIT:
+            return True
+        bucket.append(time.monotonic())
+        return False
+
+
+def _validated_messages(value: Any) -> List[Dict[str, str]]:
+    if not isinstance(value, list) or not value:
+        raise ValueError("Body must include a non-empty 'messages' list.")
+    if len(value) > MAX_CHAT_MESSAGES:
+        raise ValueError(f"Chat history is limited to {MAX_CHAT_MESSAGES} messages.")
+
+    cleaned: List[Dict[str, str]] = []
+    total_chars = 0
+    for item in value:
+        if not isinstance(item, dict) or item.get("role") not in {"user", "assistant"}:
+            raise ValueError("Messages may only use user and assistant roles.")
+        content = item.get("content")
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError("Each message must have non-empty text content.")
+        content = content.strip()
+        if len(content) > MAX_CHAT_MESSAGE_CHARS:
+            raise ValueError(
+                f"Each message is limited to {MAX_CHAT_MESSAGE_CHARS} characters."
+            )
+        total_chars += len(content)
+        cleaned.append({"role": item["role"], "content": content})
+    if total_chars > MAX_CHAT_TOTAL_CHARS:
+        raise ValueError("Chat history is too large.")
+    return cleaned
 
 
 def _compact_items(items: List[Dict[str, Any]], label: str) -> List[str]:
@@ -30,6 +91,27 @@ def _compact_items(items: List[Dict[str, Any]], label: str) -> List[str]:
 def _answer_from_tool_result(tool_result: Dict[str, Any]) -> str:
     if not tool_result.get("ok"):
         return tool_result.get("error") or "I could not complete that request."
+
+    if "take" in tool_result:
+        take = tool_result.get("take") or {}
+        lines = [
+            take.get("headline") or "Ned’s Take",
+            "",
+            take.get("straight_summary") or "",
+            "",
+            f"Ned’s take: {take.get('ned_take') or ''}",
+        ]
+        highlights = take.get("highlights") or []
+        if highlights:
+            lines.extend(["", "Highlights:"])
+            for highlight in highlights[:3]:
+                line = f"- {highlight.get('summary') or highlight.get('title') or 'Scanner activity'}"
+                if highlight.get("ned_note"):
+                    line += f" {highlight['ned_note']}"
+                lines.append(line)
+        if take.get("disclaimer"):
+            lines.extend(["", take["disclaimer"]])
+        return "\n".join(line for line in lines if line is not None)
 
     if "total_calls" in tool_result:
         filters = tool_result.get("filters", {})
@@ -111,6 +193,18 @@ def _answer_from_tool_result(tool_result: Dict[str, Any]) -> str:
 
 @chat_bp.route("/scanner/api/chat/local", methods=["POST"])
 def api_chat_local():
+    if _chat_rate_limited():
+        return (
+            jsonify(
+                {
+                    "ok": False,
+                    "error": "Scanner Chat is receiving too many requests. Try again shortly.",
+                }
+            ),
+            429,
+            {"Retry-After": "60"},
+        )
+
     payload = request.get_json(silent=True) or {}
     preset_id = (payload.get("preset_id") or "").strip()
     town_slug = (payload.get("town_slug") or "").strip().lower()
@@ -130,7 +224,6 @@ def api_chat_local():
                     "ok": tool_result.get("ok", False),
                     "answer": answer,
                     "citations": tool_result.get("citations", []),
-                    "tool_result": tool_result,
                     "preset_id": preset["preset_id"],
                     "preset_label": preset["preset_label"],
                     "prompt": preset["prompt"],
@@ -138,40 +231,60 @@ def api_chat_local():
                     "town_name": preset["town_name"],
                 }
             ), status
-        except Exception as exc:
+        except Exception:
             logger.exception("chat.local.preset_failed preset=%s town=%s", preset_id, town_slug)
-            return jsonify({"ok": False, "error": f"Preset request failed: {str(exc)}"}), 500
+            return jsonify({"ok": False, "error": "The saved scanner prompt could not be completed."}), 500
 
-    if not isinstance(user_messages, list) or not user_messages:
-        return jsonify({"ok": False, "error": "Body must include a non-empty 'messages' list."}), 400
+    try:
+        user_messages = _validated_messages(user_messages)
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
 
     try:
         result = chatbot_app.run_tool_loop(user_messages)
         if result.get("ok") and not result.get("answer") and result.get("tool_result"):
             result["answer"] = _answer_from_tool_result(result["tool_result"])
         status = 200 if result.get("ok") else 500
+        result.pop("raw", None)
+        result.pop("tool_result", None)
         return jsonify(result), status
-    except requests.HTTPError as exc:
+    except requests.HTTPError:
+        logger.exception("chat.local.vllm_http_failed")
         return jsonify(
             {
                 "ok": False,
-                "error": f"vLLM HTTP error: {str(exc)}",
-                "details": getattr(exc.response, "text", None),
+                "error": "The local language model is unavailable right now.",
             }
         ), 502
-    except Exception as exc:
+    except Exception:
         logger.exception("chat.local.failed")
-        return jsonify({"ok": False, "error": f"Unhandled server error: {str(exc)}"}), 500
+        return jsonify({"ok": False, "error": "Scanner Chat could not complete that request."}), 500
 
 
 @chat_bp.route("/scanner/api/chat/local/health", methods=["GET"])
 def api_chat_local_health():
+    db_ok = False
+    vllm_ok = False
+    try:
+        db_uri = f"file:{os.path.abspath(chatbot_app.SCANNER_DB_PATH)}?mode=ro"
+        with sqlite3.connect(db_uri, uri=True, timeout=2) as conn:
+            db_ok = conn.execute("SELECT 1").fetchone()[0] == 1
+    except Exception:
+        logger.warning("chat.health.database_unavailable")
+    try:
+        response = requests.get(f"{chatbot_app.VLLM_BASE_URL}/models", timeout=2)
+        vllm_ok = response.ok
+    except requests.RequestException:
+        logger.info("chat.health.vllm_unavailable")
     return jsonify(
         {
-            "ok": True,
-            "vllm_base_url": chatbot_app.VLLM_BASE_URL,
+            "ok": db_ok and vllm_ok,
+            "status": "healthy" if db_ok and vllm_ok else "degraded",
+            "database_ok": db_ok,
+            "vllm_ok": vllm_ok,
             "model": chatbot_app.VLLM_MODEL,
             "tools": [tool["function"]["name"] for tool in chatbot_app.TOOLS],
+            "presets_available": db_ok,
         }
     )
 
@@ -185,3 +298,40 @@ def api_chat_local_tools():
 def api_chat_local_presets():
     catalog = get_chat_preset_catalog()
     return jsonify({"ok": True, **catalog})
+
+
+@chat_bp.route("/scanner/api/neds-take", methods=["GET"])
+def api_neds_take():
+    day = request.args.get("date", "today")
+    town = (request.args.get("town") or "").strip() or None
+    edition_type = (request.args.get("edition") or "").strip() or None
+    try:
+        result = get_or_generate_daily_take(
+            db_path=chatbot_app.SCANNER_DB_PATH,
+            day=day,
+            town=town,
+            edition_type=edition_type,
+        )
+        return _no_store_json(result)
+    except ValueError as exc:
+        return _no_store_json({"ok": False, "error": str(exc)}, 400)
+    except Exception:
+        logger.exception("neds_take.failed date=%s town=%s", day, town or "all")
+        return _no_store_json(
+            {"ok": False, "error": "Ned’s Take is unavailable right now."},
+            500,
+        )
+
+
+@chat_bp.route("/scanner/api/incident/<incident_key>/take", methods=["GET"])
+def api_incident_take(incident_key):
+    detail = get_incident_detail(
+        incident_key,
+        db_path=chatbot_app.SCANNER_DB_PATH,
+    )
+    if not detail:
+        return _no_store_json(
+            {"ok": False, "error": "Scanner incident not found."},
+            404,
+        )
+    return _no_store_json(detail)

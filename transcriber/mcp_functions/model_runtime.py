@@ -202,7 +202,13 @@ def merged_transcribe_settings(
     if merged["beam_size"] < 1:
         merged["beam_size"] = defaults["beam_size"]
 
-    for bool_key in ("word_timestamps", "condition_on_previous_text", "vad_filter"):
+    for bool_key in (
+        "word_timestamps",
+        "condition_on_previous_text",
+        "vad_filter",
+        "adaptive_retry",
+        "squelch_gate",
+    ):
         merged[bool_key] = bool(merged.get(bool_key, defaults[bool_key]))
 
     prompt = merged.get("initial_prompt")
@@ -219,6 +225,13 @@ def merged_transcribe_settings(
         "compression_ratio_threshold",
         "log_prob_threshold",
         "no_speech_threshold",
+        "retry_compression_ratio",
+        "retry_compression_min_words_per_second",
+        "retry_words_per_second",
+        "retry_max_metric_growth",
+        "squelch_max_duration",
+        "squelch_no_speech_threshold",
+        "squelch_ambiguous_no_speech_threshold",
     ):
         value = merged.get(optional_num_key)
         if value is None:
@@ -230,6 +243,12 @@ def merged_transcribe_settings(
 
     if merged.get("best_of") is not None:
         merged["best_of"] = int(merged["best_of"])
+    try:
+        merged["retry_beam_size"] = int(merged.get("retry_beam_size", 1))
+    except (TypeError, ValueError):
+        merged["retry_beam_size"] = 1
+    if merged["retry_beam_size"] < 1:
+        merged["retry_beam_size"] = 1
 
     return merged
 

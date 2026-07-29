@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scanner-cache-v20260726-player-r2';
+const CACHE_NAME = 'scanner-cache-v20260726-map-r2';
 const OFFLINE_URL = 'offline.html';
 
 // Use relative paths so this worker works under /scanner/ when installed there.
@@ -18,6 +18,8 @@ const ASSETS_TO_CACHE = [
   'static/js/scanner_view.js',
   'static/js/scanner_archive.js',
   'static/js/scanner_heatmap.js',
+  'static/js/scanner_incident.js',
+  'static/js/scanner_neds_take.js',
   'static/js/scanner_review.js',
   'static/js/scanner_stats.js',
   'static/js/scanner_town.js',

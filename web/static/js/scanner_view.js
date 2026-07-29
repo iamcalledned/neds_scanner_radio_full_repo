@@ -107,6 +107,11 @@ function renderCall(call, index) {
 
   // Address data from metadata
   const derivedAddress = (call.metadata && call.metadata.derived_address) || '';
+  const derivedNumber = (call.metadata && call.metadata.derived_addr_num) || '';
+  const derivedStreet = (call.metadata && call.metadata.derived_street) || '';
+  const derivedTown = (call.metadata && (call.metadata.derived_town || call.metadata.town))
+    || (feedConfig[callFeed] && feedConfig[callFeed].town)
+    || '';
   const addrConfidence = (call.metadata && call.metadata.address_confidence) || 'none';
 
   // Transcripts
@@ -193,7 +198,15 @@ function renderCall(call, index) {
           <button data-action="mark-edited" data-index="${index}" id="edited-btn-${index}" class="call-action-btn${editedTranscript ? ' btn-edited-active' : ''}">Edited</button>
           <button data-action="approve" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="approve-${index}" class="call-action-btn btn-approve${editedTranscript ? ' btn-approve-active' : ''}" title="Mark transcript as good training data">${editedTranscript ? '✅ Looks Good' : 'Looks Good'}</button>
           <button data-action="classify" data-index="${index}" class="call-action-btn">Classify</button>
-          <button data-action="address-lookup" data-index="${index}" class="call-action-btn">Address</button>
+          <button
+            data-action="address-lookup"
+            data-index="${index}"
+            data-feed="${_escHtml(callFeed)}"
+            data-address="${_escHtml(derivedAddress)}"
+            data-address-number="${_escHtml(derivedNumber)}"
+            data-address-street="${_escHtml(derivedStreet)}"
+            data-address-town="${_escHtml(derivedTown)}"
+            class="call-action-btn">Address</button>
           <button data-action="save-eval" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="save-eval-${index}" class="call-action-btn btn-save-eval${saveForEval ? ' btn-save-eval-active' : ''}" title="Save this call as an evaluation sample">${saveForEval ? '📋 Save for Eval' : 'Save for Eval'}</button>
           <button data-action="freeze" data-file="${_escHtml(callFile)}" data-feed="${_escHtml(callFeed)}" data-index="${index}" id="freeze-${index}" class="call-action-btn${freezeForTesting ? ' btn-freeze-active' : ''}" title="Freeze this call for testing">${freezeForTesting ? '🧊 Frozen' : 'Freeze for Testing'}</button>
           <button data-action="share" data-index="${index}" data-feed="${_escHtml(callFeed)}" class="call-action-btn btn-share">Share</button>
@@ -403,11 +416,35 @@ function handleCallAction(event) {
       event.preventDefault();
       const modal = document.getElementById("address-modal");
       if (modal) {
-        document.getElementById("number-input").value = "";
-        document.getElementById("street-input").value = "";
+        let number = (target.dataset.addressNumber || '').trim();
+        let street = (target.dataset.addressStreet || '').trim();
+        const fullAddress = (target.dataset.address || '').trim();
+        const feedTown = (feedConfig[target.dataset.feed || _getCurrentFeed()] || {}).town || '';
+        const town = (target.dataset.addressTown || feedTown).trim();
+
+        // Older records may only have the combined derived_address field.
+        if ((!number || !street) && fullAddress) {
+          const match = fullAddress.match(/^(\d+[A-Za-z]?(?:-\d+[A-Za-z]?)?)\s+(.+)$/);
+          if (match) {
+            number = number || match[1];
+            street = street || match[2];
+          } else {
+            street = street || fullAddress;
+          }
+        }
+
+        document.getElementById("number-input").value = number;
+        document.getElementById("street-input").value = street;
+        document.getElementById("town-input").value = town;
+        document.getElementById("town-display").textContent = town || "Unknown";
+        const resultDiv = document.getElementById("lookup-result");
+        resultDiv?.classList.add("hidden");
+        if (resultDiv) resultDiv.innerHTML = "";
         modal.classList.remove("hidden");
         modal.classList.add("flex");
-        document.getElementById("number-input")?.focus();
+        if (!street) document.getElementById("street-input")?.focus();
+        else if (!number) document.getElementById("number-input")?.focus();
+        else document.getElementById("lookup-btn")?.focus();
       }
       break;
   }
@@ -1106,32 +1143,40 @@ document.addEventListener('DOMContentLoaded', () => {
       resultDiv.classList.add("hidden"); resultDiv.innerHTML = "";
       document.getElementById("street-input").value = "";
       document.getElementById("number-input").value = "";
+      document.getElementById("town-input").value = "";
+      document.getElementById("town-display").textContent = "Unknown";
     });
     modal.addEventListener('click', (e) => { if (e.target === modal) closeBtn.click(); });
 
     lookupBtn.addEventListener("click", async () => {
       const street = modal.querySelector("#street-input")?.value.trim();
       const number = modal.querySelector("#number-input")?.value.trim();
+      const town = modal.querySelector("#town-input")?.value.trim();
       if (!street || !number) {
         resultDiv.innerHTML = '<div class="text-red-400 mt-2">Please enter both street and number.</div>';
+        resultDiv.classList.remove("hidden"); return;
+      }
+      if (!town) {
+        resultDiv.innerHTML = '<div class="text-red-400 mt-2">The call does not have a town for property lookup.</div>';
         resultDiv.classList.remove("hidden"); return;
       }
       resultDiv.innerHTML = '<div class="mt-3 text-blue-400">Searching...</div>';
       resultDiv.classList.remove("hidden");
       try {
-        const res = await fetch(`/scanner/api/property?street=${encodeURIComponent(street)}&number=${encodeURIComponent(number)}&town=hopedale`);
+        const res = await fetch(`/scanner/api/property?street=${encodeURIComponent(street)}&number=${encodeURIComponent(number)}&town=${encodeURIComponent(town.toLowerCase())}`);
         const data = await res.json();
         if (!res.ok) { resultDiv.innerHTML = `<div class="text-red-400 mt-2">${data.error || "No data found."}</div>`; return; }
         if (Array.isArray(data) && data.length > 0) {
           const prop = data[0];
-          const acct = prop.parcel_url.split('=').pop();
-          const url = `https://hopedale.patriotproperties.com/SearchResults.asp?SearchBy=Account&Account=Select&acct=${acct}`;
+          const propertyLink = prop.parcel_url
+            ? `<a href="${_escHtml(prop.parcel_url)}" target="_blank" rel="noopener" class="inline-block mt-2 text-scannerBlue hover:underline text-sm">View full record →</a>`
+            : '';
           resultDiv.innerHTML = `
             <div class="mt-3 panel-soft p-3">
-              <div><span class="text-slate-400 text-xs uppercase tracking-wider">Owner:</span> <span class="text-white">${prop.owner}</span></div>
-              <div class="mt-1"><span class="text-slate-400 text-xs uppercase tracking-wider">Address:</span> <span class="text-white">${prop.location}</span></div>
-              <div class="mt-1"><span class="text-slate-400 text-xs uppercase tracking-wider">Value:</span> <span class="text-white">${prop.total_value}</span></div>
-              <a href="${url}" target="_blank" class="inline-block mt-2 text-scannerBlue hover:underline text-sm">View full record →</a>
+              <div><span class="text-slate-400 text-xs uppercase tracking-wider">Owner:</span> <span class="text-white">${_escHtml(prop.owner || '')}</span></div>
+              <div class="mt-1"><span class="text-slate-400 text-xs uppercase tracking-wider">Address:</span> <span class="text-white">${_escHtml(prop.location || '')}</span></div>
+              <div class="mt-1"><span class="text-slate-400 text-xs uppercase tracking-wider">Value:</span> <span class="text-white">${_escHtml(prop.total_value || '')}</span></div>
+              ${propertyLink}
             </div>`;
         } else {
           resultDiv.innerHTML = '<div class="text-red-400 mt-2">No results found.</div>';

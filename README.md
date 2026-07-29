@@ -38,7 +38,7 @@
 | **🎙️ Record** | A bash pipeline captures audio from PulseAudio monitor sources, segments speech from silence with `sox`, and publishes each new call to a Redis Stream |
 | **🧠 Transcribe** | A Redis listener picks up new calls and routes them to a long-lived MCP server holding a warm, fine-tuned Whisper model on GPU — no cold loads, sub-second latency |
 | **📊 Enrich** | Regex NLP extracts addresses, unit IDs, agencies, tone, and urgency from each transcript; quality scoring flags bad audio for retry |
-| **🌐 Serve** | A Flask + Socket.IO web app pushes live calls to connected browsers in real time, with full archive search, per-town views, stats dashboards, and Web Push notifications |
+| **🌐 Serve** | A Flask + Socket.IO app pushes live transmitting state, serves completed calls through short-lived JSON APIs, and provides archive search, town views, stats, Ned's Take, and Web Push |
 
 ### Receiver-Agnostic Design
 
@@ -56,6 +56,11 @@ As long as audio arrives at the configured Pulse monitor source, the rest of the
 
 ## Architecture
 
+For the current implementation-level map—including Mermaid call-flow and
+sequence diagrams, every Redis key/stream, all SQLite tables and write paths,
+the AI validation/retranscription loop, Ned's Take, web delivery, and failure
+recovery—see **[Scanner System Architecture and Call Flow](docs/scanner_system_architecture.md)**.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  RTL-SDR Dongles  ──→  rtl_tcp@{port}.service (one per dongle)        │
@@ -67,14 +72,14 @@ As long as audio arrives at the configured Pulse monitor source, the rest of the
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │  RECORDER  (bash)                                                │  │
 │  │  ffmpeg → sox silence split → inotify watcher                    │  │
-│  │    → atomic move to archive/clean/<feed>/                        │  │
+│  │    → atomic move to archive/raw/<feed>/                          │  │
 │  │    → Redis XADD scanner:stream:new_call                          │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 │         │  Redis Stream                                                 │
 │         ▼                                                               │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │  TRANSCRIBER LISTENER  (Python)                                  │  │
-│  │  Redis XREADGROUP → MCP client call to warm GPU server           │  │
+│  │  Redis XREAD → MCP client call to warm GPU server                │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 │         │  MCP (streamable HTTP)                                        │
 │         ▼                                                               │
@@ -82,9 +87,8 @@ As long as audio arrives at the configured Pulse monitor source, the rest of the
 │  │  MCP SERVER  (Python — long-lived, warm Whisper on GPU)          │  │
 │  │  Fine-tuned Whisper medium → multi-profile retry                 │  │
 │  │  → quality scoring → NLP enrichment → SQLite + JSON write        │  │
-│  │  → Redis PUBLISH scanner:live:call (real-time fan-out)           │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
-│         │  Redis PUB/SUB                                                │
+│         │  SQLite rows + clean audio/JSON/TXT artifacts                 │
 │         ▼                                                               │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │  WEB SERVER  (Flask + Socket.IO + Eventlet)                      │  │
@@ -105,10 +109,14 @@ As long as audio arrives at the configured Pulse monitor source, the rest of the
 - 🔄 **Multi-profile retry** — if the first transcription scores poorly, automatically retries with different decoding parameters
 - 📊 **Quality scoring** — each transcript gets a confidence score; low-quality calls are flagged for human review
 - 🏷️ **NLP enrichment** — regex-based extraction of addresses, responding units, agency names, tone, and urgency level
+- 🧾 **Prepared call enrichment** — batched AI suggestions, evidence-backed
+  transcript validation, explicitly labeled enhanced transcripts, and bounded
+  comparison-transcription requests stored separately from source metadata
 - 🔒 **GPU mutex** — Redis-backed cross-process CUDA lock prevents VRAM thrash when multiple GPU consumers are running
 
 ### Web UI
-- ⚡ **Real-time feed** — new calls appear instantly via Socket.IO, no page refresh
+- ⚡ **Live status + fast call refresh** — transmitting state arrives through
+  Socket.IO while completed call cards refresh from short-lived JSON APIs
 - 🏘️ **Per-town views** — browse calls by municipality and department
 - 🔍 **Full-text search** — search across all transcripts
 - 📈 **Stats dashboard** — call volume, active feeds, disk usage, hourly activity charts
@@ -116,11 +124,15 @@ As long as audio arrives at the configured Pulse monitor source, the rest of the
 - ✏️ **Transcript editing** — correct transcripts directly in the browser to build training data
 - 🏷️ **Intent labeling** — tag calls with intents and dispositions for future model training
 - 🔔 **Web Push notifications** — per-channel push alerts (VAPID-based, works on mobile)
+- 🎙️ **Ned's Take** — background-prepared local-LLM commentary over code-grouped
+  incidents, with a fast compact drawer, town/department daily reports, and
+  complete incident timelines containing the actual transcripts and audio
 - 📱 **Installable PWA** — works as a standalone app on phones and desktops
 - 🌙 **Dark theme** — clean, glassmorphic UI built with Tailwind CSS
 
 ### Infrastructure
-- 🔴 **Redis as the backbone** — streams for call delivery, pub/sub for live updates, keys for state and caching
+- 🔴 **Redis as the backbone** — streams for transcription work, keys for live
+  state/caching, and a list-backed Web Push queue
 - 🗃️ **SQLite (WAL mode)** — single shared database with concurrent reader support
 - 🛠️ **systemd user services** — every component runs as a managed service with auto-restart
 - 📋 **Structured logging** — RotatingFileHandler + JSON logging across all components
@@ -206,7 +218,7 @@ As long as audio arrives at the configured Pulse monitor source, the rest of the
 |-----------|---------|
 | Python 3.12+ | All Python components |
 | CUDA 12.x + cuDNN | GPU inference |
-| Redis 7+ | Streams, pub/sub, state |
+| Redis 7+ | Streams, live state, API caching, and push queue |
 | FFmpeg | Audio capture from Pulse sources |
 | SoX | Silence-based audio segmentation |
 | inotify-tools | File system watcher for recorder |
@@ -279,7 +291,9 @@ systemctl --user start scanner-websocket.service
 
 ### 5. Open the web UI
 
-Navigate to `http://your-host:5050/scanner/` — calls will appear in real time as audio is captured.
+Navigate to `http://your-host:5005/scanner/` for the app's default direct
+listener, or use the public reverse-proxy URL. Live status appears immediately;
+completed call cards appear after transcription and the next short API refresh.
 
 ---
 
@@ -290,21 +304,25 @@ Navigate to `http://your-host:5050/scanner/` — calls will appear in real time 
 2. **SDR++** (or your SDR app of choice) demodulates the RF signal and routes audio to **PulseAudio null sinks** — one per radio channel.
 
 3. The **recorder** script (`multi_scanner_recorder_with_redis.sh`) listens to each Pulse monitor source via `ffmpeg`, pipes through `sox` for silence-based segmentation, and uses `inotifywait` to detect completed clips. Each clip is:
-   - Moved to the archive (`scanner_archive/clean/<feed>/`)
+   - Moved to the raw archive (`scanner_archive/raw/<feed>/`)
    - Published to Redis Stream `scanner:stream:new_call`
 
-4. The **transcriber listener** (`transcribe_stream_listener_mcp.py`) reads from the Redis Stream via a consumer group and makes an MCP tool call to the warm GPU server.
+4. The **transcriber listener** (`transcribe_stream_listener_mcp.py`) reads
+   from the Redis Stream with a persisted stream cursor and makes an MCP tool
+   call to the warm GPU server.
 
 5. The **MCP server** (`scanner_transcriber_mcp.py`) keeps the fine-tuned Whisper model loaded in VRAM. For each call it:
    - Acquires the GPU mutex (prevents VRAM collisions)
    - Transcribes with the primary profile
    - Scores the transcript quality
-   - Retries with alternate decoding parameters if needed
+   - Applies configured adaptive decoding retry and squelch rules
    - Enriches metadata (addresses, units, agency, tone, urgency)
    - Writes results to SQLite + JSON sidecar
-   - Publishes to Redis pub/sub for live delivery
 
-6. The **web server** (`app_socket2.py`) subscribes to Redis pub/sub and pushes new calls to all connected browsers via Socket.IO. It also sends Web Push notifications to subscribed devices.
+6. The **web server** (`app_socket2.py`) reads completed calls from SQLite,
+   serves them through cached JSON/HTML routes, and broadcasts Redis-backed
+   transmitting state through Socket.IO. It also sends Web Push notifications
+   when the recorder advances a feed's `latest_time`.
 
 ---
 
@@ -315,6 +333,24 @@ The `tools/scanner_dashboard.py` provides a terminal UI for managing all service
 ```bash
 python tools/scanner_dashboard.py
 ```
+
+Its **LLM** page combines:
+
+- a scanner-safe launcher for downloaded GGUF or Transformers models;
+- direct Hugging Face model-ID downloads via the supported `hf download` CLI;
+- GPU Gatekeeper capacity checks using both policy reservations and the
+  selected model's downloaded weight size;
+- an LLM run control card for host, port, GPU memory utilization, maximum
+  model length, and additional backend arguments;
+- advanced llama.cpp and vLLM service configuration; and
+- unified service status and logs.
+
+Downloaded models are stored under `/home/ned/models/base_models`. Each
+Hugging Face repository gets its own `organization__model-name` directory,
+and model discovery is restricted to that root.
+
+LLM starts and stops should be performed from the LLM page so the scanner's
+protected VRAM reservation and GPU safety margin are enforced.
 
 Or use systemctl directly:
 
@@ -338,10 +374,16 @@ All configuration is driven by `.env` files — no hardcoded paths in applicatio
 ### Root `.env` (shared by all components)
 ```dotenv
 SCANNER_DB_PATH=/path/to/scanner_calls.db
+SCANNER_INTELLIGENCE_DB_PATH=/path/to/scanner_intelligence.db
 ARCHIVE_BASE=/path/to/scanner_archive
 REVIEW_DIR=/path/to/scanner_archive/review
 REDIS_URL=redis://127.0.0.1:6379/0
 LOG_LEVEL=INFO
+CHAT_RATE_LIMIT_PER_MINUTE=30
+NEDS_TAKE_CALL_ENRICHMENT_BATCH_SIZE=24
+NEDS_TAKE_CALL_ENRICHMENT_TIMEOUT_SECONDS=60
+NEDS_TAKE_RETRANSCRIPTION_DISPATCH_LIMIT=2
+NEDS_TAKE_RETRANSCRIPTION_PROFILE=aggressive
 ```
 
 ### `transcriber/.env`

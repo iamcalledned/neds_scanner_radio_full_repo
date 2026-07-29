@@ -1,5 +1,5 @@
 {
-  "default_model": "baseline_model_april",
+  "default_model": "whisper_medium_v113_adaptive_ct2",
   "models": {
     "baseline_model_april": {
       "model": "trained_whisper_medium_april_2026_ct2",
@@ -69,6 +69,46 @@
         "condition_on_previous_text": false,
         "vad_filter": false,
         "temperature": 0.0
+      }
+    },
+    "whisper_medium_v113_adaptive_ct2": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidate/whisper_medium_v113_rebuilt_seed_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 5,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0,
+        "adaptive_retry": true,
+        "retry_beam_size": 1,
+        "retry_compression_ratio": 4.0,
+        "retry_compression_min_words_per_second": 2.5,
+        "retry_words_per_second": 3.0,
+        "retry_max_metric_growth": 1.02
+      }
+    },
+    "whisper_medium_v115_adaptive_ct2": {
+      "model": "/home/ned/models/scanner_transcriber_models_candidate/whisper_medium_v115b_alpha_0p25_ct2",
+      "compute_type": "float16",
+      "device": "cuda",
+      "transcribe": {
+        "task": "transcribe",
+        "language": "en",
+        "beam_size": 5,
+        "word_timestamps": false,
+        "condition_on_previous_text": false,
+        "vad_filter": false,
+        "temperature": 0.0,
+        "adaptive_retry": true,
+        "retry_beam_size": 1,
+        "retry_compression_ratio": 4.0,
+        "retry_compression_min_words_per_second": 2.5,
+        "retry_words_per_second": 3.0,
+        "retry_max_metric_growth": 1.02
       }
     },
     "trained_whisper_medium_v3_ct2": {

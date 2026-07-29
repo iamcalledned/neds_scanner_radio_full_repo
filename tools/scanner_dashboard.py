@@ -29,16 +29,38 @@ import socket
 import subprocess
 import time
 import json
+import math
 import shlex
 import threading
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 import redis
+from rich.markup import escape
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import DataTable, Footer, Header, Static, Log, TabbedContent, TabPane, Select, Checkbox, Button, Label, Input
+
+from llm_launcher import (
+    BASE_MODELS_DIR,
+    VllmRunSettings,
+    assess_gatekeeper_plan,
+    build_vllm_command,
+    discover_local_llm_models,
+    estimate_model_vram_mb,
+    format_bytes,
+    model_size_bytes,
+    parse_vllm_command,
+    recommended_download_dir,
+    validate_extra_args,
+    validate_model_path,
+)
+from scanner_dashboard_health import (
+    format_gatekeeper_leases,
+    format_gatekeeper_services,
+    gatekeeper_is_healthy,
+)
 
 # -----------------------------
 # Config
@@ -58,11 +80,12 @@ VLLM_DEFAULT_EXEC = (
     "--gpu-memory-utilization 0.55 --max-num-seqs 2 --port 30000 "
     "--enable-auto-tool-choice --tool-call-parser hermes"
 )
+VLLM_BINARY = shlex.split(VLLM_DEFAULT_EXEC)[0]
 
 LLAMA_UNIT = "llama-server.service"
 LLAMA_OVERRIDE_FILE = os.path.expanduser(f"~/.config/systemd/user/{LLAMA_UNIT}.d/override.conf")
 LLAMA_BINARY = os.path.expanduser("~/Documents/llama.cpp/build/bin/llama-server")
-LLAMA_MODELS_DIR = os.path.expanduser("~/models")
+LLAMA_MODELS_DIR = BASE_MODELS_DIR
 LLAMA_DEFAULT_MODEL = os.path.expanduser(
     "~/models/qwen36/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf"
 )
@@ -86,6 +109,31 @@ def clean_proc(p):
         name += " (GPU)"
 
     return f"{name} (pid: {pid})"
+
+
+def configure_gatekeeper_llm_runtime(
+    runtime_key: str,
+    port: int,
+    estimated_vram_mb: int,
+) -> Tuple[bool, str]:
+    """Synchronize dynamic LLM controls with gatekeeper readiness and policy."""
+    try:
+        gk_path = "/home/ned/Documents/GPU_agent_gatekeeper"
+        if gk_path not in sys.path:
+            sys.path.append(gk_path)
+        from gpu_gatekeeper.core import runtime_registry
+
+        runtimes = runtime_registry.load_runtime_registry()
+        runtime = runtimes.get(runtime_key)
+        if not runtime:
+            return False, f"Gatekeeper runtime '{runtime_key}' is not registered."
+        runtime["endpoint"] = f"http://127.0.0.1:{port}/v1"
+        runtime["estimated_vram_mb"] = int(estimated_vram_mb)
+        if not runtime_registry.save_runtime_registry(runtimes):
+            return False, "Could not update the GPU gatekeeper runtime registry."
+        return True, "Gatekeeper runtime synchronized."
+    except Exception as exc:
+        return False, f"Could not synchronize GPU gatekeeper runtime: {exc}"
 
 @dataclass(frozen=True)
 class ServiceDef:
@@ -604,6 +652,11 @@ def write_vllm_exec_override(command: str) -> Tuple[bool, str]:
         os.makedirs(os.path.dirname(VLLM_OVERRIDE_FILE), exist_ok=True)
         with open(VLLM_OVERRIDE_FILE, "w", encoding="utf-8") as f:
             f.write("[Service]\n")
+            # FlashInfer's sampler JIT consults the host CUDA toolkit. This
+            # workstation's RTX 5090 is supported by the CUDA 12.9 PyTorch
+            # runtime, but the older system nvcc cannot compile SM 12.0.
+            # vLLM's native sampler avoids that optional JIT path.
+            f.write("Environment=VLLM_USE_FLASHINFER_SAMPLER=0\n")
             f.write("ExecStart=\n")
             f.write(f"ExecStart={command}\n")
     except Exception as e:
@@ -647,29 +700,16 @@ class HealthPanel(Static):
             gk_client = GpuGatekeeperClient()
             gk_data = gk_client.status()
             
-            if gk_data.get("ok", False):
+            if gatekeeper_is_healthy(gk_data):
                 gk_status_str = "[green]OK[/green]"
             else:
                 gk_status_str = "[yellow]DEGRADED[/yellow]"
                 
             leases = gk_data.get("leases", {}).get("leases", [])
-            active_leases_list = []
-            for lease in leases:
-                owner = lease.get("owner", "unknown")
-                runtime_key = lease.get("runtime_key", "unknown")
-                vram = lease.get("estimated_vram_mb", 0)
-                status = lease.get("status", "unknown")
-                active_leases_list.append(f"  • {owner} ({runtime_key}): {vram}MB [{status}]")
-            gk_leases_str = "\n".join(active_leases_list) if active_leases_list else "  • None"
+            gk_leases_str = format_gatekeeper_leases(leases)
             
             svcs = gk_data.get("services", {})
-            services_list = []
-            for svc_name, svc_info in svcs.items():
-                active = svc_info.get("active", False)
-                substate = svc_info.get("substate", "unknown")
-                status_color = "green" if active else "red"
-                services_list.append(f"  • {svc_name}: [{status_color}]{substate}[/{status_color}]")
-            gk_services_str = "\n".join(services_list) if services_list else "  • None"
+            gk_services_str = format_gatekeeper_services(svcs)
         except Exception as e:
             gk_status_str = f"[red]DOWN ({type(e).__name__})[/red]"
             gk_leases_str = f"  • Connection error"
@@ -697,6 +737,781 @@ class HealthPanel(Static):
             f"MCP_URL={mcp_url}",
         ]
         self.update("\n".join(lines))
+
+
+class LLMLauncherPanel(Vertical):
+    """One scanner-safe workflow for selecting and launching a local LLM."""
+
+    _refreshing_models = False
+    _busy = False
+
+    BACKENDS = {
+        "llama": {
+            "label": "llama.cpp (GGUF)",
+            "runtime_key": "local_llm",
+            "unit": LLAMA_UNIT,
+            "registry_floor_mb": 22_000,
+        },
+        "vllm": {
+            "label": "vLLM (Transformers)",
+            "runtime_key": "vllm_runtime",
+            "unit": VLLM_UNIT,
+            "registry_floor_mb": 16_000,
+        },
+    }
+
+    def compose(self) -> ComposeResult:
+        current_vllm_settings = parse_vllm_command(
+            get_current_vllm_exec_command()
+        )
+        with VerticalScroll(id="llm_launcher_scroll"):
+            yield Static(
+                "[b]Scanner-safe LLM launcher[/b]\n"
+                "Enter a Hugging Face model ID to download it, or choose an existing "
+                "local model. Every launch goes through the GPU gatekeeper.",
+                id="llm_launcher_intro",
+            )
+
+            yield Static("[b]LLM Services[/b]", classes="llm_section_title")
+            yield ServiceTable(id="llm_svc_table")
+
+            yield Static(
+                "[b]MODEL ACQUISITION CARD[/b]",
+                id="llm_acquisition_card_title",
+                classes="llm_card_title",
+            )
+            with Horizontal(classes="llm_launcher_row"):
+                yield Label("HF model", classes="llm_launcher_label")
+                yield Input(
+                    placeholder="openai/gpt-oss-20b",
+                    id="llm_hf_repo_input",
+                )
+            with Horizontal(classes="llm_launcher_row"):
+                yield Label("HF filename", classes="llm_launcher_label")
+                yield Input(
+                    placeholder="Optional; required for GGUF repositories",
+                    id="llm_hf_filename_input",
+                )
+                yield Button(
+                    "Download with HF",
+                    id="llm_hf_download_btn",
+                    variant="primary",
+                )
+            yield Static(
+                f"Destination: {LLAMA_MODELS_DIR}/organization__model-name",
+                id="llm_hf_destination",
+            )
+
+            yield Static(
+                "[b]LLM RUN CONTROL CARD[/b]",
+                id="llm_run_card_title",
+                classes="llm_card_title",
+            )
+            with Horizontal(classes="llm_launcher_row"):
+                yield Label("Backend", classes="llm_launcher_label")
+                yield Select(
+                    [
+                        (spec["label"], key)
+                        for key, spec in self.BACKENDS.items()
+                    ],
+                    value="vllm",
+                    id="llm_backend_select",
+                )
+                yield Button("Refresh models", id="llm_models_refresh_btn")
+
+            with Horizontal(classes="llm_launcher_row"):
+                yield Label("Downloaded", classes="llm_launcher_label")
+                yield Select(
+                    [("No compatible local models found", "__none__")],
+                    value="__none__",
+                    id="llm_local_model_select",
+                )
+
+            with Horizontal(classes="llm_launcher_row"):
+                yield Label("Model path", classes="llm_launcher_label")
+                yield Input(
+                    placeholder="Download a model or enter its local path",
+                    id="llm_launch_model_input",
+                )
+
+            yield Static("", id="llm_model_details")
+
+            with Horizontal(classes="llm_launcher_row"):
+                yield Label("Host", classes="llm_launcher_label")
+                yield Input(
+                    value=current_vllm_settings.host,
+                    id="llm_launch_host_input",
+                    classes="llm_launcher_medium",
+                )
+                yield Label("Port", classes="llm_launcher_inline_label")
+                yield Input(
+                    value=str(current_vllm_settings.port),
+                    id="llm_launch_port_input",
+                    classes="llm_launcher_short",
+                )
+
+            with Horizontal(classes="llm_launcher_row"):
+                yield Label("GPU utilization", classes="llm_launcher_label")
+                yield Input(
+                    value=f"{current_vllm_settings.gpu_memory_utilization:.4g}",
+                    id="llm_launch_gpu_util_input",
+                    classes="llm_launcher_short",
+                )
+                yield Label("Max model len", classes="llm_launcher_inline_label")
+                yield Input(
+                    value=str(current_vllm_settings.max_model_len),
+                    id="llm_launch_max_len_input",
+                    classes="llm_launcher_short",
+                )
+
+            with Horizontal(classes="llm_launcher_row"):
+                yield Label("Extra args", classes="llm_launcher_label")
+                yield Input(
+                    value=current_vllm_settings.extra_args,
+                    placeholder="Optional backend arguments",
+                    id="llm_launch_extra_args_input",
+                )
+
+            yield Static("", id="llm_command_preview")
+
+            with Horizontal(classes="llm_launcher_row"):
+                yield Button(
+                    "Check GPU capacity",
+                    id="llm_capacity_btn",
+                    variant="primary",
+                )
+                yield Button(
+                    "Launch safely",
+                    id="llm_safe_launch_btn",
+                    variant="success",
+                )
+                yield Button(
+                    "Stop selected backend",
+                    id="llm_safe_stop_btn",
+                    variant="error",
+                )
+
+        with Vertical(id="llm_launcher_info"):
+            yield Static(
+                "Capacity has not been checked yet.",
+                id="llm_capacity_result",
+            )
+            yield Label("", id="llm_launcher_status")
+
+    def on_mount(self) -> None:
+        os.makedirs(LLAMA_MODELS_DIR, exist_ok=True)
+        self.refresh_models()
+        self._refresh_hf_destination()
+
+    def _backend(self) -> str:
+        value = self.query_one("#llm_backend_select", Select).value
+        return str(value) if value in self.BACKENDS else "llama"
+
+    def _model_path(self) -> str:
+        return os.path.expanduser(
+            self.query_one("#llm_launch_model_input", Input).value.strip()
+        )
+
+    def _hf_repo(self) -> str:
+        return self.query_one("#llm_hf_repo_input", Input).value.strip()
+
+    def _run_settings(self) -> Tuple[Optional[VllmRunSettings], str]:
+        host = self.query_one("#llm_launch_host_input", Input).value.strip()
+        port_raw = self.query_one("#llm_launch_port_input", Input).value.strip()
+        util_raw = self.query_one(
+            "#llm_launch_gpu_util_input",
+            Input,
+        ).value.strip()
+        max_len_raw = self.query_one(
+            "#llm_launch_max_len_input",
+            Input,
+        ).value.strip()
+        extra = self.query_one(
+            "#llm_launch_extra_args_input",
+            Input,
+        ).value.strip()
+
+        if not host or any(char.isspace() for char in host):
+            return None, "Host must be a hostname or bind address without spaces."
+        try:
+            port = int(port_raw)
+        except ValueError:
+            return None, "Port must be a whole number."
+        if not 1024 <= port <= 65535:
+            return None, "Port must be between 1024 and 65535."
+        try:
+            utilization = float(util_raw)
+        except ValueError:
+            return None, "GPU utilization must be a decimal number."
+        if not 0.05 <= utilization <= 0.95:
+            return None, "GPU utilization must be between 0.05 and 0.95."
+        try:
+            max_model_len = int(max_len_raw)
+        except ValueError:
+            return None, "Max model length must be a whole number."
+        if not 512 <= max_model_len <= 262_144:
+            return None, "Max model length must be between 512 and 262144."
+        extra_error = validate_extra_args(extra, self._backend())
+        if extra_error:
+            return None, extra_error
+
+        return VllmRunSettings(
+            host=host,
+            port=port,
+            gpu_memory_utilization=utilization,
+            max_model_len=max_model_len,
+            extra_args=extra,
+        ), ""
+
+    def refresh_models(self, preferred_path: str = "") -> None:
+        backend = self._backend()
+        models = [
+            model
+            for model in discover_local_llm_models(LLAMA_MODELS_DIR)
+            if model.backend == backend
+        ]
+        select = self.query_one("#llm_local_model_select", Select)
+        current_path = preferred_path or self._model_path()
+        available_paths = {model.path for model in models}
+
+        if current_path not in available_paths:
+            current_path = models[0].path if models else ""
+
+        options = (
+            [(model.display_name, model.path) for model in models]
+            if models
+            else [("No compatible local models found", "__none__")]
+        )
+        self._refreshing_models = True
+        try:
+            select.set_options(options)
+            select.value = current_path or "__none__"
+            self.query_one("#llm_launch_model_input", Input).value = current_path
+        finally:
+            self._refreshing_models = False
+        self._refresh_model_details()
+        self._refresh_command_preview()
+
+    def select_model(self, model_path: str) -> None:
+        model_path = os.path.expanduser(model_path)
+        backend = "llama" if model_path.lower().endswith(".gguf") else "vllm"
+        self.query_one("#llm_backend_select", Select).value = backend
+        self.refresh_models(preferred_path=model_path)
+
+    def _refresh_hf_destination(self) -> None:
+        repo = self._hf_repo()
+        destination = (
+            recommended_download_dir(LLAMA_MODELS_DIR, repo)
+            if repo
+            else f"{LLAMA_MODELS_DIR}/organization__model-name"
+        )
+        self.query_one("#llm_hf_destination", Static).update(
+            f"Destination: {escape(destination)}"
+        )
+
+    def _refresh_command_preview(self) -> None:
+        settings, error = self._run_settings()
+        model = self._model_path() or self._hf_repo() or "<model>"
+        if error or settings is None:
+            preview = f"Control card error: {error}"
+        elif self._backend() == "vllm":
+            try:
+                preview = build_vllm_command(
+                    VLLM_BINARY,
+                    model,
+                    settings,
+                )
+            except ValueError as exc:
+                preview = f"Control card error: {exc}"
+        else:
+            state = _load_llama_state()
+            preview = build_llama_command(
+                model=model,
+                ngl=state["ngl"],
+                ctx=str(settings.max_model_len),
+                host=settings.host,
+                port=str(settings.port),
+                extra=settings.extra_args,
+            )
+        self.query_one("#llm_command_preview", Static).update(
+            f"[b]Command preview[/b]\n{escape(preview)}"
+        )
+
+    def _refresh_model_details(self) -> None:
+        backend = self._backend()
+        model_path = self._model_path()
+        settings, _error = self._run_settings()
+        max_model_len = settings.max_model_len if settings else 32_768
+        size = model_size_bytes(model_path, backend) if model_path else 0
+        estimate = (
+            estimate_model_vram_mb(
+                model_path,
+                backend,
+                context_size=max_model_len,
+            )
+            if model_path
+            else 0
+        )
+        if not model_path:
+            message = "No compatible downloaded model is selected."
+        else:
+            message = (
+                f"Selected: {escape(model_path)}\n"
+                f"Downloaded weights: {format_bytes(size)} · "
+                f"conservative VRAM estimate: {estimate} MB"
+            )
+        self.query_one("#llm_model_details", Static).update(message)
+        self.query_one("#llm_capacity_result", Static).update(
+            "Capacity must be checked for this selection."
+        )
+        self._refresh_command_preview()
+
+    def _set_status(self, message: str, color: str = "green") -> None:
+        timestamp = time.strftime("%H:%M:%S")
+        formatted = f"({timestamp}) [{color}]{escape(message)}[/{color}]"
+        self.query_one("#llm_launcher_status", Label).update(formatted)
+        try:
+            self.app.query_one("#llm_global_info", Static).update(
+                f"[b]INFO[/b] {formatted}"
+            )
+        except Exception:
+            pass
+
+    def _set_capacity(self, message: str, allowed: bool) -> None:
+        color = "green" if allowed else "red"
+        self.query_one("#llm_capacity_result", Static).update(
+            f"[{color}]{escape(message)}[/{color}]"
+        )
+
+    def _start_hf_download(self) -> None:
+        repo = self._hf_repo()
+        filename = self.query_one(
+            "#llm_hf_filename_input",
+            Input,
+        ).value.strip()
+        if (
+            repo.count("/") != 1
+            or any(char.isspace() for char in repo)
+            or repo.startswith(("-", "/"))
+            or repo.endswith("/")
+        ):
+            self._set_status(
+                "Enter a Hugging Face model ID such as openai/gpt-oss-20b.",
+                "red",
+            )
+            return
+        if filename.startswith("-") or ".." in filename.split("/"):
+            self._set_status("The Hugging Face filename is invalid.", "red")
+            return
+        if "gguf" in repo.lower() and not filename:
+            self._set_status(
+                "Choose one GGUF filename to avoid downloading every quantization.",
+                "red",
+            )
+            return
+
+        try:
+            downloads = self.app.query_one("#models_panel", ModelMaintenancePanel)
+            if downloads._dl_active:
+                self._set_status("A Hugging Face download is already running.", "yellow")
+                return
+            destination = recommended_download_dir(LLAMA_MODELS_DIR, repo)
+            backend = (
+                "llama"
+                if filename.lower().endswith(".gguf")
+                or "gguf" in repo.lower()
+                else "vllm"
+            )
+            self.query_one("#llm_backend_select", Select).value = backend
+            downloads.query_one("#mm_repo_input", Input).value = repo
+            downloads.query_one("#mm_filename_input", Input).value = filename
+            downloads.query_one("#mm_localdir_input", Input).value = LLAMA_MODELS_DIR
+            self.app.query_one("#llm_workspace", TabbedContent).active = (
+                "llm_download_subtab"
+            )
+            downloads._start_download(repo, filename, destination)
+            self._set_status(
+                f"Downloading {repo} into {destination}.",
+                "yellow",
+            )
+        except Exception as exc:
+            self._set_status(f"Could not start Hugging Face download: {exc}", "red")
+
+    def _request_plan(
+        self,
+        backend: str,
+        model_path: str,
+        settings: VllmRunSettings,
+    ) -> Tuple[Dict[str, object], object]:
+        gk_path = "/home/ned/Documents/GPU_agent_gatekeeper"
+        if gk_path not in sys.path:
+            sys.path.append(gk_path)
+        from gpu_gatekeeper.client import GpuGatekeeperClient
+
+        spec = self.BACKENDS[backend]
+        estimate = estimate_model_vram_mb(
+            model_path,
+            backend,
+            context_size=settings.max_model_len,
+        )
+        client = GpuGatekeeperClient()
+        status = client.status()
+        total_vram_mb = int(
+            float(status.get("gpu", {}).get("total_vram_mb", 0) or 0)
+        )
+        requested_runtime_vram_mb = 0
+        if backend == "vllm":
+            requested_runtime_vram_mb = math.ceil(
+                total_vram_mb * settings.gpu_memory_utilization
+            )
+        dynamic_requirement = max(
+            int(spec["registry_floor_mb"]),
+            estimate,
+            requested_runtime_vram_mb,
+        )
+        registry_ok, registry_message = configure_gatekeeper_llm_runtime(
+            str(spec["runtime_key"]),
+            settings.port,
+            dynamic_requirement,
+        )
+        if not registry_ok:
+            raise RuntimeError(registry_message)
+
+        plan = client.plan_runtime(
+            capability="chat",
+            owner="scanner-dashboard",
+            runtime_key=spec["runtime_key"],
+            ttl_seconds=21_600,
+            allow_start=True,
+            force=False,
+            metadata={
+                "model_path": model_path,
+                "selected_model_vram_mb": estimate,
+                "host": settings.host,
+                "port": settings.port,
+                "gpu_memory_utilization": settings.gpu_memory_utilization,
+                "max_model_len": settings.max_model_len,
+            },
+        )
+        assessment = assess_gatekeeper_plan(
+            plan,
+            estimate,
+            requested_runtime_vram_mb=requested_runtime_vram_mb,
+        )
+        return {
+            "client": client,
+            "plan": plan,
+            "estimate": estimate,
+            "requested_runtime_vram_mb": requested_runtime_vram_mb,
+        }, assessment
+
+    def _validate_selection(
+        self,
+    ) -> Tuple[str, str, Optional[VllmRunSettings], str]:
+        backend = self._backend()
+        model_path = self._model_path()
+        error = validate_model_path(
+            model_path,
+            backend,
+            model_root=LLAMA_MODELS_DIR,
+        )
+        settings, settings_error = self._run_settings()
+        if settings_error:
+            error = settings_error
+        return backend, model_path, settings, error
+
+    def _run_capacity_check(self) -> None:
+        backend, model_path, settings, error = self._validate_selection()
+        if error or settings is None:
+            self._set_status(error, "red")
+            self._set_capacity(error, False)
+            return
+        if self._busy:
+            self._set_status("Another LLM operation is already running.", "yellow")
+            return
+
+        self._busy = True
+        self._set_status("Asking GPU gatekeeper for a launch plan…", "yellow")
+
+        def worker() -> None:
+            try:
+                _context, assessment = self._request_plan(
+                    backend,
+                    model_path,
+                    settings,
+                )
+                self.app.call_from_thread(
+                    self._set_capacity,
+                    assessment.explanation,
+                    assessment.allowed,
+                )
+                self.app.call_from_thread(
+                    self._set_status,
+                    "Capacity check passed." if assessment.allowed else "Launch denied.",
+                    "green" if assessment.allowed else "red",
+                )
+            except Exception as exc:
+                self.app.call_from_thread(
+                    self._set_capacity,
+                    f"Gatekeeper check failed: {exc}",
+                    False,
+                )
+                self.app.call_from_thread(
+                    self._set_status,
+                    f"Gatekeeper check failed: {exc}",
+                    "red",
+                )
+            finally:
+                self._busy = False
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _launch(self) -> None:
+        backend, model_path, settings, error = self._validate_selection()
+        if error or settings is None:
+            self._set_status(error, "red")
+            self._set_capacity(error, False)
+            return
+        if self._busy:
+            self._set_status("Another LLM operation is already running.", "yellow")
+            return
+
+        selected_unit = self.BACKENDS[backend]["unit"]
+        other_units = {
+            spec["unit"] for key, spec in self.BACKENDS.items() if key != backend
+        }
+        for unit in {selected_unit, *other_units}:
+            if systemctl_show(unit).get("ActiveState") == "active":
+                self._set_status(
+                    f"{unit} is already running. Stop it before changing models.",
+                    "red",
+                )
+                return
+
+        self._busy = True
+        self._set_status("Checking capacity before launch…", "yellow")
+
+        def worker() -> None:
+            try:
+                context_data, assessment = self._request_plan(
+                    backend,
+                    model_path,
+                    settings,
+                )
+                self.app.call_from_thread(
+                    self._set_capacity,
+                    assessment.explanation,
+                    assessment.allowed,
+                )
+                if not assessment.allowed:
+                    self.app.call_from_thread(self._set_status, "Launch denied.", "red")
+                    return
+
+                # Build the override from the state captured above.
+                if backend == "llama":
+                    state = _load_llama_state()
+                    ok, message = write_llama_exec_override(
+                        model=model_path,
+                        ngl=state["ngl"],
+                        ctx=str(settings.max_model_len),
+                        host=settings.host,
+                        port=str(settings.port),
+                        extra=settings.extra_args,
+                    )
+                else:
+                    command = build_vllm_command(
+                        VLLM_BINARY,
+                        model_path,
+                        settings,
+                    )
+                    ok, message = write_vllm_exec_override(command)
+                if not ok:
+                    self.app.call_from_thread(self._set_status, message, "red")
+                    return
+
+                client = context_data["client"]
+                spec = self.BACKENDS[backend]
+                # Re-check immediately before the mutating request. This closes
+                # the window for another cooperative GPU workload to consume a
+                # lease after the first plan was calculated.
+                _latest_context, latest_assessment = self._request_plan(
+                    backend,
+                    model_path,
+                    settings,
+                )
+                if not latest_assessment.allowed:
+                    self.app.call_from_thread(
+                        self._set_capacity,
+                        latest_assessment.explanation,
+                        False,
+                    )
+                    self.app.call_from_thread(
+                        self._set_status,
+                        "GPU capacity changed; launch was cancelled.",
+                        "red",
+                    )
+                    return
+                self.app.call_from_thread(
+                    self._set_status,
+                    "Gatekeeper approved; starting the model service…",
+                    "yellow",
+                )
+                response = client.ensure_runtime(
+                    capability="chat",
+                    owner="scanner-dashboard",
+                    runtime_key=spec["runtime_key"],
+                    ttl_seconds=21_600,
+                    allow_start=True,
+                    force=False,
+                    metadata={
+                        "model_path": model_path,
+                        "selected_model_vram_mb": assessment.required_vram_mb,
+                        "host": settings.host,
+                        "port": settings.port,
+                        "gpu_memory_utilization": settings.gpu_memory_utilization,
+                        "max_model_len": settings.max_model_len,
+                    },
+                )
+                if not response.get("ok"):
+                    self.app.call_from_thread(
+                        self._set_status,
+                        str(response.get("message") or "Gatekeeper launch failed."),
+                        "red",
+                    )
+                    return
+                lease = response.get("lease") or {}
+                lease_id = lease.get("lease_id", "unknown")
+                self.app.call_from_thread(
+                    self._set_status,
+                    f"Model started safely. Gatekeeper lease: {lease_id}",
+                    "green",
+                )
+                self.app.call_from_thread(self.app.refresh_all)
+            except Exception as exc:
+                self.app.call_from_thread(
+                    self._set_status,
+                    f"Launch failed: {exc}",
+                    "red",
+                )
+            finally:
+                self._busy = False
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _stop(self) -> None:
+        backend = self._backend()
+        if self._busy:
+            self._set_status("Another LLM operation is already running.", "yellow")
+            return
+        self._busy = True
+        self._set_status("Releasing the selected runtime through gatekeeper…", "yellow")
+
+        def worker() -> None:
+            try:
+                gk_path = "/home/ned/Documents/GPU_agent_gatekeeper"
+                if gk_path not in sys.path:
+                    sys.path.append(gk_path)
+                from gpu_gatekeeper.client import GpuGatekeeperClient
+
+                client = GpuGatekeeperClient()
+                runtime_key = self.BACKENDS[backend]["runtime_key"]
+                active = client.status().get("leases", {}).get("leases", [])
+                ours = [
+                    lease
+                    for lease in active
+                    if lease.get("runtime_key") == runtime_key
+                    and lease.get("owner") == "scanner-dashboard"
+                    and lease.get("status") in ("active", "pending")
+                ]
+
+                if not ours:
+                    unit = self.BACKENDS[backend]["unit"]
+                    if systemctl_show(unit).get("ActiveState") != "active":
+                        self.app.call_from_thread(
+                            self._set_status,
+                            f"{unit} is already stopped.",
+                            "yellow",
+                        )
+                        return
+                    acquired = client.ensure_runtime(
+                        capability="chat",
+                        owner="scanner-dashboard",
+                        runtime_key=runtime_key,
+                        ttl_seconds=300,
+                        allow_start=False,
+                        force=False,
+                        metadata={"purpose": "safe-dashboard-stop"},
+                    )
+                    if acquired.get("ok") and acquired.get("lease"):
+                        ours = [acquired["lease"]]
+
+                if not ours:
+                    self.app.call_from_thread(
+                        self._set_status,
+                        "Gatekeeper could not obtain a releasable runtime lease.",
+                        "red",
+                    )
+                    return
+
+                messages = []
+                for lease in ours:
+                    result = client.release_runtime(str(lease["lease_id"]))
+                    messages.append(str(result.get("stop_reason", "")))
+                self.app.call_from_thread(
+                    self._set_status,
+                    "Lease released. " + " ".join(filter(None, messages)),
+                    "green",
+                )
+                self.app.call_from_thread(self.app.refresh_all)
+            except Exception as exc:
+                self.app.call_from_thread(
+                    self._set_status,
+                    f"Stop failed: {exc}",
+                    "red",
+                )
+            finally:
+                self._busy = False
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def on_select_changed(self, event: Select.Changed) -> None:
+        if self._refreshing_models:
+            return
+        if event.select.id == "llm_backend_select":
+            self.refresh_models()
+        elif event.select.id == "llm_local_model_select":
+            value = event.select.value
+            if value and value != "__none__":
+                self.query_one("#llm_launch_model_input", Input).value = str(value)
+                self._refresh_model_details()
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input.id == "llm_hf_repo_input":
+            self._refresh_hf_destination()
+            self._refresh_command_preview()
+        elif event.input.id in (
+            "llm_launch_model_input",
+            "llm_launch_host_input",
+            "llm_launch_port_input",
+            "llm_launch_gpu_util_input",
+            "llm_launch_max_len_input",
+            "llm_launch_extra_args_input",
+        ) and not self._refreshing_models:
+            self._refresh_model_details()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "llm_models_refresh_btn":
+            self.refresh_models()
+            self._set_status("Downloaded model list refreshed.", "yellow")
+        elif event.button.id == "llm_hf_download_btn":
+            self._start_hf_download()
+        elif event.button.id == "llm_capacity_btn":
+            self._run_capacity_check()
+        elif event.button.id == "llm_safe_launch_btn":
+            self._launch()
+        elif event.button.id == "llm_safe_stop_btn":
+            self._stop()
+
 
 class ServiceTable(DataTable):
     def on_mount(self) -> None:
@@ -734,8 +1549,11 @@ class VllmServiceConfigPanel(Vertical):
             yield Input(value=command, id="vllm_exec_input")
 
         with Horizontal(id="vllm_apply_row"):
-            yield Button("Apply", id="apply_vllm_exec_btn", variant="primary")
-            yield Button("Apply + Restart", id="apply_restart_vllm_btn", variant="warning")
+            yield Button(
+                "Apply (launch from the safe Launch tab)",
+                id="apply_vllm_exec_btn",
+                variant="primary",
+            )
             yield Label("", id="vllm_config_status")
 
     def refresh_vllm_ui(self) -> None:
@@ -755,27 +1573,31 @@ class VllmServiceConfigPanel(Vertical):
 
     def _set_config_status(self, msg: str, color: str = "green") -> None:
         status = self.query_one("#vllm_config_status", Label)
-        status.update(f"[{time.strftime('%H:%M:%S')}] [{color}]{msg}[/{color}]")
+        status.update(
+            f"({time.strftime('%H:%M:%S')}) "
+            f"[{color}]{escape(msg)}[/{color}]"
+        )
 
     def _selected_model(self) -> str:
         model = self.query_one("#vllm_model_input", Input).value.strip()
         return model or VLLM_DEFAULT_MODEL
 
-    def _apply(self, restart: bool = False) -> None:
+    def _apply(self) -> None:
+        model = self._selected_model()
+        error = validate_model_path(
+            model,
+            "vllm",
+            model_root=LLAMA_MODELS_DIR,
+        )
+        if error:
+            self._set_config_status(error, "red")
+            return
         command_input = self.query_one("#vllm_exec_input", Input)
-        command = replace_vllm_model_in_command(command_input.value, self._selected_model())
+        command = replace_vllm_model_in_command(command_input.value, model)
         command_input.value = command
         ok, msg = write_vllm_exec_override(command)
         if not ok:
             self._set_config_status(msg, "red")
-            return
-
-        if restart:
-            ok, restart_msg = systemctl_action(VLLM_UNIT, "restart")
-            if not ok:
-                self._set_config_status(restart_msg, "red")
-                return
-            self._set_config_status("Saved override and restarted vLLM.")
             return
 
         self._set_config_status(msg)
@@ -807,9 +1629,7 @@ class VllmServiceConfigPanel(Vertical):
             self.refresh_vllm_ui()
             self._set_config_status("Reloaded vLLM service command.", "yellow")
         elif event.button.id == "apply_vllm_exec_btn":
-            self._apply(restart=False)
-        elif event.button.id == "apply_restart_vllm_btn":
-            self._apply(restart=True)
+            self._apply()
 
 
 class LlamaConfigPanel(VerticalScroll):
@@ -866,11 +1686,15 @@ class LlamaConfigPanel(VerticalScroll):
             )
 
         with Horizontal(id="llama_apply_row"):
-            yield Button("Apply", id="llama_apply_btn", variant="primary")
-            yield Button("Apply + Restart", id="llama_apply_restart_btn", variant="warning")
+            yield Button(
+                "Apply (launch from the safe Launch tab)",
+                id="llama_apply_btn",
+                variant="primary",
+            )
             yield Label("", id="llama_config_status")
 
     def on_mount(self) -> None:
+        os.makedirs(LLAMA_MODELS_DIR, exist_ok=True)
         self._current_dir = LLAMA_MODELS_DIR
 
         dirs_table = self.query_one("#llama_dirs_table", DataTable)
@@ -954,21 +1778,23 @@ class LlamaConfigPanel(VerticalScroll):
 
     def _set_status(self, msg: str, color: str = "green") -> None:
         self.query_one("#llama_config_status", Label).update(
-            f"[{time.strftime('%H:%M:%S')}] [{color}]{msg}[/{color}]"
+            f"({time.strftime('%H:%M:%S')}) "
+            f"[{color}]{escape(msg)}[/{color}]"
         )
 
-    def _apply(self, restart: bool = False) -> None:
+    def _apply(self) -> None:
         s = self._state_from_inputs()
+        error = validate_model_path(
+            s["model"],
+            "llama",
+            model_root=LLAMA_MODELS_DIR,
+        )
+        if error:
+            self._set_status(error, "red")
+            return
         ok, msg = write_llama_exec_override(**s)
         if not ok:
             self._set_status(msg, "red")
-            return
-        if restart:
-            ok2, msg2 = systemctl_action(LLAMA_UNIT, "restart")
-            if not ok2:
-                self._set_status(msg2, "red")
-                return
-            self._set_status("Saved override and restarted llama-server.")
             return
         self._set_status(msg)
 
@@ -1003,9 +1829,7 @@ class LlamaConfigPanel(VerticalScroll):
             self._current_dir = LLAMA_MODELS_DIR
             self._refresh_llama_browser()
         elif event.button.id == "llama_apply_btn":
-            self._apply(restart=False)
-        elif event.button.id == "llama_apply_restart_btn":
-            self._apply(restart=True)
+            self._apply()
 
 
 class ModelConfigPanel(Vertical):
@@ -1091,43 +1915,66 @@ class ModelConfigPanel(Vertical):
             status.update(f"[{time.strftime('%H:%M:%S')}] [yellow]Reloaded models from disk[/yellow]")
 
 
-class ModelMaintenancePanel(VerticalScroll):
+class ModelMaintenancePanel(Vertical):
     _dl_proc: Optional[subprocess.Popen] = None
+    _dl_cancelled = False
+    _dl_active = False
+    _dl_repo = ""
+    _dl_local_dir = ""
+    _dl_initial_size = 0
+    _dl_started_at = 0.0
+    _dl_last_size = 0
+    _dl_last_sample = 0.0
 
     def compose(self) -> ComposeResult:
-        with Horizontal(id="mm_header"):
-            yield Static("[b]Models[/b]", id="mm_title")
-            yield Button("\u2b06 Up", id="mm_up_btn")
-            yield Button("Root", id="mm_root_btn")
-            yield Button("Refresh", id="mm_refresh_btn")
-        yield Static("", id="mm_current_path")
-        with Horizontal(id="mm_browser"):
-            with Vertical(id="mm_dirs_pane"):
-                yield Static("[b]Folders[/b]", id="mm_dirs_label")
-                with VerticalScroll(id="mm_dirs_scroll"):
-                    yield DataTable(id="mm_dirs_table")
-            with Vertical(id="mm_files_pane"):
-                yield Static("[b]Files[/b]", id="mm_files_label")
-                with VerticalScroll(id="mm_files_scroll"):
-                    yield DataTable(id="mm_model_table")
-        yield Static("[b]Download Model from Hugging Face[/b]", id="mm_dl_title")
-        with Horizontal(classes="mm_row"):
-            yield Label("HF Repo", classes="mm_lbl")
-            yield Input(placeholder="org/repo-name", id="mm_repo_input")
-        with Horizontal(classes="mm_row"):
-            yield Label("Filename", classes="mm_lbl")
-            yield Input(placeholder="model.gguf  (leave blank for full repo)", id="mm_filename_input")
-        with Horizontal(classes="mm_row"):
-            yield Label("Local dir", classes="mm_lbl")
-            yield Input(value=LLAMA_MODELS_DIR, id="mm_localdir_input")
-        with Horizontal(id="mm_dl_row"):
-            yield Button("Download", id="mm_download_btn", variant="primary")
-            yield Button("Cancel", id="mm_cancel_btn", variant="error")
-            yield Label("", id="mm_dl_status")
-        with Vertical(id="mm_dl_output_scroll"):
-            yield Log(id="mm_dl_log", highlight=False)
+        with VerticalScroll(id="mm_content_scroll"):
+            with Horizontal(id="mm_header"):
+                yield Static("[b]Models[/b]", id="mm_title")
+                yield Button("\u2b06 Up", id="mm_up_btn")
+                yield Button("Root", id="mm_root_btn")
+                yield Button("Refresh", id="mm_refresh_btn")
+            yield Static("", id="mm_current_path")
+            with Horizontal(id="mm_browser"):
+                with Vertical(id="mm_dirs_pane"):
+                    yield Static("[b]Folders[/b]", id="mm_dirs_label")
+                    with VerticalScroll(id="mm_dirs_scroll"):
+                        yield DataTable(id="mm_dirs_table")
+                with Vertical(id="mm_files_pane"):
+                    yield Static("[b]Files[/b]", id="mm_files_label")
+                    with VerticalScroll(id="mm_files_scroll"):
+                        yield DataTable(id="mm_model_table")
+            yield Static("[b]Download Model from Hugging Face[/b]", id="mm_dl_title")
+            yield Static(
+                "Downloads do not use the GPU. For GGUF repositories, enter one "
+                "specific filename so every quantization is not downloaded.",
+                id="mm_dl_help",
+            )
+            with Horizontal(classes="mm_row"):
+                yield Label("HF Repo", classes="mm_lbl")
+                yield Input(placeholder="org/repo-name", id="mm_repo_input")
+            with Horizontal(classes="mm_row"):
+                yield Label("Filename", classes="mm_lbl")
+                yield Input(
+                    placeholder="model.gguf  (leave blank for full repo)",
+                    id="mm_filename_input",
+                )
+            with Horizontal(classes="mm_row"):
+                yield Label("Model root", classes="mm_lbl")
+                yield Input(
+                    value=LLAMA_MODELS_DIR,
+                    id="mm_localdir_input",
+                    disabled=True,
+                )
+        with Vertical(id="mm_download_info"):
+            with Horizontal(id="mm_dl_row"):
+                yield Button("Download", id="mm_download_btn", variant="primary")
+                yield Button("Cancel", id="mm_cancel_btn", variant="error")
+                yield Label("", id="mm_dl_status")
+            with Vertical(id="mm_dl_output_scroll"):
+                yield Log(id="mm_dl_log", highlight=False)
 
     def on_mount(self) -> None:
+        os.makedirs(LLAMA_MODELS_DIR, exist_ok=True)
         self._current_dir = LLAMA_MODELS_DIR
 
         dirs_table = self.query_one("#mm_dirs_table", DataTable)
@@ -1141,11 +1988,12 @@ class ModelMaintenancePanel(VerticalScroll):
         files_table.zebra_stripes = True
 
         self._refresh_browser()
+        self.set_interval(1.0, self._refresh_download_status)
 
     def _refresh_browser(self) -> None:
         cur = self._current_dir
         self.query_one("#mm_current_path", Static).update(f"[dim]{cur}[/dim]")
-        self.query_one("#mm_localdir_input", Input).value = cur
+        self.query_one("#mm_localdir_input", Input).value = LLAMA_MODELS_DIR
 
         dirs_table = self.query_one("#mm_dirs_table", DataTable)
         dirs_table.clear()
@@ -1180,19 +2028,52 @@ class ModelMaintenancePanel(VerticalScroll):
             pass
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
-        if event.data_table.id != "mm_dirs_table":
-            return
         key = event.row_key
         if hasattr(key, "value"):
             key = key.value
-        if key and os.path.isdir(str(key)):
+        if event.data_table.id == "mm_dirs_table" and key and os.path.isdir(str(key)):
             self._current_dir = str(key)
             self._refresh_browser()
+        elif event.data_table.id == "mm_model_table" and key:
+            model_path = str(key)
+            if model_path.lower().endswith(".gguf"):
+                try:
+                    self.app.query_one(
+                        "#llm_launcher_panel",
+                        LLMLauncherPanel,
+                    ).select_model(model_path)
+                    self._set_dl_status(
+                        "Selected for launch. Open the Launch tab to continue.",
+                        "green",
+                    )
+                except Exception:
+                    pass
 
     def _set_dl_status(self, msg: str, color: str = "green") -> None:
-        self.query_one("#mm_dl_status", Label).update(
-            f"[{time.strftime('%H:%M:%S')}] [{color}]{msg}[/{color}]"
+        timestamp = time.strftime("%H:%M:%S")
+        formatted = f"({timestamp}) [{color}]{escape(msg)}[/{color}]"
+        self.query_one("#mm_dl_status", Label).update(formatted)
+        try:
+            self.app.query_one("#llm_global_info", Static).update(
+                f"[b]INFO[/b] {formatted}"
+            )
+        except Exception:
+            pass
+
+    def _download_complete(self, preferred_model: str) -> None:
+        self._current_dir = (
+            preferred_model
+            if os.path.isdir(preferred_model)
+            else os.path.dirname(preferred_model)
         )
+        self._refresh_browser()
+        try:
+            self.app.query_one(
+                "#llm_launcher_panel",
+                LLMLauncherPanel,
+            ).refresh_models(preferred_model)
+        except Exception:
+            pass
 
     @staticmethod
     def _fmt_size(n: int) -> str:
@@ -1202,68 +2083,118 @@ class ModelMaintenancePanel(VerticalScroll):
             return f"{n / 1024**2:.1f} MB"
         return f"{n / 1024:.0f} KB"
 
+    @staticmethod
+    def _downloaded_bytes(local_dir: str) -> int:
+        """Count completed model files plus active Hugging Face partial files."""
+        total = 0
+        try:
+            for root, _dirs, files in os.walk(local_dir):
+                relative_parts = os.path.relpath(root, local_dir).split(os.sep)
+                in_hf_cache = ".cache" in relative_parts
+                for filename in files:
+                    is_partial = (
+                        ".incomplete" in filename
+                        or filename.endswith((".tmp", ".part"))
+                    )
+                    if in_hf_cache and not is_partial:
+                        continue
+                    try:
+                        stat = os.stat(os.path.join(root, filename))
+                        total += (
+                            min(stat.st_size, stat.st_blocks * 512)
+                            if is_partial
+                            else stat.st_size
+                        )
+                    except OSError:
+                        pass
+        except OSError:
+            pass
+        return total
+
+    def _refresh_download_status(self) -> None:
+        """Update progress on Textual's UI thread once per second."""
+        if not self._dl_active:
+            return
+        now = time.monotonic()
+        current_size = max(
+            0,
+            self._downloaded_bytes(self._dl_local_dir) - self._dl_initial_size,
+        )
+        elapsed = now - self._dl_started_at
+        mm, ss = divmod(int(elapsed), 60)
+        sample_seconds = max(now - self._dl_last_sample, 0.001)
+        delta = max(current_size - self._dl_last_size, 0)
+        rate = delta / sample_seconds
+        rate_text = (
+            f" · {self._fmt_size(int(rate))}/s"
+            if rate > 0
+            else " · waiting for data"
+        )
+        self._set_dl_status(
+            f"Downloading {self._dl_repo} · {self._fmt_size(current_size)} "
+            f"received · {mm}m{ss:02d}s{rate_text}",
+            "yellow",
+        )
+        self._dl_last_size = current_size
+        self._dl_last_sample = now
+
     def _start_download(self, repo: str, filename: str, local_dir: str) -> None:
-        def _poll_progress(proc: subprocess.Popen, local_dir_exp: str) -> None:
-            """Watch the download dir for .incomplete / partial files and report size."""
-            start = time.monotonic()
-            last_size = 0
-            while proc.poll() is None:
-                time.sleep(1.5)
-                best: Optional[Tuple[int, str]] = None  # (size, label)
-                try:
-                    for root, _dirs, files in os.walk(local_dir_exp):
-                        for f in files:
-                            if ".incomplete" in f or f.endswith(".tmp") or f.endswith(".part"):
-                                full_path = os.path.join(root, f)
-                                try:
-                                    sz = os.path.getsize(full_path)
-                                    if best is None or sz > best[0]:
-                                        best = (sz, f)
-                                except OSError:
-                                    pass
-                except Exception:
-                    pass
-                elapsed = time.monotonic() - start
-                mm, ss = divmod(int(elapsed), 60)
-                elapsed_str = f"{mm}m{ss:02d}s"
-                if best is not None:
-                    sz, fname = best
-                    speed = ""
-                    if sz > last_size and elapsed > 0:
-                        delta = sz - last_size
-                        speed = f"  +{ModelMaintenancePanel._fmt_size(delta)}/tick"
-                    last_size = sz
-                    self.app.call_from_thread(
-                        self._set_dl_status,
-                        f"Downloading… {ModelMaintenancePanel._fmt_size(sz)} received  [{elapsed_str}]{speed}",
-                        "yellow",
-                    )
-                else:
-                    self.app.call_from_thread(
-                        self._set_dl_status,
-                        f"Downloading… waiting for data  [{elapsed_str}]",
-                        "yellow",
-                    )
+        if self._dl_active:
+            self._set_dl_status("A Hugging Face download is already running.", "yellow")
+            return
+
+        local_dir_exp = os.path.expanduser(local_dir)
+        try:
+            os.makedirs(local_dir_exp, exist_ok=True)
+        except OSError as exc:
+            self._set_dl_status(f"Could not create model directory: {exc}", "red")
+            return
+
+        started_at = time.monotonic()
+        initial_size = self._downloaded_bytes(local_dir_exp)
+        self._dl_cancelled = False
+        self._dl_active = True
+        self._dl_repo = repo
+        self._dl_local_dir = local_dir_exp
+        self._dl_initial_size = initial_size
+        self._dl_started_at = started_at
+        self._dl_last_size = 0
+        self._dl_last_sample = started_at
+
+        log = self.query_one("#mm_dl_log", Log)
+        log.clear()
+        self._set_dl_status(f"Starting download of {repo}…", "yellow")
 
         def _worker() -> None:
-            hf_bin = os.path.expanduser("~/venv/bin/hf")
+            hf_bin = os.path.expanduser("~/vllm_stack/bin/hf")
+            if not os.path.exists(hf_bin):
+                hf_bin = os.path.expanduser("~/venv/bin/hf")
             if not os.path.exists(hf_bin):
                 hf_bin = "hf"
-            local_dir_exp = os.path.expanduser(local_dir)
             cmd = [hf_bin, "download", repo]
             if filename:
                 cmd.append(filename)
-            cmd += ["--local-dir", local_dir_exp]
+            else:
+                # A Transformers/vLLM snapshot does not need alternate Metal
+                # or reference checkpoints. Those folders can each duplicate
+                # the model weights and make a routine download tens of GB
+                # larger than the runnable snapshot.
+                cmd += [
+                    "--exclude",
+                    "metal/*",
+                    "--exclude",
+                    "original/*",
+                ]
+            cmd += ["--local-dir", local_dir_exp, "--max-workers", "1"]
 
-            log = self.query_one("#mm_dl_log", Log)
-            self.app.call_from_thread(log.clear)
             self.app.call_from_thread(log.write_line, "$ " + " ".join(shlex.quote(c) for c in cmd))
-            self.app.call_from_thread(self._set_dl_status, "Starting download…", "yellow")
 
             try:
-                os.makedirs(local_dir_exp, exist_ok=True)
                 env = os.environ.copy()
                 env["PYTHONUNBUFFERED"] = "1"
+                # Direct HTTP reliably resumes partial files on this host; the
+                # previous Xet transfer left sockets in CLOSE_WAIT indefinitely.
+                env["HF_HUB_DISABLE_XET"] = "1"
                 proc = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
@@ -1274,13 +2205,6 @@ class ModelMaintenancePanel(VerticalScroll):
                 )
                 self._dl_proc = proc
 
-                # Progress polling runs alongside stdout reading
-                threading.Thread(
-                    target=_poll_progress,
-                    args=(proc, local_dir_exp),
-                    daemon=True,
-                ).start()
-
                 assert proc.stdout is not None
                 for line in proc.stdout:
                     clean = line.strip()
@@ -1288,14 +2212,42 @@ class ModelMaintenancePanel(VerticalScroll):
                         self.app.call_from_thread(log.write_line, clean)
 
                 proc.wait()
+                elapsed = time.monotonic() - started_at
+                mm, ss = divmod(int(elapsed), 60)
+                received = max(
+                    0,
+                    self._downloaded_bytes(local_dir_exp) - initial_size,
+                )
+                self._dl_active = False
                 if proc.returncode == 0:
-                    self.app.call_from_thread(self._set_dl_status, "Download complete!", "green")
-                    self.app.call_from_thread(self._refresh_browser)
+                    self.app.call_from_thread(
+                        self._set_dl_status,
+                        f"Download complete · {self._fmt_size(received)} received "
+                        f"· {mm}m{ss:02d}s",
+                        "green",
+                    )
+                    preferred = (
+                        os.path.join(local_dir_exp, filename)
+                        if filename
+                        else local_dir_exp
+                    )
+                    self.app.call_from_thread(self._download_complete, preferred)
+                elif self._dl_cancelled:
+                    self.app.call_from_thread(
+                        self._set_dl_status,
+                        f"Download cancelled · {self._fmt_size(received)} received "
+                        f"· {mm}m{ss:02d}s",
+                        "yellow",
+                    )
                 else:
                     self.app.call_from_thread(
-                        self._set_dl_status, f"Failed (exit {proc.returncode})", "red"
+                        self._set_dl_status,
+                        f"Download failed (exit {proc.returncode}) · "
+                        f"{self._fmt_size(received)} received · {mm}m{ss:02d}s",
+                        "red",
                     )
             except Exception as exc:
+                self._dl_active = False
                 self.app.call_from_thread(log.write_line, f"Error: {exc}")
                 self.app.call_from_thread(self._set_dl_status, f"Error: {exc}", "red")
             finally:
@@ -1317,16 +2269,24 @@ class ModelMaintenancePanel(VerticalScroll):
         elif event.button.id == "mm_download_btn":
             repo = self.query_one("#mm_repo_input", Input).value.strip()
             filename = self.query_one("#mm_filename_input", Input).value.strip()
-            local_dir = self.query_one("#mm_localdir_input", Input).value.strip() or LLAMA_MODELS_DIR
             if not repo:
                 self._set_dl_status("HF Repo is required.", "red")
                 return
+            if "gguf" in repo.lower() and not filename:
+                self._set_dl_status(
+                    "Choose one GGUF filename to avoid downloading the entire repository.",
+                    "red",
+                )
+                return
+            local_dir = recommended_download_dir(LLAMA_MODELS_DIR, repo)
+            self.query_one("#mm_localdir_input", Input).value = LLAMA_MODELS_DIR
             self._start_download(repo, filename, local_dir)
         elif event.button.id == "mm_cancel_btn":
             proc = self._dl_proc
             if proc is not None:
+                self._dl_cancelled = True
                 proc.terminate()
-                self._set_dl_status("Cancelled.", "yellow")
+                self._set_dl_status("Cancelling download…", "yellow")
             else:
                 self._set_dl_status("No download in progress.", "yellow")
 
@@ -1360,6 +2320,85 @@ class ScannerControlRoom(App):
     #llm_main { height: 1fr; }
     #llm_logs { height: 1fr; border: round $accent; padding: 0 1; }
     #llm_statusbar { height: 6; border: round $secondary; padding: 0 1; }
+    #llm_page { height: 1fr; }
+    #llm_workspace { height: 1fr; }
+    #llm_global_info {
+        height: 3;
+        border: round $accent;
+        padding: 0 1;
+        content-align: left middle;
+    }
+    #llm_launcher_panel { height: 1fr; }
+    #llm_launcher_scroll {
+        height: 1fr;
+        padding: 1 2 0 2;
+        overflow-y: auto;
+    }
+    #llm_launcher_info {
+        height: 8;
+        padding: 0 2;
+        border-top: solid $accent;
+    }
+    #llm_launcher_intro {
+        height: 4;
+        border: round $accent;
+        padding: 0 1;
+        margin-bottom: 1;
+    }
+    .llm_section_title { height: 2; margin-top: 1; }
+    .llm_card_title {
+        height: 3;
+        border: round $accent;
+        padding: 0 1;
+        margin-top: 1;
+        content-align: left middle;
+    }
+    #llm_svc_table { height: 7; border: solid $accent; margin-bottom: 1; }
+    .llm_launcher_row { height: 3; align: left middle; }
+    .llm_launcher_label {
+        width: 14;
+        text-style: bold;
+        content-align: left middle;
+    }
+    .llm_launcher_inline_label {
+        width: 8;
+        margin-left: 2;
+        text-style: bold;
+        content-align: left middle;
+    }
+    .llm_launcher_short { width: 18; }
+    .llm_launcher_medium { width: 32; }
+    #llm_hf_repo_input { width: 1fr; }
+    #llm_hf_filename_input { width: 1fr; }
+    #llm_hf_destination {
+        height: 2;
+        color: $text-muted;
+        padding: 0 1;
+    }
+    #llm_backend_select { width: 40; }
+    #llm_local_model_select { width: 1fr; }
+    #llm_launch_model_input { width: 1fr; }
+    #llm_model_details {
+        height: 4;
+        border: solid $secondary;
+        padding: 0 1;
+        color: $text-muted;
+    }
+    #llm_launch_extra_args_input { width: 1fr; }
+    #llm_command_preview {
+        height: 5;
+        border: solid $secondary;
+        padding: 0 1;
+        color: $text-muted;
+    }
+    #llm_capacity_result {
+        height: 4;
+        border: round $secondary;
+        padding: 0 1;
+    }
+    #llm_launcher_status { height: 3; padding: 0 1; }
+    #llm_download_subtab #models_panel { height: 1fr; }
+    #llm_logs_subtab #llm_main { height: 1fr; }
     #statusbar { height: 3; border: round $secondary; padding: 0 1; }
 
     /* vLLM Service Config */
@@ -1432,7 +2471,17 @@ class ScannerControlRoom(App):
     #chatbot_statusbar { height: 3; border: round $secondary; padding: 0 1; }
 
     /* Models tab */
-    #models_panel { height: 1fr; padding: 0 1; }
+    #models_panel { height: 1fr; }
+    #mm_content_scroll {
+        height: 1fr;
+        padding: 0 1;
+        overflow-y: auto;
+    }
+    #mm_download_info {
+        height: 13;
+        padding: 0 1;
+        border-top: solid $accent;
+    }
     #mm_header { height: 3; align: left middle; }
     #mm_title { width: 1fr; text-style: bold; content-align: left middle; }
     #mm_current_path { height: 1; color: $text-muted; }
@@ -1444,6 +2493,7 @@ class ScannerControlRoom(App):
     #mm_dirs_scroll { height: 1fr; border: solid $accent; }
     #mm_files_scroll { height: 1fr; border: solid $accent; }
     #mm_dl_title { margin-top: 1; height: 2; text-style: bold; }
+    #mm_dl_help { height: 3; color: $text-muted; padding: 0 1; }
     .mm_row { height: 3; align: left middle; }
     .mm_lbl { width: 12; text-style: bold; content-align: left middle; }
     #mm_repo_input { width: 1fr; }
@@ -1451,7 +2501,8 @@ class ScannerControlRoom(App):
     #mm_localdir_input { width: 1fr; }
     #mm_dl_row { height: 3; align: left middle; }
     #mm_dl_status { margin-left: 2; width: 1fr; content-align: left middle; }
-    #mm_dl_output_scroll { height: 16; border: round $accent; margin-top: 1; }
+    #mm_dl_output_scroll { height: 1fr; border: round $accent; }
+    #mm_dl_log { height: 1fr; }
     """
 
     BINDINGS = [
@@ -1488,38 +2539,24 @@ class ScannerControlRoom(App):
                         yield Static("", id="statusbar")
 
             with TabPane("LLM", id="llm_tab"):
-                with Horizontal(id="llm_top"):
-                    with Container(id="llm_services"):
-                        yield Static("[b]LLM Service[/b]")
-                        with VerticalScroll(id="llm_services_scroll"):
-                            yield ServiceTable(id="llm_svc_table")
-                with Horizontal(id="llm_controls"):
-                    yield Button("Start vLLM", id="llm_start_btn", variant="success")
-                    yield Button("Stop vLLM", id="llm_stop_btn", variant="error")
-                    yield Button("Restart vLLM", id="llm_restart_btn", variant="warning")
-                yield VllmServiceConfigPanel(id="vllm_service_config_panel")
-                with Vertical(id="llm_main"):
-                    yield Log(id="llm_logs", highlight=True)
-                    yield Static("", id="llm_statusbar")
-                yield ModelConfigPanel(id="model_config_panel")
-
-            with TabPane("Llama", id="llama_tab"):
-                with Horizontal(id="llama_top"):
-                    with Container(id="llama_services"):
-                        yield Static("[b]llama-server[/b]")
-                        with VerticalScroll(id="llama_services_scroll"):
-                            yield ServiceTable(id="llama_svc_table")
-                    with Container(id="llama_health"):
-                        with VerticalScroll(id="llama_health_scroll"):
-                            yield HealthPanel(id="llama_health_panel")
-                with Horizontal(id="llama_controls"):
-                    yield Button("Start", id="llama_start_btn", variant="success")
-                    yield Button("Stop", id="llama_stop_btn", variant="error")
-                    yield Button("Restart", id="llama_restart_btn", variant="warning")
-                yield LlamaConfigPanel(id="llama_config_panel")
-                with Vertical(id="llama_main"):
-                    yield Log(id="llama_logs", highlight=True)
-                    yield Static("", id="llama_statusbar")
+                with Vertical(id="llm_page"):
+                    with TabbedContent(initial="llm_launch_subtab", id="llm_workspace"):
+                        with TabPane("Launch", id="llm_launch_subtab"):
+                            yield LLMLauncherPanel(id="llm_launcher_panel")
+                        with TabPane("Download", id="llm_download_subtab"):
+                            yield ModelMaintenancePanel(id="models_panel")
+                        with TabPane("vLLM advanced", id="llm_vllm_subtab"):
+                            yield VllmServiceConfigPanel(id="vllm_service_config_panel")
+                        with TabPane("llama.cpp advanced", id="llm_llama_subtab"):
+                            yield LlamaConfigPanel(id="llama_config_panel")
+                        with TabPane("Logs", id="llm_logs_subtab"):
+                            with Vertical(id="llm_main"):
+                                yield Log(id="llm_logs", highlight=True)
+                                yield Static("", id="llm_statusbar")
+                    yield Static(
+                        "[b]INFO[/b] Ready.",
+                        id="llm_global_info",
+                    )
 
             with TabPane("Chatbot", id="chatbot_tab"):
                 with Horizontal(id="chatbot_top"):
@@ -1534,9 +2571,6 @@ class ScannerControlRoom(App):
                 with Vertical(id="chatbot_main"):
                     yield Log(id="chatbot_logs", highlight=True)
                     yield Static("", id="chatbot_statusbar")
-
-            with TabPane("Models", id="models_tab"):
-                yield ModelMaintenancePanel(id="models_panel")
 
         yield Footer()
 
@@ -1557,8 +2591,7 @@ class ScannerControlRoom(App):
 
     def _init_tables(self) -> None:
         self._init_table("scanner_svc_table", SCANNER_SERVICES, focus=True)
-        self._init_table("llm_svc_table", LLM_SERVICES)
-        self._init_table("llama_svc_table", LLAMA_SERVICES)
+        self._init_table("llm_svc_table", LLM_SERVICES + LLAMA_SERVICES)
         self._init_table("chatbot_svc_table", CHATBOT_SERVICES)
         self.selected_unit = SCANNER_SERVICES[0].unit
 
@@ -1566,7 +2599,7 @@ class ScannerControlRoom(App):
         if self._is_llm_unit(self.selected_unit):
             status_id = "#llm_statusbar"
         elif self._is_llama_unit(self.selected_unit):
-            status_id = "#llama_statusbar"
+            status_id = "#llm_statusbar"
         elif self._is_chatbot_unit(self.selected_unit):
             status_id = "#chatbot_statusbar"
         else:
@@ -1618,25 +2651,7 @@ class ScannerControlRoom(App):
                 break
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "llm_start_btn":
-            self.selected_unit = LLM_SERVICES[0].unit
-            self._act_selected("start")
-        elif event.button.id == "llm_stop_btn":
-            self.selected_unit = LLM_SERVICES[0].unit
-            self._act_selected("stop")
-        elif event.button.id == "llm_restart_btn":
-            self.selected_unit = LLM_SERVICES[0].unit
-            self._act_selected("restart")
-        elif event.button.id == "llama_start_btn":
-            self.selected_unit = LLAMA_SERVICES[0].unit
-            self._act_selected("start")
-        elif event.button.id == "llama_stop_btn":
-            self.selected_unit = LLAMA_SERVICES[0].unit
-            self._act_selected("stop")
-        elif event.button.id == "llama_restart_btn":
-            self.selected_unit = LLAMA_SERVICES[0].unit
-            self._act_selected("restart")
-        elif event.button.id == "chatbot_start_btn":
+        if event.button.id == "chatbot_start_btn":
             self.selected_unit = CHATBOT_SERVICES[0].unit
             self._act_selected("start")
         elif event.button.id == "chatbot_stop_btn":
@@ -1648,29 +2663,25 @@ class ScannerControlRoom(App):
 
     def refresh_all(self) -> None:
         self._update_service_table("scanner_svc_table", SCANNER_SERVICES)
-        self._update_service_table("llm_svc_table", LLM_SERVICES)
-        self._update_service_table("llama_svc_table", LLAMA_SERVICES)
+        self._update_service_table("llm_svc_table", LLM_SERVICES + LLAMA_SERVICES)
         self._update_service_table("chatbot_svc_table", CHATBOT_SERVICES)
 
         self.query_one("#health_panel", HealthPanel).update_health(self.env)
-        self.query_one("#llama_health_panel", HealthPanel).update_health(self.env)
 
         if self.follow_logs:
             self.refresh_logs()
-            if not self._is_llm_unit(self.selected_unit):
+            if not (
+                self._is_llm_unit(self.selected_unit)
+                or self._is_llama_unit(self.selected_unit)
+            ):
                 self.refresh_llm_logs()
-            if not self._is_llama_unit(self.selected_unit):
-                self.refresh_llama_logs()
             if not self._is_chatbot_unit(self.selected_unit):
                 self.refresh_chatbot_logs()
 
     def refresh_logs(self) -> None:
         unit = self.selected_unit
-        if self._is_llm_unit(unit):
+        if self._is_llm_unit(unit) or self._is_llama_unit(unit):
             self.refresh_llm_logs()
-            return
-        if self._is_llama_unit(unit):
-            self.refresh_llama_logs()
             return
         if self._is_chatbot_unit(unit):
             self.refresh_chatbot_logs()
@@ -1678,10 +2689,10 @@ class ScannerControlRoom(App):
         self._write_logs(unit, "#logs", "#statusbar")
 
     def refresh_llm_logs(self) -> None:
-        self._write_logs(LLM_SERVICES[0].unit, "#llm_logs", "#llm_statusbar")
-
-    def refresh_llama_logs(self) -> None:
-        self._write_logs(LLAMA_SERVICES[0].unit, "#llama_logs", "#llama_statusbar")
+        unit = self.selected_unit
+        if not (self._is_llm_unit(unit) or self._is_llama_unit(unit)):
+            unit = LLM_SERVICES[0].unit
+        self._write_logs(unit, "#llm_logs", "#llm_statusbar")
 
     def refresh_chatbot_logs(self) -> None:
         self._write_logs(CHATBOT_SERVICES[0].unit, "#chatbot_logs", "#chatbot_statusbar")
@@ -1750,21 +2761,61 @@ class ScannerControlRoom(App):
         self.refresh_all()
 
     def action_start_selected(self) -> None:
+        if self._is_llm_unit(self.selected_unit) or self._is_llama_unit(
+            self.selected_unit
+        ):
+            self.query_one("#llm_launcher_panel", LLMLauncherPanel)._set_status(
+                "Use Launch safely so GPU gatekeeper can protect the scanner.",
+                "red",
+            )
+            return
         self._act_selected("start")
 
     def action_stop_selected(self) -> None:
+        if self._is_llm_unit(self.selected_unit) or self._is_llama_unit(
+            self.selected_unit
+        ):
+            launcher = self.query_one("#llm_launcher_panel", LLMLauncherPanel)
+            launcher.query_one("#llm_backend_select", Select).value = (
+                "vllm" if self._is_llm_unit(self.selected_unit) else "llama"
+            )
+            launcher._stop()
+            return
         self._act_selected("stop")
 
     def action_restart_selected(self) -> None:
+        if self._is_llm_unit(self.selected_unit) or self._is_llama_unit(
+            self.selected_unit
+        ):
+            self.query_one("#llm_launcher_panel", LLMLauncherPanel)._set_status(
+                "Stop the current backend, then use Launch safely.",
+                "red",
+            )
+            return
         self._act_selected("restart")
 
     def action_start_all(self) -> None:
+        if self._is_llm_unit(self.selected_unit) or self._is_llama_unit(
+            self.selected_unit
+        ):
+            self.action_start_selected()
+            return
         self._act_all("start")
 
     def action_stop_all(self) -> None:
+        if self._is_llm_unit(self.selected_unit) or self._is_llama_unit(
+            self.selected_unit
+        ):
+            self.action_stop_selected()
+            return
         self._act_all("stop")
 
     def action_restart_all(self) -> None:
+        if self._is_llm_unit(self.selected_unit) or self._is_llama_unit(
+            self.selected_unit
+        ):
+            self.action_restart_selected()
+            return
         self._act_all("restart")
 
 

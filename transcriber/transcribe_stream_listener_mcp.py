@@ -55,6 +55,10 @@ log = logging.getLogger("stream-listener-mcp")
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/0")
 STREAM_KEY = os.environ.get("STREAM_KEY", "scanner:stream:new_call")
+RETRANSCRIBE_STREAM_KEY = os.environ.get(
+    "RETRANSCRIBE_STREAM_KEY",
+    "scanner:stream:retranscribe",
+)
 MCP_URL = os.environ.get("MCP_URL", "http://127.0.0.1:8000/mcp")
 
 PROCESSED_FILE = Path(os.environ.get("PROCESSED_FILE", "/tmp/transcribe_processed.txt"))
@@ -64,6 +68,10 @@ DEFAULT_PROFILE = os.environ.get("DEFAULT_PROFILE", "default")
 DEFAULT_LANGUAGE = os.environ.get("DEFAULT_LANGUAGE", "en")
 
 LAST_ID_KEY = os.environ.get("LAST_ID_KEY", "scanner:transcriber:last_id")
+RETRANSCRIBE_LAST_ID_KEY = os.environ.get(
+    "RETRANSCRIBE_LAST_ID_KEY",
+    "scanner:transcriber:retranscribe:last_id",
+)
 SCANNER_DB_PATH = os.environ.get("SCANNER_DB_PATH", "/home/ned/data/scanner_calls/scanner_calls.db")
 SECONDARY_MODELS = [m.strip() for m in os.environ.get("SECONDARY_MODELS", "").split(",") if m.strip()]
 
@@ -80,6 +88,11 @@ if saved:
     last_id = saved.decode()
 else:
     last_id = "$"
+saved_retranscribe_id = r.get(RETRANSCRIBE_LAST_ID_KEY)
+if saved_retranscribe_id:
+    retranscribe_last_id = saved_retranscribe_id.decode()
+else:
+    retranscribe_last_id = "0-0"
 
 processed_count = 0
 failed_count = 0
@@ -176,8 +189,191 @@ async def call_sec_transcribe(session: ClientSession, wav_path: Path, model_key:
     )
 
 
+async def call_retranscribe_candidate(
+    session: ClientSession,
+    wav_path: Path,
+    profile: str,
+):
+    """Generate a comparison transcript without overwriting artifacts or DB."""
+    return await session.call_tool(
+        "transcribe_file",
+        {
+            "path": str(wav_path),
+            "profile": profile or "aggressive",
+            "language": DEFAULT_LANGUAGE,
+            "write_artifacts": False,
+            "insert_db": False,
+            "delete_source_raw": False,
+        },
+    )
+
+
+def _complete_retranscription_request(
+    request_id: int,
+    status: str,
+    result: dict,
+) -> None:
+    try:
+        from scanner_intelligence import complete_retranscription_request
+
+        complete_retranscription_request(
+            request_id=request_id,
+            status=status,
+            result=result,
+            db_path=SCANNER_DB_PATH,
+        )
+    except Exception as exc:
+        log.error(
+            "Failed to update retranscription request %s: %s",
+            request_id,
+            exc,
+        )
+
+
+async def handle_retranscription_request(
+    session: ClientSession,
+    fields: dict,
+) -> None:
+    """Create, score, and conditionally promote a comparison transcript."""
+    request_id = int(fields.get(b"request_id", b"0").decode() or 0)
+    call_id = int(fields.get(b"call_id", b"0").decode() or 0)
+    wav_path = Path(fields.get(b"file", b"").decode())
+    profile = fields.get(b"profile", b"aggressive").decode() or "aggressive"
+    if not request_id or not call_id or not wav_path.exists():
+        result = {
+            "error": "invalid_request_or_missing_audio",
+            "call_id": call_id,
+            "path": str(wav_path),
+        }
+        _complete_retranscription_request(request_id, "failed", result)
+        log.warning("Retranscription request invalid: %s", result)
+        return
+
+    with sqlite3.connect(SCANNER_DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            """
+            SELECT transcript, raw_transcript, duration, rms,
+                   transcription_score, needs_retry, extra
+            FROM calls
+            WHERE id = ?
+            """,
+            (call_id,),
+        ).fetchone()
+    if not row:
+        result = {"error": "call_not_found", "call_id": call_id}
+        _complete_retranscription_request(request_id, "failed", result)
+        return
+
+    try:
+        response = await call_retranscribe_candidate(
+            session,
+            wav_path,
+            profile,
+        )
+        payload = extract_tool_payload(response)
+        if not payload or not payload.get("ok"):
+            raise RuntimeError(f"MCP retranscription failed: {payload!r}")
+        candidate_text = (payload.get("text") or "").strip()
+        if not candidate_text:
+            raise RuntimeError("MCP retranscription returned empty text")
+
+        from mcp_tools.scoring import score_transcript
+
+        duration = float(row["duration"] or payload.get("duration") or 0)
+        rms = float(row["rms"] or payload.get("rms") or 0)
+        original_text = (row["transcript"] or row["raw_transcript"] or "").strip()
+        original_quality = score_transcript(original_text, duration, rms)
+        candidate_quality = score_transcript(candidate_text, duration, rms)
+        original_score = float(
+            row["transcription_score"]
+            if row["transcription_score"] is not None
+            else original_quality["score"]
+        )
+        candidate_score = float(candidate_quality["score"])
+        accepted = bool(
+            candidate_text != original_text
+            and bool(row["needs_retry"])
+            and candidate_score >= 0.6
+            and candidate_score >= original_score + 0.1
+        )
+        try:
+            extra = json.loads(row["extra"] or "{}")
+            if not isinstance(extra, dict):
+                extra = {}
+        except (TypeError, ValueError):
+            extra = {}
+        attempts = extra.get("ai_retranscriptions")
+        if not isinstance(attempts, list):
+            attempts = []
+        attempts.append(
+            {
+                "request_id": request_id,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "profile": profile,
+                "candidate_transcript": candidate_text,
+                "candidate_score": candidate_score,
+                "original_score": original_score,
+                "accepted": accepted,
+            }
+        )
+        extra["ai_retranscriptions"] = attempts[-5:]
+
+        with sqlite3.connect(SCANNER_DB_PATH) as conn:
+            if accepted:
+                conn.execute(
+                    """
+                    UPDATE calls
+                    SET transcript = ?, normalized_transcript = ?,
+                        transcription_score = ?, needs_retry = ?,
+                        needs_review = ?, quality_reasons = ?, extra = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        candidate_text,
+                        candidate_text,
+                        candidate_score,
+                        int(candidate_quality["needs_retry"]),
+                        int(candidate_quality["needs_review"]),
+                        json.dumps(candidate_quality["reasons"]),
+                        json.dumps(extra),
+                        call_id,
+                    ),
+                )
+            else:
+                conn.execute(
+                    """
+                    UPDATE calls
+                    SET needs_review = 1, extra = ?
+                    WHERE id = ?
+                    """,
+                    (json.dumps(extra), call_id),
+                )
+        result = {
+            "call_id": call_id,
+            "accepted": accepted,
+            "profile": profile,
+            "original_score": original_score,
+            "candidate_score": candidate_score,
+            "candidate_transcript": candidate_text,
+        }
+        _complete_retranscription_request(request_id, "complete", result)
+        log.info(
+            "Retranscription complete call_id=%s accepted=%s score=%.3f->%.3f",
+            call_id,
+            accepted,
+            original_score,
+            candidate_score,
+        )
+    except Exception as exc:
+        result = {"error": str(exc), "call_id": call_id}
+        _complete_retranscription_request(request_id, "failed", result)
+        log.error("Retranscription failed call_id=%s error=%s", call_id, exc)
+
+
 async def main():
-    global last_id, last_summary_time, processed_count, failed_count
+    global last_id, retranscribe_last_id
+    global last_summary_time, processed_count, failed_count
 
     log.info(f"Connected to Redis stream: {STREAM_KEY}")
     log.info(f"Using MCP endpoint: {MCP_URL}")
@@ -192,6 +388,29 @@ async def main():
 
             while True:
                 try:
+                    retry_messages = r.xread(
+                        {RETRANSCRIBE_STREAM_KEY: retranscribe_last_id},
+                        block=1,
+                        count=1,
+                    )
+                    if retry_messages:
+                        for _, retry_entries in retry_messages:
+                            for retry_msg_id, retry_fields in retry_entries:
+                                await handle_retranscription_request(
+                                    session,
+                                    retry_fields,
+                                )
+                                retranscribe_last_id = (
+                                    retry_msg_id.decode()
+                                    if isinstance(retry_msg_id, bytes)
+                                    else str(retry_msg_id)
+                                )
+                                r.set(
+                                    RETRANSCRIBE_LAST_ID_KEY,
+                                    retranscribe_last_id,
+                                )
+                        continue
+
                     messages = r.xread({STREAM_KEY: last_id}, block=5000, count=1)
                     now = time.time()
 

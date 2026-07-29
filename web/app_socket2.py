@@ -50,6 +50,15 @@ import push_utils
 from push_db import list_loggedin_users as get_loggedin_users_count
 # Added get_todays_stats, which is needed by the background task
 from shared.scanner_db import read_metadata_from_sqlite, get_todays_stats
+from scanner_intelligence import (
+    dispatch_pending_retranscriptions,
+    get_or_generate_daily_take,
+    process_call_enrichment_batch,
+)
+from chatbot.app import (
+    generate_call_enrichment_batch,
+    generate_neds_take_commentary,
+)
 from user_logger import init_user_activity_table
 
 # --- 4. Configuration & Constants ---
@@ -227,7 +236,7 @@ except Exception as e:
     logger.critical(f"[!] FAILED to connect to Redis at {REDIS_URL}: {e}")
     redis_client = None # Set to None so other functions can check
 
-scheduler = BackgroundScheduler(daemon=True)
+scheduler = BackgroundScheduler(daemon=True, timezone=LOCAL_TIMEZONE)
 
 
 # --- 6. Helper Functions ---
@@ -265,7 +274,7 @@ def search_by_address(street: str, number: str, town: str, base: str, search_url
 
         parcel_link = cells[0].find("a")
         parcel_id = parcel_link.get_text(strip=True) if parcel_link else None
-        parcel_url = urljoin(BASE, parcel_link["href"]) if parcel_link else None
+        parcel_url = urljoin(base, parcel_link["href"]) if parcel_link else None
 
         owner = cells[2].get_text(";", strip=True)
         rec = {
@@ -428,7 +437,80 @@ def calculate_all_stats():
     except Exception as e:
         logger.error("stats.calculate.redis_write_failed error=%s", e)
 
-        
+
+def refresh_neds_take():
+    """Build and publish the LLM edition away from the browser request path."""
+    try:
+        enrichment = process_call_enrichment_batch(
+            generator=generate_call_enrichment_batch,
+            day="today",
+            limit=int(os.environ.get("NEDS_TAKE_CALL_ENRICHMENT_BATCH_SIZE", "24")),
+        )
+        logger.info(
+            "neds_take.call_enrichment selected=%s completed=%s failed=%s",
+            enrichment.get("selected", 0),
+            enrichment.get("completed", 0),
+            enrichment.get("failed", 0),
+        )
+        if redis_client:
+            retries = dispatch_pending_retranscriptions(
+                redis_client,
+                limit=int(
+                    os.environ.get(
+                        "NEDS_TAKE_RETRANSCRIPTION_DISPATCH_LIMIT",
+                        "2",
+                    )
+                ),
+                profile=os.environ.get(
+                    "NEDS_TAKE_RETRANSCRIPTION_PROFILE",
+                    "aggressive",
+                ),
+            )
+            logger.info(
+                "neds_take.retranscription_dispatch queued=%s dispatched=%s failed=%s",
+                retries.get("queued", 0),
+                retries.get("dispatched", 0),
+                retries.get("failed", 0),
+            )
+    except Exception:
+        logger.exception("neds_take.call_enrichment_failed")
+    try:
+        result = get_or_generate_daily_take(
+            day="today",
+            edition_type="rolling",
+            force=True,
+            commentary_generator=generate_neds_take_commentary,
+        )
+        logger.info(
+            "neds_take.rolling.generated day=%s transmissions=%s incidents=%s",
+            result["day"],
+            result["fact_pack"]["totals"]["transmissions"],
+            result["fact_pack"]["totals"]["estimated_incidents"],
+        )
+    except Exception:
+        logger.exception("neds_take.rolling.failed")
+
+
+def finalize_previous_neds_take():
+    """Freeze yesterday's end-of-day edition after late transmissions settle."""
+    previous_day = (datetime.now(LOCAL_TIMEZONE) - timedelta(days=1)).date().isoformat()
+    try:
+        result = get_or_generate_daily_take(
+            day=previous_day,
+            edition_type="final",
+            force=True,
+            commentary_generator=generate_neds_take_commentary,
+        )
+        logger.info(
+            "neds_take.final.generated day=%s transmissions=%s incidents=%s",
+            result["day"],
+            result["fact_pack"]["totals"]["transmissions"],
+            result["fact_pack"]["totals"]["estimated_incidents"],
+        )
+    except Exception:
+        logger.exception("neds_take.final.failed day=%s", previous_day)
+
+
 # --- 8. App Setup, Hooks & Blueprints ---
 
 @app.before_request
@@ -754,6 +836,23 @@ if __name__ == "__main__":
             'interval',
             seconds=20,
             id='scanner_api_cache_job'
+        )
+        scheduler.add_job(
+            refresh_neds_take,
+            'interval',
+            minutes=5,
+            id='neds_take_rolling_job',
+            max_instances=1,
+            coalesce=True,
+        )
+        scheduler.add_job(
+            finalize_previous_neds_take,
+            'cron',
+            hour=0,
+            minute=10,
+            id='neds_take_final_job',
+            max_instances=1,
+            coalesce=True,
         )
         scheduler.start()
         

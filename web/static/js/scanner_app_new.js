@@ -58,7 +58,7 @@ function writeCache(cacheKey, data) {
     }
 }
 
-async function fetchJsonWithCache(url, cacheKey, ttlMs, onData) {
+async function fetchJsonWithCache(url, cacheKey, ttlMs, onData, onError) {
     const cached = readCache(cacheKey, ttlMs);
     if (cached) onData(cached, true);
 
@@ -70,6 +70,7 @@ async function fetchJsonWithCache(url, cacheKey, ttlMs, onData) {
         onData(data, false);
     } catch (err) {
         console.warn(`[Cache] Network fetch failed for ${url}:`, err);
+        if (typeof onError === 'function' && !cached) onError(err);
     }
 }
 
@@ -487,6 +488,7 @@ function initScannerHomepage() {
     loadTownGrid();
     initCallBoard();
     loadHomepageSummary();
+    initNedsTakeDrawer();
 
     setInterval(loadHomepageSummary, 30000);
 }
@@ -508,6 +510,334 @@ async function loadHomepageSummary() {
     initListenerHeartbeat();
     fetchJsonWithCache("/scanner/api/listeners", API_CACHE_KEYS.wsUsers, 15000, (wsData) => {
         listenersEl.textContent = wsData.connected_users ?? wsData.active_count ?? 0;
+    });
+}
+
+let nedsTakeData = null;
+let nedsTakeActiveTown = null;
+let nedsTakeRequestNumber = 0;
+
+function formatNedsTakeDuration(totalSeconds) {
+    const seconds = Math.max(0, Math.round(Number(totalSeconds) || 0));
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainder = seconds % 60;
+    if (minutes < 60) return remainder ? `${minutes}m ${remainder}s` : `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+}
+
+function createNedsTakeHighlights(highlights, limit = 4) {
+    const container = document.createElement('div');
+    container.className = 'mt-4 grid grid-cols-1 gap-3';
+    (highlights || []).slice(0, limit).forEach((highlight) => {
+        const card = document.createElement('article');
+        card.className = 'block rounded-2xl border border-slate-700/60 bg-slate-950/45 p-4 transition hover:border-amber-500/40 hover:bg-slate-900/70';
+
+        const title = document.createElement('a');
+        title.href = `/scanner/incident/${encodeURIComponent(highlight.incident_key)}`;
+        title.className = 'text-sm font-semibold text-white';
+        title.textContent = highlight.title || 'Scanner highlight';
+        const summary = document.createElement('p');
+        summary.className = 'mt-1.5 text-xs leading-5 text-slate-300';
+        summary.textContent = highlight.summary || '';
+        card.appendChild(title);
+        const hasActualEvidence = (highlight.citations || []).length > 0;
+        const isGenericSummary = /radio traffic was recorded in/i.test(
+            highlight.summary || ''
+        );
+        if (!hasActualEvidence || !isGenericSummary) {
+            card.appendChild(summary);
+        }
+
+        const details = document.createElement('div');
+        details.className = 'mt-3 flex flex-wrap gap-1.5';
+        const detailItems = [
+            [
+                highlight.incident_span_seconds
+                    ? `Incident span ${formatNedsTakeDuration(highlight.incident_span_seconds)}`
+                    : 'Single transmission',
+                'slate'
+            ],
+            [
+                `Recorded audio ${formatNedsTakeDuration(highlight.recorded_audio_seconds)}`,
+                'slate'
+            ],
+            [
+                highlight.response_time_seconds === null || highlight.response_time_seconds === undefined
+                    ? 'Response time not captured'
+                    : `Response ${formatNedsTakeDuration(highlight.response_time_seconds)}`,
+                highlight.response_time_seconds === null || highlight.response_time_seconds === undefined ? 'slate' : 'sky'
+            ]
+        ];
+        if (highlight.service === 'police' && highlight.outcome) {
+            detailItems.push([
+                `Outcome: ${highlight.outcome}`,
+                highlight.citation_issued ? 'amber' : 'sky'
+            ]);
+        }
+        detailItems.forEach(([label, tone]) => {
+            const chip = document.createElement('span');
+            const toneClass = tone === 'amber'
+                ? 'border-amber-500/40 bg-amber-950/30 text-amber-200'
+                : tone === 'sky'
+                    ? 'border-sky-700/50 bg-sky-950/30 text-sky-200'
+                    : 'border-slate-700 bg-slate-900 text-slate-400';
+            chip.className = `rounded-full border px-2 py-1 text-[9px] font-medium ${toneClass}`;
+            chip.textContent = label;
+            details.appendChild(chip);
+        });
+        card.appendChild(details);
+
+        const source = (highlight.citations || [])[0];
+        if (source) {
+            const evidence = document.createElement('div');
+            evidence.className = 'mt-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3';
+            const evidenceLabel = document.createElement('a');
+            evidenceLabel.href = source.archive_url;
+            evidenceLabel.className = 'text-[9px] font-semibold uppercase tracking-[0.16em] text-sky-300 hover:text-white';
+            evidenceLabel.textContent = `Actual radio · Call #${source.call_id}`;
+            const excerpt = document.createElement('p');
+            excerpt.className = 'mt-1.5 text-xs leading-5 text-slate-300';
+            excerpt.textContent = source.excerpt || 'No transcript available.';
+            evidence.append(evidenceLabel, excerpt);
+            if (source.audio_url) {
+                const audio = document.createElement('audio');
+                audio.className = 'mt-2 h-8 w-full';
+                audio.controls = true;
+                audio.preload = 'none';
+                audio.src = source.audio_url;
+                evidence.appendChild(audio);
+            }
+            card.appendChild(evidence);
+        }
+
+        const open = document.createElement('a');
+        open.href = `/scanner/incident/${encodeURIComponent(highlight.incident_key)}`;
+        open.className = 'mt-3 block text-xs font-semibold text-sky-300';
+        open.textContent = 'Open actual incident →';
+        card.appendChild(open);
+        container.appendChild(card);
+    });
+    return container;
+}
+
+function appendNedsTakeMetrics(parent, totals = {}) {
+    const line = document.createElement('p');
+    line.className = 'mt-4 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2.5 text-[10px] uppercase tracking-wider text-slate-400';
+    line.textContent =
+        `${Number(totals.transmissions || 0).toLocaleString()} transmissions · ` +
+        `${Number(totals.estimated_incidents || 0).toLocaleString()} estimated incidents · ` +
+        `${Number(totals.closed_incidents || 0).toLocaleString()} closed on radio`;
+    parent.appendChild(line);
+}
+
+function renderNedsTakeSection(section) {
+    const contentEl = document.getElementById('neds-take-content');
+    if (!contentEl) return;
+    contentEl.replaceChildren();
+
+    const heading = document.createElement('h3');
+    heading.className = 'text-lg font-semibold text-white';
+    heading.textContent = section?.headline || 'Ned’s Take';
+    const summary = document.createElement('p');
+    summary.className = 'mt-2 text-sm leading-6 text-slate-300';
+    summary.textContent = section?.straight_summary || 'No daily summary is available yet.';
+    contentEl.append(heading, summary);
+
+    if (section?.ned_take) {
+        const commentary = document.createElement('blockquote');
+        commentary.className = 'mt-4 border-l-2 border-amber-400/50 pl-4 text-sm leading-6 text-amber-100/90';
+        commentary.textContent = section.ned_take;
+        contentEl.appendChild(commentary);
+    }
+    appendNedsTakeMetrics(contentEl, section?.totals);
+
+    const isNetwork = !section?.scope?.town;
+    if (isNetwork && (nedsTakeData?.take?.towns || []).length) {
+        const townHeading = document.createElement('h4');
+        townHeading.className = 'mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500';
+        townHeading.textContent = 'Town rundown';
+        contentEl.appendChild(townHeading);
+        const townGrid = document.createElement('div');
+        townGrid.className = 'mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2';
+        nedsTakeData.take.towns.forEach((town) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'rounded-2xl border border-slate-800 bg-slate-950/35 p-3 text-left transition hover:border-amber-500/35 hover:bg-slate-900/70';
+            const name = document.createElement('strong');
+            name.className = 'block text-sm text-white';
+            name.textContent = town.scope?.town || 'Town';
+            const counts = document.createElement('span');
+            counts.className = 'mt-1 block text-[10px] uppercase tracking-wider text-slate-500';
+            counts.textContent = `${Number(town.totals?.estimated_incidents || 0).toLocaleString()} est. incidents · ${Number(town.totals?.transmissions || 0).toLocaleString()} transmissions`;
+            const review = document.createElement('span');
+            review.className = 'mt-2 block text-xs leading-5 text-amber-100/75';
+            review.textContent = town.ned_take || '';
+            button.append(name, counts, review);
+            button.addEventListener('click', () => selectNedsTakeTown(town.scope?.town || ''));
+            townGrid.appendChild(button);
+        });
+        contentEl.appendChild(townGrid);
+    } else {
+        const highlightsHeading = document.createElement('h4');
+        highlightsHeading.className = 'mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500';
+        highlightsHeading.textContent = 'Today’s highlighted incidents';
+        contentEl.appendChild(highlightsHeading);
+        if ((section?.highlights || []).length) {
+            contentEl.appendChild(createNedsTakeHighlights(section.highlights, 3));
+        } else {
+            const quiet = document.createElement('p');
+            quiet.className = 'mt-3 text-xs text-slate-500';
+            quiet.textContent = 'No scanner highlights are available for this section yet.';
+            contentEl.appendChild(quiet);
+        }
+    }
+
+    const reportLink = document.createElement('a');
+    reportLink.href = `/scanner/neds-take/${encodeURIComponent(nedsTakeData?.day || 'today')}`;
+    reportLink.className = 'mt-6 flex items-center justify-between rounded-2xl border border-amber-500/25 bg-amber-950/15 px-4 py-3 text-sm font-semibold text-amber-200 hover:border-amber-400/50 hover:text-white';
+    reportLink.textContent = 'Read the full daily report';
+    const arrow = document.createElement('span');
+    arrow.textContent = '→';
+    reportLink.appendChild(arrow);
+    contentEl.appendChild(reportLink);
+
+    if (section?.disclaimer) {
+        const disclaimer = document.createElement('p');
+        disclaimer.className = 'mt-5 border-t border-slate-800 pt-4 text-[11px] leading-5 text-slate-500';
+        disclaimer.textContent = section.disclaimer;
+        contentEl.appendChild(disclaimer);
+    }
+}
+
+function selectNedsTakeTown(town) {
+    nedsTakeActiveTown = town || '';
+    document.querySelectorAll('.neds-take-tab').forEach((tab) => {
+        tab.setAttribute('aria-selected', String((tab.dataset.town || '') === nedsTakeActiveTown));
+    });
+    const section = nedsTakeActiveTown
+        ? (nedsTakeData?.take?.towns || []).find((item) => item?.scope?.town === nedsTakeActiveTown)
+        : nedsTakeData?.take;
+    renderNedsTakeSection(section || nedsTakeData?.take || {});
+}
+
+function renderNedsTake(data) {
+    nedsTakeData = data;
+    const loadingEl = document.getElementById('neds-take-loading');
+    const contentEl = document.getElementById('neds-take-content');
+    const tabsEl = document.getElementById('neds-take-tabs');
+    const metaEl = document.getElementById('neds-take-meta');
+    if (!loadingEl || !contentEl || !tabsEl || !metaEl) return;
+
+    const commentaryTimestamp = data?.commentary_generated_at || data?.generated_at;
+    const generatedAt = commentaryTimestamp ? new Date(commentaryTimestamp) : null;
+    const watermark = data?.source_watermark || data?.fact_pack?.source_watermark || {};
+    const commentaryGenerator = String(data?.commentary_generator || '');
+    const editionLabel = data?.edition_type === 'final'
+        ? 'Final edition'
+        : commentaryGenerator.includes('local-llm')
+            ? 'Prepared LLM take'
+            : 'Rolling edition';
+    const callLabel = watermark.max_call_id ? `through call #${watermark.max_call_id}` : 'no calls yet';
+    const timeLabel = generatedAt && !Number.isNaN(generatedAt.getTime())
+        ? generatedAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        : 'just checked';
+    metaEl.textContent = `${editionLabel} · ${callLabel} · updated ${timeLabel}`;
+
+    tabsEl.replaceChildren();
+    const townSections = (data?.take?.towns || []).map((item) => ({
+            label: item?.scope?.town || 'Town',
+            town: item?.scope?.town || ''
+        }));
+    const sections = [
+        ...townSections,
+        { label: 'All towns', town: '' }
+    ];
+    sections.forEach(({ label, town }) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'neds-take-tab shrink-0 rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-300';
+        button.dataset.town = town;
+        button.setAttribute('role', 'tab');
+        button.setAttribute('aria-selected', 'false');
+        button.textContent = label;
+        button.addEventListener('click', () => selectNedsTakeTown(town));
+        tabsEl.appendChild(button);
+    });
+
+    loadingEl.classList.add('hidden');
+    contentEl.classList.remove('hidden');
+    const preferredTown = townSections.find((item) => item.town.toLowerCase() === 'hopedale')?.town
+        || townSections.find((item) => item.town.toLowerCase() === 'milford')?.town
+        || townSections[0]?.town
+        || '';
+    const stillPresent = sections.some((item) => item.town === nedsTakeActiveTown);
+    selectNedsTakeTown(stillPresent && nedsTakeActiveTown !== null ? nedsTakeActiveTown : preferredTown);
+}
+
+async function loadNedsTake() {
+    const loadingEl = document.getElementById('neds-take-loading');
+    const contentEl = document.getElementById('neds-take-content');
+    const metaEl = document.getElementById('neds-take-meta');
+    if (!loadingEl || !contentEl) return;
+    const requestNumber = ++nedsTakeRequestNumber;
+    loadingEl.textContent = 'Ned is reading today’s calls and writing a fresh take…';
+    loadingEl.classList.remove('hidden');
+    contentEl.classList.add('hidden');
+    if (metaEl) metaEl.textContent = 'Refreshing from scanner history…';
+
+    try {
+        const response = await fetch('/scanner/api/neds-take?date=today', {
+            cache: 'no-store',
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+            throw new Error(data.error || `Fetch failed: ${response.status}`);
+        }
+        if (requestNumber === nedsTakeRequestNumber) renderNedsTake(data);
+    } catch (err) {
+        console.warn('[NedsTake] Request failed:', err);
+        if (requestNumber !== nedsTakeRequestNumber) return;
+        loadingEl.textContent = 'Today’s edition could not be loaded. The live scanner is still available.';
+        if (metaEl) metaEl.textContent = 'Edition unavailable';
+    }
+}
+
+function setNedsTakeDrawerOpen(open) {
+    const overlay = document.getElementById('neds-take-overlay');
+    const trigger = document.getElementById('neds-take-trigger');
+    if (!overlay || !trigger) return;
+    overlay.classList.toggle('is-open', open);
+    overlay.setAttribute('aria-hidden', String(!open));
+    trigger.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('neds-take-open', open);
+    if (open) {
+        document.getElementById('neds-take-close')?.focus();
+    } else {
+        trigger.focus();
+    }
+}
+
+function initNedsTakeDrawer() {
+    const trigger = document.getElementById('neds-take-trigger');
+    if (!trigger || trigger.dataset.initialized === 'true') return;
+    trigger.dataset.initialized = 'true';
+    trigger.addEventListener('click', () => {
+        setNedsTakeDrawerOpen(true);
+        loadNedsTake();
+    });
+    document.getElementById('neds-take-close')?.addEventListener('click', () => setNedsTakeDrawerOpen(false));
+    document.getElementById('neds-take-backdrop')?.addEventListener('click', () => setNedsTakeDrawerOpen(false));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && document.getElementById('neds-take-overlay')?.classList.contains('is-open')) {
+            setNedsTakeDrawerOpen(false);
+        }
     });
 }
 
@@ -1027,6 +1357,14 @@ function injectAskNedStyles() {
       font-size: 0.74rem;
       line-height: 1.4;
     }
+    .ask-ned-citation a {
+      color: #7dd3fc;
+      text-decoration: none;
+    }
+    .ask-ned-citation a:hover {
+      color: #e0f2fe;
+      text-decoration: underline;
+    }
     .ask-ned-suggestion-group {
       display: flex;
       flex-direction: column;
@@ -1451,13 +1789,16 @@ function appendAskNedMessage(role, text, citations) {
     if (role !== 'user' && Array.isArray(citations) && citations.length) {
         const citationLine = document.createElement('span');
         citationLine.className = 'ask-ned-citation';
-        citationLine.textContent = citations
-            .slice(0, 4)
-            .map((citation) => {
-                const id = citation.call_id ? `#${citation.call_id}` : 'call';
-                return citation.timestamp ? `${id} ${citation.timestamp}` : id;
-            })
-            .join(' | ');
+        citationLine.appendChild(document.createTextNode('Evidence: '));
+        citations.slice(0, 4).forEach((citation, index) => {
+            if (index) citationLine.appendChild(document.createTextNode(' · '));
+            const link = document.createElement('a');
+            const id = citation.call_id ? `#${citation.call_id}` : 'call';
+            link.href = citation.archive_url
+                || (citation.call_id ? `/scanner/call/${citation.call_id}` : '#');
+            link.textContent = id;
+            citationLine.appendChild(link);
+        });
         bubble.appendChild(citationLine);
     }
 
@@ -1588,6 +1929,12 @@ function initAskNedChat() {
             const menuDropdown = document.getElementById('menu-dropdown');
             if (menuDropdown) menuDropdown.classList.add('hidden');
             setAskNedOpen(true);
+            const prefill = button.dataset.askNedPrefill;
+            const input = document.getElementById('ask-ned-input');
+            if (prefill && input) {
+                input.value = prefill;
+                autosizeAskNedInput();
+            }
         });
     });
 

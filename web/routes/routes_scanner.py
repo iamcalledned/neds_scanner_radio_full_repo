@@ -22,6 +22,12 @@ from shared.scanner_db import (
     fetch_reviewed_edited_calls,
 )
 from user_logger import log_activity
+from scanner_intelligence import (
+    find_incident_key_for_call,
+    get_call_enrichment,
+    get_incident_detail,
+    parse_day,
+)
 
 # Run column migrations on import (safe to call multiple times)
 ensure_columns()
@@ -808,6 +814,78 @@ def scanner_audio(filename):
     return "File not found", 404
 
 
+@scanner_bp.route("/scanner/call/<int:call_id>")
+def scanner_call_permalink(call_id):
+    """Render one stable, reviewable evidence page for a cited call."""
+    with get_conn(readonly=True) as conn:
+        row = conn.execute(
+            """
+            SELECT *
+            FROM calls
+            WHERE id = ?
+            LIMIT 1
+            """,
+            (call_id,),
+        ).fetchone()
+    if not row:
+        abort(404)
+
+    call_day = (row["timestamp"] or "")[:10]
+    feed = row["category"] or ""
+    call = _row_to_call_payload(
+        row,
+        feed_override=feed,
+        timestamp_format="%b %d, %Y at %I:%M %p",
+    )
+    incident_key = find_incident_key_for_call(call_id)
+    call_enrichment = get_call_enrichment(call_id)
+    return render_template(
+        "scanner_call.html",
+        call=call,
+        call_id=call_id,
+        call_day=call_day,
+        feed=feed,
+        incident_key=incident_key,
+        call_enrichment=call_enrichment,
+        active_page="archive",
+        show_listener_count=True,
+    )
+
+
+@scanner_bp.route("/scanner/incident/<incident_key>")
+def scanner_incident_page(incident_key):
+    """Render the grouped incident shell; facts and commentary load no-store."""
+    if not get_incident_detail(incident_key):
+        abort(404)
+    log_activity("page_view", {"page": "incident", "incident_key": incident_key})
+    return render_template(
+        "scanner_incident.html",
+        incident_key=incident_key,
+        active_page="archive",
+        show_listener_count=True,
+    )
+
+
+@scanner_bp.route("/scanner/neds-take")
+def scanner_daily_take_today():
+    return redirect("/scanner/neds-take/today")
+
+
+@scanner_bp.route("/scanner/neds-take/<day>")
+def scanner_daily_take_page(day):
+    try:
+        resolved_day = parse_day(day)
+    except ValueError:
+        abort(404)
+    log_activity("page_view", {"page": "neds_take", "day": resolved_day})
+    return render_template(
+        "scanner_neds_take.html",
+        take_day=resolved_day,
+        active_page="home",
+        show_listener_count=True,
+    )
+
+
 @scanner_bp.route("/scanner/submit_edit", methods=["POST"])
 def submit_edit():
     logger.debug("submit_edit.request")
@@ -1483,11 +1561,15 @@ def call_coords():
     Query params:
       range = day | week | month | all  (default: week)
       town  = town name, or omit / 'all' for every town
+      department = all | police | fire  (default: all)
     """
     from shared.scanner_db import get_conn
 
     range_param = request.args.get("range", "week").lower()
     town_param  = request.args.get("town", "").strip().lower()
+    department_param = request.args.get("department", "all").strip().lower()
+    if department_param not in {"all", "police", "fire"}:
+        department_param = "all"
 
     cutoffs = {
         "day":   timedelta(days=1),
@@ -1514,8 +1596,17 @@ def call_coords():
                 clauses.append("UPPER(derived_town) = UPPER(?)")
                 params.append(town_param)
 
+            if department_param == "fire":
+                clauses.append("(LOWER(dept) = 'fire' OR LOWER(dept) LIKE '%fd%')")
+            elif department_param == "police":
+                clauses.append("(LOWER(dept) = 'police' OR (LOWER(dept) LIKE '%pd%' AND LOWER(dept) NOT LIKE '%fd%'))")
+
             sql = f"""
-                SELECT derived_lat AS lat, derived_lng AS lng, derived_town AS town
+                SELECT
+                    derived_lat AS lat,
+                    derived_lng AS lng,
+                    derived_town AS town,
+                    dept
                 FROM calls
                 WHERE {' AND '.join(clauses)}
                 ORDER BY timestamp DESC
@@ -1523,8 +1614,28 @@ def call_coords():
             """
             rows = conn.execute(sql, params).fetchall()
 
-        points = [{"lat": r["lat"], "lng": r["lng"]} for r in rows]
-        return jsonify({"points": points, "count": len(points)})
+        points = []
+        for row in rows:
+            dept = (row["dept"] or "").lower()
+            department = "unknown"
+            if dept == "fire" or "fd" in dept:
+                department = "fire"
+            elif dept == "police" or "pd" in dept:
+                department = "police"
+            points.append({
+                "lat": row["lat"],
+                "lng": row["lng"],
+                "town": row["town"] or "Unknown",
+                "department": department,
+            })
+
+        return jsonify({
+            "points": points,
+            "count": len(points),
+            "range": range_param,
+            "town": town_param or "all",
+            "department": department_param,
+        })
     except Exception as e:
         logger.exception("call_coords error: %s", e)
         return jsonify({"points": [], "count": 0, "error": str(e)}), 500
@@ -1582,5 +1693,3 @@ def geo_towns():
     except Exception as e:
         logger.exception("geo_towns error: %s", e)
         return jsonify({"towns": [], "error": str(e)}), 500
-
-

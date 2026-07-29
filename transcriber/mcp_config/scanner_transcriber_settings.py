@@ -61,6 +61,16 @@ TRANSCRIBE_DEFAULTS: Dict[str, Any] = {
     "compression_ratio_threshold": None,
     "log_prob_threshold": None,
     "no_speech_threshold": None,
+    "adaptive_retry": False,
+    "retry_beam_size": 1,
+    "retry_compression_ratio": 4.0,
+    "retry_compression_min_words_per_second": 2.5,
+    "retry_words_per_second": 3.0,
+    "retry_max_metric_growth": 1.02,
+    "squelch_gate": False,
+    "squelch_max_duration": 7.0,
+    "squelch_no_speech_threshold": 0.16,
+    "squelch_ambiguous_no_speech_threshold": 0.30,
 }
 
 TRANSCRIBE_KEYS = tuple(TRANSCRIBE_DEFAULTS.keys())

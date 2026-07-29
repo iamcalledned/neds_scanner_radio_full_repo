@@ -405,7 +405,15 @@
                 <button data-action="mark-edited" data-index="{{ loop.index }}" id="edited-btn-{{ loop.index }}" class="call-action-btn{% if call.edited_transcript %} btn-edited-active{% endif %}">Edited</button>
                 <button data-action="approve" data-file="{{ call.file }}" data-feed="{{ call.feed }}" data-index="{{ loop.index }}" id="approve-{{ loop.index }}" class="call-action-btn btn-approve{% if call.edited_transcript %} btn-approve-active{% endif %}" title="Mark transcript as good training data">{% if call.edited_transcript %}✅ Looks Good{% else %}Looks Good{% endif %}</button>
                 <button data-action="classify" data-index="{{ loop.index }}" class="call-action-btn">Classify</button>
-                <button data-action="address-lookup" data-index="{{ loop.index }}" class="call-action-btn">Address</button>
+                <button
+                  data-action="address-lookup"
+                  data-index="{{ loop.index }}"
+                  data-feed="{{ call.feed }}"
+                  data-address="{{ call.metadata.derived_address or '' }}"
+                  data-address-number="{{ call.metadata.derived_addr_num or '' }}"
+                  data-address-street="{{ call.metadata.derived_street or '' }}"
+                  data-address-town="{{ call.metadata.derived_town or call.metadata.town or '' }}"
+                  class="call-action-btn">Address</button>
                 <button data-action="save-eval" data-file="{{ call.file }}" data-feed="{{ call.feed }}" data-index="{{ loop.index }}" id="save-eval-{{ loop.index }}" class="call-action-btn btn-save-eval{% if call.save_for_eval %} btn-save-eval-active{% endif %}" title="Save this call as an evaluation sample">{% if call.save_for_eval %}📋 Save for Eval{% else %}Save for Eval{% endif %}</button>
                 <button data-action="freeze" data-file="{{ call.file }}" data-feed="{{ call.feed }}" data-index="{{ loop.index }}" id="freeze-{{ loop.index }}" class="call-action-btn{% if call.freeze_for_testing %} btn-freeze-active{% endif %}" title="Freeze this call for testing">{% if call.freeze_for_testing %}🧊 Frozen{% else %}Freeze for Testing{% endif %}</button>
                 <button data-action="share" data-index="{{ loop.index }}" data-feed="{{ call.feed }}" class="call-action-btn btn-share">Share</button>
@@ -498,7 +506,8 @@
       </div>
       <div>
         <label class="block text-xs text-slate-400 uppercase tracking-wider mb-1">Town</label>
-        <div class="intent-input text-slate-500">Hopedale</div>
+        <input id="town-input" type="hidden">
+        <div id="town-display" class="intent-input text-slate-500">Unknown</div>
       </div>
       <button id="lookup-btn"
         class="w-full py-2.5 rounded-lg font-semibold text-sm transition
