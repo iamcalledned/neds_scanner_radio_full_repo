@@ -272,6 +272,10 @@ body {
   display: none;
 }
 
+.scanner-desktop-notif {
+  display: none;
+}
+
 .scanner-install-button.is-ready {
   border-color: rgba(56, 189, 248, 0.42);
   color: #e0f2fe;
@@ -800,6 +804,10 @@ body.scanner-player-open .scanner-main {
 
   .scanner-more-menu {
     position: absolute;
+  }
+
+  .scanner-desktop-notif {
+    display: inline-flex;
   }
 
 }
