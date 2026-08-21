@@ -17,6 +17,7 @@
   let map = null;
   let heatLayer = null;
   let HeatmapOverlay = null;
+  let TownMarkerOverlay = null;
   let heatColorLookup = null;
   let infoWindow = null;
   let coverageBounds = null;
@@ -123,6 +124,56 @@
       clickableIcons: false,
     });
     infoWindow = new google.maps.InfoWindow({ maxWidth: 240 });
+  }
+
+  function getTownMarkerOverlayClass() {
+    if (TownMarkerOverlay) return TownMarkerOverlay;
+
+    TownMarkerOverlay = class ScannerTownMarker extends google.maps.OverlayView {
+      constructor(options) {
+        super();
+        this.options = options;
+        this.position = new google.maps.LatLng(options.position);
+        this.element = null;
+        this.setMap(options.map || null);
+      }
+
+      onAdd() {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `scanner-town-marker${this.options.selected ? " is-selected" : ""}${this.options.active ? " is-active" : ""}`;
+        button.title = this.options.title;
+        button.setAttribute("aria-label", this.options.title);
+        button.style.setProperty("--marker-size", `${Math.max(8, this.options.scale * 2)}px`);
+        button.innerHTML = `<span class="scanner-town-marker-dot" aria-hidden="true"></span><span class="scanner-town-marker-label">${escapeHTML(this.options.label)}</span>`;
+        button.addEventListener("click", this.options.onClick);
+        google.maps.OverlayView.preventMapHitsAndGesturesFrom(button);
+        this.getPanes().overlayMouseTarget.appendChild(button);
+        this.element = button;
+      }
+
+      draw() {
+        if (!this.element) return;
+        const pixel = this.getProjection().fromLatLngToDivPixel(this.position);
+        this.element.style.left = `${pixel.x}px`;
+        this.element.style.top = `${pixel.y}px`;
+        this.element.style.zIndex = String(this.options.zIndex);
+      }
+
+      onRemove() {
+        if (this.element) {
+          this.element.removeEventListener("click", this.options.onClick);
+          this.element.remove();
+          this.element = null;
+        }
+      }
+
+      getPosition() {
+        return this.position;
+      }
+    };
+
+    return TownMarkerOverlay;
   }
 
   function heatColor(intensity) {
@@ -320,31 +371,23 @@
       const active = count > 0;
       const scale = active ? 5 + Math.min(4, Math.round((count / maxCount) * 4)) : 4;
 
-      const marker = new google.maps.Marker({
+      let marker;
+      const MarkerOverlay = getTownMarkerOverlayClass();
+      const onClick = () => {
+        infoWindow.setContent(townInfoHTML(town, count));
+        infoWindow.setPosition(marker.getPosition());
+        infoWindow.open({ map });
+      };
+      marker = new MarkerOverlay({
         position: { lat: Number(town.lat), lng: Number(town.lng) },
         map: elTogglePins.checked ? map : null,
         title: `${displayTown(town.name)} — ${count} mapped calls`,
-        label: {
-          text: displayTown(town.name),
-          color: selected ? "#f8fafc" : (active ? "#d9f4ff" : "#74849a"),
-          fontSize: selected ? "12px" : "10px",
-          fontWeight: selected ? "800" : "700",
-          fontFamily: "Inter, sans-serif",
-        },
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale,
-          fillColor: selected ? "#f8fafc" : (active ? "#38bdf8" : "#334155"),
-          fillOpacity: active || selected ? 0.94 : 0.78,
-          strokeColor: selected ? "#38bdf8" : "#07101d",
-          strokeWeight: selected ? 3 : 2,
-        },
+        label: displayTown(town.name),
+        selected,
+        active,
+        scale,
         zIndex: selected ? 40 : (active ? 30 : 20),
-      });
-
-      marker.addListener("click", () => {
-        infoWindow.setContent(townInfoHTML(town, count));
-        infoWindow.open(map, marker);
+        onClick,
       });
       townMarkers.push(marker);
     });

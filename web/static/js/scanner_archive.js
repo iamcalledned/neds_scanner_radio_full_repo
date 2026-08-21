@@ -484,14 +484,14 @@ function buildOverview() {
 
   container.innerHTML = '';
   const grid = document.createElement('div');
-  grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4';
+  grid.className = 'grid grid-cols-1 min-[480px]:grid-cols-2 gap-3';
 
   _archiveTowns.forEach((t, i) => {
     const card = document.createElement('div');
     card.className = 'town-card';
     card.style.animationDelay = `${i * 0.07}s`;
     card.innerHTML = `
-      <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-scannerBlue to-blue-300 mb-3">${t.name}</h3>
+      <h3 class="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-scannerBlue to-blue-300 mb-2">${t.name}</h3>
       <div class="space-y-1">
         <a href="/scanner/archive?feed=${t.pd}" class="dept-link">
           <span class="call-card-dot"></span>
@@ -522,7 +522,7 @@ async function buildFeedView(feed, daysBack) {
         ${fire ? 'from-red-400 to-orange-400' : 'from-scannerBlue to-purple-400'}">
       ${_esc(cfg.title)} Archive
     </h2>
-    <p class="text-slate-500 text-sm mt-1">${_esc(cfg.town)} — ${daysBack > 0 ? `Past ${daysBack} days` : 'All time'}</p>
+    <p class="text-slate-500 text-sm mt-1">${_esc(cfg.town)} — ${daysBack > 0 ? `Last ${daysBack} calendar days` : 'All time'}</p>
   `;
 
   rangeSelector.classList.remove('hidden');
@@ -536,8 +536,7 @@ async function buildFeedView(feed, daysBack) {
 
   // Fetch summary
   try {
-    const daysParam = daysBack > 0 ? daysBack : 3650; // "All Time" = ~10 years
-    const resp = await fetch(`/scanner/archive?feed=${feed}&json=1&days_back=${daysParam}`);
+    const resp = await fetch(`/scanner/archive?feed=${feed}&json=1&days_back=${daysBack}`);
     if (!resp.ok) throw new Error(resp.statusText);
     _summaryData = await resp.json();
   } catch (err) {

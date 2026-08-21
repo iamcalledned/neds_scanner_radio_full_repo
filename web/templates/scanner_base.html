@@ -29,31 +29,7 @@
     gtag('config', 'G-FRCK642NXJ');
   </script>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            pd: '#1e3a8a',
-            fd: '#7f1d1d',
-            bg: '#07101d',
-            scannerBlue: '#38bdf8',
-            scannerGlow: '#7dd3fc',
-            scannerRed: '#fb7185'
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['Roboto Mono', 'monospace'],
-            display: ['Space Grotesk', 'sans-serif']
-          },
-          boxShadow: {
-            scanner: '0 20px 48px rgba(2, 8, 23, 0.45)'
-          }
-        }
-      }
-    };
-  </script>
+  <link rel="stylesheet" href="/scanner/static/css/tailwind.generated.css?v={{ asset_version('css/tailwind.generated.css') }}">
 
   {% block head_extra %}{% endblock %}
   {% block head_pre_scripts %}{% endblock %}
@@ -131,7 +107,9 @@
   </div>
 </section>
 
-<nav class="scanner-bottom-nav md:hidden" aria-label="Primary navigation">
+<div id="menu-backdrop" class="scanner-more-backdrop hidden" aria-hidden="true"></div>
+
+<nav class="scanner-bottom-nav min-[1100px]:hidden" aria-label="Primary navigation">
   <a href="/scanner/" class="scanner-bottom-nav-item {{ 'is-active' if active_page == 'home' else '' }}" {% if active_page == 'home' %}aria-current="page"{% endif %}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M9 20v-6h6v6"></path></svg>
     <span>Live</span>

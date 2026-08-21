@@ -104,8 +104,14 @@
       display: block;
       position: relative;
       z-index: 2;
-      cursor: pointer;
       text-decoration: none;
+    }
+
+    .call-card-title a:hover,
+    .call-card-title a:focus-visible {
+      color: #7dd3fc;
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
     }
 
     .call-card-meta {
@@ -309,19 +315,19 @@
           <p class="text-[0.6rem] tracking-[0.22em] uppercase text-scannerBlue/80">Listen now</p>
           <h1 class="text-lg font-semibold text-white tracking-wide mt-0.5">Latest Scanner Calls</h1>
         </div>
-        <span class="text-[10px] text-slate-500 uppercase tracking-widest">Latest across all feeds</span>
+        <span class="hidden text-[10px] text-slate-500 uppercase tracking-widest sm:inline">Latest across all feeds</span>
       </div>
 
       <!-- Town filter tabs -->
-      <div id="town-filter-tabs" class="flex flex-wrap gap-2">
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-scannerBlue/20 text-scannerBlue border border-scannerBlue/40 transition" data-town="all">All</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="hopedale">Hopedale</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="milford">Milford</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="bellingham">Bellingham</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="mendon">Mendon</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="franklin">Franklin</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="blackstone">Blackstone</button>
-        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" data-town="millville">Millville</button>
+      <div id="town-filter-tabs" class="scanner-town-filters flex gap-2 overflow-x-auto" aria-label="Filter scanner calls by town">
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-scannerBlue/20 text-scannerBlue border border-scannerBlue/40 transition" type="button" data-town="all" aria-pressed="true">All</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" type="button" data-town="hopedale" aria-pressed="false">Hopedale</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" type="button" data-town="milford" aria-pressed="false">Milford</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" type="button" data-town="bellingham" aria-pressed="false">Bellingham</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" type="button" data-town="mendon" aria-pressed="false">Mendon</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" type="button" data-town="franklin" aria-pressed="false">Franklin</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" type="button" data-town="blackstone" aria-pressed="false">Blackstone</button>
+        <button class="town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition" type="button" data-town="millville" aria-pressed="false">Millville</button>
       </div>
 
       <div id="call-card-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-live="polite">
@@ -380,15 +386,16 @@
   <div id="notif-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
   <!-- Panel -->
-  <div class="relative w-full sm:max-w-md mx-auto bg-[#111827] border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+  <div class="relative w-full sm:max-w-md mx-auto bg-[#111827] border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]"
+       role="dialog" aria-modal="true" aria-labelledby="notif-title" aria-describedby="notif-description" tabindex="-1">
 
     <!-- Header -->
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700 shrink-0">
       <div>
-        <h2 class="text-base font-semibold text-white">🔔 Notification Channels</h2>
-        <p class="text-xs text-slate-400 mt-0.5">Choose which feeds send you alerts.</p>
+        <h2 id="notif-title" class="text-base font-semibold text-white">🔔 Notification Channels</h2>
+        <p id="notif-description" class="text-xs text-slate-400 mt-0.5">Choose which feeds send you alerts.</p>
       </div>
-      <button id="notif-close" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      <button id="notif-close" type="button" class="text-slate-400 hover:text-white text-xl leading-none" aria-label="Close notification settings">&times;</button>
     </div>
 
     <!-- Permission banner (shown when permission isn't granted yet) -->

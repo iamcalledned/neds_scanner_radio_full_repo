@@ -706,26 +706,35 @@ def scanner_archive():
     day = request.args.get("day")
     page = int(request.args.get("page", 1))
     json_mode = request.args.get("json") == "1"
-    days_back = int(request.args.get("days_back", 30))  # default 30, no hard cap
+    days_back = max(0, int(request.args.get("days_back", 30)))
 
-    cutoff = datetime.now() - timedelta(days=days_back)
+    # A seven-day range means today plus the previous six calendar days.
+    cutoff = None
+    if days_back:
+        cutoff = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        cutoff -= timedelta(days=days_back - 1)
     calls_per_page = 10
 
     # ============================================
     # 1️⃣ QUICK SUMMARY MODE: list days + counts
     # ============================================
     if json_mode and not day:
-        params = [cutoff.isoformat(timespec="seconds")]
-        clauses = ["timestamp >= ?"]
+        params = []
+        clauses = []
+        if cutoff:
+            clauses.append("timestamp >= ?")
+            params.append(cutoff.isoformat(timespec="seconds"))
         if feed:
             clauses.append("category = ?")
             params.append(feed)
+
+        where_sql = f"WHERE {' AND '.join(clauses)}" if clauses else ""
 
         with get_conn(readonly=True) as conn:
             rows = conn.execute(f"""
                 SELECT date(timestamp) AS day_key, COUNT(*) AS call_count
                 FROM calls
-                WHERE {' AND '.join(clauses)}
+                {where_sql}
                 GROUP BY date(timestamp)
                 ORDER BY day_key DESC
             """, params).fetchall()

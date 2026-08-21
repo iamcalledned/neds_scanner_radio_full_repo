@@ -13,7 +13,7 @@
             <div class="scanner-brand-name">Ned's Scanner Network</div>
             <div class="scanner-brand-meta">Live feeds, archive, analytics, and review tools in one place</div>
             {% if show_listener_count %}
-            <div class="scanner-live-inline md:hidden" title="Live listeners">
+            <div class="scanner-live-inline min-[1100px]:hidden" title="Live listeners">
               <span class="scanner-live-dot"></span>
               <span data-listener-count>--</span>
             </div>
@@ -21,7 +21,7 @@
           </div>
         </a>
 
-        <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+        <nav class="hidden min-[1100px]:flex items-center gap-1 text-sm font-medium">
           <a href="/scanner/" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'home' else '' }}">Home</a>
           <a href="/scanner/archive" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'archive' else '' }}">Archive</a>
           <a href="/scanner/stats" class="scanner-nav-link {{ 'scanner-nav-link-active' if active_page == 'stats' else '' }}">Stats</a>
@@ -37,7 +37,7 @@
 
       <div class="relative flex items-center gap-2">
         {% if show_listener_count %}
-        <div class="scanner-live-badge hidden md:inline-flex" title="Live listeners">
+        <div class="scanner-live-badge hidden min-[1100px]:inline-flex" title="Live listeners">
           <span class="scanner-live-dot"></span>
           <span data-listener-count>--</span>
         </div>
@@ -46,6 +46,9 @@
         <button id="push-btn"
           style="display:none"
           class="scanner-icon-button text-base"
+          type="button"
+          aria-label="Enable push notifications for new calls"
+          aria-pressed="false"
           title="Enable push notifications">
           🔕
         </button>
@@ -60,13 +63,17 @@
         </button>
 
         <button id="notif-settings-btn"
-          class="scanner-icon-button hidden md:inline-flex text-sm"
+          class="scanner-icon-button hidden min-[1100px]:inline-flex text-sm"
+          type="button"
+          aria-label="Open notification settings"
           title="Notification settings">
           🔔
         </button>
 
         <div id="menu-dropdown"
-          class="hidden absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-2xl border border-slate-700/80 bg-[#0c1628]/96 py-2 shadow-2xl backdrop-blur-xl">
+          class="hidden scanner-more-menu absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-2xl border border-slate-700/80 bg-[#0c1628]/96 py-2 shadow-2xl backdrop-blur-xl"
+          role="navigation"
+          aria-label="More scanner navigation">
           <a href="/scanner/" class="menu-item">Home</a>
           <a href="/scanner/archive" class="menu-item">Archive</a>
           <a href="/scanner/stats" class="menu-item">Stats</a>
@@ -75,7 +82,7 @@
           <a href="/scanner/review" class="menu-item">Review Edits</a>
           <button type="button" data-ask-ned-open class="menu-item">Open Chatbot</button>
           <div class="my-1 border-t border-slate-700/80"></div>
-          <button id="notif-settings-btn-mobile" class="menu-item flex items-center gap-2">
+          <button id="notif-settings-btn-mobile" type="button" class="menu-item flex items-center gap-2">
             <span>🔔</span> Notifications
           </button>
           <div class="my-1 border-t border-slate-700/80"></div>

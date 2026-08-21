@@ -195,6 +195,64 @@
       height: 100%;
     }
 
+    .scanner-town-marker {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #74849a;
+      cursor: pointer;
+      font: 700 0.65rem/1 Inter, sans-serif;
+      transform: translate(-0.55rem, -50%);
+      white-space: nowrap;
+    }
+
+    .scanner-town-marker-dot {
+      width: var(--marker-size);
+      height: var(--marker-size);
+      flex: 0 0 auto;
+      border: 2px solid #07101d;
+      border-radius: 999px;
+      background: #334155;
+      box-shadow: 0 3px 10px rgba(2, 8, 23, 0.55);
+    }
+
+    .scanner-town-marker-label {
+      padding: 0.25rem 0.42rem;
+      border: 1px solid rgba(51, 65, 85, 0.72);
+      border-radius: 0.45rem;
+      background: rgba(7, 16, 29, 0.88);
+      box-shadow: 0 4px 14px rgba(2, 8, 23, 0.48);
+    }
+
+    .scanner-town-marker.is-active {
+      color: #d9f4ff;
+    }
+
+    .scanner-town-marker.is-active .scanner-town-marker-dot {
+      background: #38bdf8;
+    }
+
+    .scanner-town-marker.is-selected {
+      z-index: 40;
+      color: #f8fafc;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .scanner-town-marker.is-selected .scanner-town-marker-dot {
+      border: 3px solid #38bdf8;
+      background: #f8fafc;
+    }
+
+    .scanner-town-marker:focus-visible .scanner-town-marker-label {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
     .hm-map-legend {
       position: absolute;
       left: 0.85rem;

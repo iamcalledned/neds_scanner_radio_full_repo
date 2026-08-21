@@ -394,18 +394,38 @@ function initHeader() {
         document.getElementById('mobile-more-btn')
     ].filter(Boolean);
     const menuDropdown = document.getElementById('menu-dropdown');
+    const menuBackdrop = document.getElementById('menu-backdrop');
 
     if (menuButtons.length && menuDropdown) {
         console.log("[Header] Initializing menu dropdown.");
+        let menuTrigger = null;
         const setMenuOpen = (isOpen) => {
             menuDropdown.classList.toggle('hidden', !isOpen);
+            menuBackdrop?.classList.toggle('hidden', !isOpen);
+            menuBackdrop?.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+            document.body.classList.toggle('scanner-more-menu-open', isOpen);
             menuButtons.forEach((button) => button.setAttribute('aria-expanded', isOpen ? 'true' : 'false'));
+            if (isOpen) {
+                menuDropdown.querySelector('a, button')?.focus();
+            } else if (menuTrigger) {
+                menuTrigger.focus();
+                menuTrigger = null;
+            }
         };
+        window.setScannerMoreMenuOpen = setMenuOpen;
         document.addEventListener('click', (e) => {
-            const clickedButton = menuButtons.some((button) => button.contains(e.target));
+            const clickedButton = menuButtons.find((button) => button.contains(e.target));
             if (clickedButton) {
+                menuTrigger = clickedButton;
                 setMenuOpen(menuDropdown.classList.contains('hidden'));
             } else if (!menuDropdown.contains(e.target)) {
+                setMenuOpen(false);
+            }
+        });
+        menuBackdrop?.addEventListener('click', () => setMenuOpen(false));
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !menuDropdown.classList.contains('hidden')) {
+                event.preventDefault();
                 setMenuOpen(false);
             }
         });
@@ -457,7 +477,7 @@ function applyTownFilter(town) {
     activeTownFilter = town;
     const grid = document.getElementById('call-card-grid');
     if (!grid) return;
-    grid.querySelectorAll('a.call-card-link').forEach(card => {
+    grid.querySelectorAll('.call-card-link').forEach(card => {
         const cardTown = card.dataset.town || 'unknown';
         card.style.display = (town === 'all' || cardTown === town) ? '' : 'none';
     });
@@ -471,8 +491,10 @@ function initTownFilterTabs() {
         tab.addEventListener('click', () => {
             tabs.forEach(t => {
                 t.className = 'town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition';
+                t.setAttribute('aria-pressed', 'false');
             });
             tab.className = 'town-filter-tab px-3 py-1 rounded-full text-xs font-medium bg-scannerBlue/20 text-scannerBlue border border-scannerBlue/40 transition';
+            tab.setAttribute('aria-pressed', 'true');
             applyTownFilter(tab.dataset.town);
         });
     });
@@ -549,7 +571,7 @@ function buildCallCardHTML(entry) {
     const wavePlayerHTML = audioSrc ? `
         <div class="home-wave-player mt-2" data-src="${audioSrc}" data-feed="${entry.feed}">
           <div class="flex items-center gap-2">
-            <button class="home-wave-btn w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border transition
+            <button type="button" aria-label="Play ${escapeHTML(townName)} scanner call" class="home-wave-btn w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border transition
                 ${isFire ? 'bg-red-900/40 border-red-700/50 text-red-300 hover:bg-red-800/50'
                          : 'bg-blue-900/40 border-blue-700/50 text-blue-300 hover:bg-blue-800/50'}">
               <span class="home-wave-icon" style="font-size:9px">▶</span>
@@ -561,8 +583,7 @@ function buildCallCardHTML(entry) {
           </div>
         </div>` : `<div class="call-card-wave ${deptMeta.waveformClass}"></div>`;
         return `
-            <a href="/scanner/view?feed=${entry.feed}" class="call-card-link" data-town="${townName.toLowerCase()}">
-                <article role="article" data-feed="${entry.feed}" class="call-card-entry panel p-5 flex flex-col">
+            <article data-feed="${escapeHTML(entry.feed)}" class="call-card-link call-card-entry panel p-5 flex flex-col" data-town="${escapeHTML(townName.toLowerCase())}">
                     <div class="call-card-meta">
                         <span class="call-card-pill ${deptMeta.pillClass}">
                             <span class="call-card-dot ${deptMeta.dotClass}"></span>
@@ -570,15 +591,14 @@ function buildCallCardHTML(entry) {
                         </span>
                         <span class="call-card-time">${timestamp}</span>
                     </div>
-                    <h3 class="call-card-title">${townName}</h3>
+                    <h3 class="call-card-title"><a href="/scanner/view?feed=${encodeURIComponent(entry.feed)}">${escapeHTML(townName)}</a></h3>
                     <p class="call-card-transcript">${preview || 'Awaiting transcript capture...'}</p>
                     <div class="call-card-footer">
                         <span>${entry.feed.toUpperCase()}</span>
                         <span class="${deptMeta.colorClass}">${deptMeta.icon}</span>
                     </div>
                     ${wavePlayerHTML}
-                </article>
-            </a>
+            </article>
         `;
 }
 
@@ -692,9 +712,10 @@ async function loadTownGrid() {
                         </h3>
                         <div class="flex ${justifyClass} items-stretch gap-3">
                             ${hasPD ? `
-                            <a href="/scanner/view?feed=${t.pd}"
+                            <div class="flex-1 flex flex-col text-center bg-blue-900/30 border border-blue-800/50 rounded-md overflow-hidden max-w-[130px]">
+                              <a href="/scanner/view?feed=${t.pd}"
                                  data-feed="${t.pd}"
-                                 class="flex-1 flex flex-col text-center bg-blue-900/30 border border-blue-800/50 rounded-md hover:bg-blue-900/50 transition p-3 max-w-[130px]">
+                                 class="flex-1 flex flex-col hover:bg-blue-900/50 transition p-3">
                                 <div class="relative font-semibold text-sm text-blue-200 mb-1.5">
                                     <span class="live-indicator"></span>
                                     🚓 Police
@@ -702,8 +723,9 @@ async function loadTownGrid() {
                                 <div class="flex-1"></div>
                                 <div class="text-xs text-slate-400">${pdCount} call${pdCount !== 1 ? 's' : ''}</div>
                                 ${pdTime ? `<div class="text-xs text-slate-500 mt-0.5">${pdTime}</div>` : '<div class="text-xs text-slate-600 mt-0.5 italic">No calls</div>'}
-                                ${pdHooks > 0 ? `<a href="/scanner/view?feed=${t.pd}&goto=hooks" class="text-xs text-amber-400 mt-0.5 hover:text-amber-300 hover:underline" onclick="event.stopPropagation()">🪝 ${pdHooks} hook${pdHooks !== 1 ? 's' : ''}</a>` : ''}
-                            </a>` : ''}
+                              </a>
+                              ${pdHooks > 0 ? `<a href="/scanner/view?feed=${t.pd}&goto=hooks" class="border-t border-blue-800/40 px-3 py-2 text-xs text-amber-400 hover:bg-blue-900/50 hover:text-amber-300 hover:underline">🪝 ${pdHooks} hook${pdHooks !== 1 ? 's' : ''}</a>` : ''}
+                            </div>` : ''}
                             ${hasFD ? `
                             <a href="/scanner/view?feed=${t.fd}" 
                                  data-feed="${t.fd}"
@@ -1612,8 +1634,7 @@ function initAskNedChat() {
     document.querySelectorAll('[data-ask-ned-open]').forEach((button) => {
         button.addEventListener('click', (event) => {
             event.preventDefault();
-            const menuDropdown = document.getElementById('menu-dropdown');
-            if (menuDropdown) menuDropdown.classList.add('hidden');
+            window.setScannerMoreMenuOpen?.(false);
             setAskNedOpen(true);
             const prefill = button.dataset.askNedPrefill;
             const input = document.getElementById('ask-ned-input');

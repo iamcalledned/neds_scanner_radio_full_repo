@@ -1,0 +1,10 @@
+{
+  "name": "neds-scanner-web-ui",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i web/static/css/tailwind.input.css -o web/static/css/tailwind.generated.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

@@ -192,10 +192,14 @@ function _updateBellButton(btn, subscribed) {
     if (subscribed) {
         btn.textContent = '🔔';
         btn.title = 'Push notifications ON — click to disable';
+        btn.setAttribute('aria-label', 'Disable push notifications for new calls');
+        btn.setAttribute('aria-pressed', 'true');
         btn.classList.add('push-active');
     } else {
         btn.textContent = '🔕';
         btn.title = 'Enable push notifications for new calls';
+        btn.setAttribute('aria-label', 'Enable push notifications for new calls');
+        btn.setAttribute('aria-pressed', 'false');
         btn.classList.remove('push-active');
     }
 }
@@ -288,13 +292,53 @@ async function initNotifOverlay() {
     const channelList  = document.getElementById('notif-channel-list');
     const permBanner   = document.getElementById('notif-permission-banner');
     const grantBtn     = document.getElementById('notif-grant-btn');
+    const dialog       = overlay.querySelector('[role="dialog"]');
 
     let channels = [];   // populated on first open
     let currentEndpoint = null;
+    let previousFocus = null;
 
     // ---- helpers ----
-    const openOverlay  = () => overlay.classList.remove('hidden');
-    const closeOverlay = () => overlay.classList.add('hidden');
+    const openOverlay = () => {
+        const activeElement = document.activeElement;
+        previousFocus = activeElement && activeElement.closest?.('#menu-dropdown')
+            ? document.getElementById('mobile-more-btn')
+            : activeElement;
+        window.setScannerMoreMenuOpen?.(false);
+        overlay.classList.remove('hidden');
+        requestAnimationFrame(() => (closeBtn || dialog)?.focus());
+    };
+    const closeOverlay = () => {
+        overlay.classList.add('hidden');
+        if (previousFocus instanceof HTMLElement) previousFocus.focus();
+        previousFocus = null;
+    };
+
+    function _trapDialogFocus(event) {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeOverlay();
+            return;
+        }
+        if (event.key !== 'Tab') return;
+        const focusable = [...dialog.querySelectorAll(
+            'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )].filter((element) => !element.closest('.hidden'));
+        if (!focusable.length) {
+            event.preventDefault();
+            dialog.focus();
+            return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
 
     function _toggleIds() {
         return [...overlay.querySelectorAll('.notif-toggle-input')]
@@ -386,9 +430,6 @@ async function initNotifOverlay() {
 
     async function openSettingsOverlay(e) {
         e?.stopPropagation?.();
-        const dd = document.getElementById('menu-dropdown');
-        if (dd) dd.classList.add('hidden');
-
         openOverlay();
         _updatePermBanner();
         await _loadAndRender();
@@ -410,6 +451,7 @@ async function initNotifOverlay() {
     closeBtn?.addEventListener('click', closeOverlay);
     cancelBtn?.addEventListener('click', closeOverlay);
     backdrop?.addEventListener('click', closeOverlay);
+    dialog?.addEventListener('keydown', _trapDialogFocus);
 
     // ---- select all / none ----
     selectAll?.addEventListener('click', () => {

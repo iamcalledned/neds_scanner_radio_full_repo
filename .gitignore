@@ -32,6 +32,9 @@ venv*/
 .venv/
 .Python
 
+# --- Frontend build dependencies ---
+node_modules/
+
 # --- Models (large binaries, never commit) ---
 *.bin
 *.pt

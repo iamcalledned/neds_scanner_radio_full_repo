@@ -1,7 +1,6 @@
-const CACHE_NAME = 'scanner-cache-v20260726-map-r2';
+const CACHE_NAME = 'scanner-cache-v20260821-ui-r1';
 const OFFLINE_URL = 'offline.html';
 
-// Use relative paths so this worker works under /scanner/ when installed there.
 // Use relative paths so this worker works under /scanner/ when installed there.
 const ASSETS_TO_CACHE = [
   './',
@@ -11,6 +10,7 @@ const ASSETS_TO_CACHE = [
   'static/icons/icon-512x512-v2.png',
   'static/icons/favicon.ico',
   'static/css/style.css',
+  'static/css/tailwind.generated.css',
 
   // Add all critical JS/CSS (without ?v)
   'static/js/scanner_app_new.js',
