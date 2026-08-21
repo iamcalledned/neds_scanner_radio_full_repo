@@ -620,7 +620,7 @@ def fetch_reviewed_edited_calls(offset: int = 0, limit: int = 20, since: str = "
     """
     with closing(get_conn(readonly=True)) as conn:
         rows = conn.execute("""
-            SELECT filename, category, duration, transcript, edited_transcript,
+            SELECT id, filename, category, duration, transcript, edited_transcript,
                    timestamp, save_for_eval, freeze_for_testing, derived_address,
                    address_confidence, transcription_model, extra
             FROM calls

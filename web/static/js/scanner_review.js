@@ -86,12 +86,22 @@ function _revInitWaveformPlayer(el) {
 
   let audioEl = new Audio(url);
   let decoded = null, animId = null, loading = false;
-  requestAnimationFrame(() => _revDrawPlaceholder(canvas, fire));
+  const storedPeaks = window.ScannerWaveform?.fromElement(el);
+  requestAnimationFrame(() => {
+    if (!window.ScannerWaveform?.draw(canvas, storedPeaks, fire, 0)) {
+      _revDrawPlaceholder(canvas, fire);
+    }
+  });
+
+  function drawCurrent(progress) {
+    if (window.ScannerWaveform?.draw(canvas, storedPeaks, fire, progress)) return;
+    if (decoded) _revDrawWave(canvas, decoded, fire, progress);
+  }
 
   function stopAnim() { if (animId) { cancelAnimationFrame(animId); animId = null; } }
   function tick() {
     if (!audioEl || audioEl.paused) { stopAnim(); return; }
-    _revDrawWave(canvas, decoded, fire, audioEl.currentTime / (audioEl.duration || 1));
+    drawCurrent(audioEl.currentTime / (audioEl.duration || 1));
     if (timeEl) timeEl.textContent = _revFmtTime(audioEl.currentTime);
     animId = requestAnimationFrame(tick);
   }
@@ -99,12 +109,12 @@ function _revInitWaveformPlayer(el) {
     if (!audioEl.paused) audioEl.pause();
     stopAnim();
     if (playIcon) playIcon.textContent = '▶';
-    if (decoded) _revDrawWave(canvas, decoded, fire, audioEl.currentTime / (audioEl.duration || 1));
+    drawCurrent(audioEl.currentTime / (audioEl.duration || 1));
   }
   audioEl.addEventListener('ended', () => {
     stopAnim();
     if (playIcon) playIcon.textContent = '▶';
-    if (decoded) _revDrawWave(canvas, decoded, fire, 1);
+    drawCurrent(1);
     if (timeEl && audioEl.duration) timeEl.textContent = _revFmtTime(audioEl.duration);
     _revActiveStop = null;
   });
@@ -118,7 +128,7 @@ function _revInitWaveformPlayer(el) {
     if (!audioEl.paused) { stopThis(); return; }
     if (_revActiveStop && _revActiveStop !== stopThis) _revActiveStop();
     _revActiveStop = stopThis;
-    if (!decoded) {
+    if (!decoded && !storedPeaks) {
       if (loading) return;
       loading = true;
       if (playIcon) playIcon.textContent = '⟳';
@@ -141,10 +151,10 @@ function _revInitWaveformPlayer(el) {
   }
   if (playBtn) playBtn.addEventListener('click', startPlay);
   scrub?.addEventListener('click', (e) => {
-    if (!decoded || !audioEl.duration) { startPlay(); return; }
+    if ((!decoded && !storedPeaks) || !audioEl.duration) { startPlay(); return; }
     const ratio = (e.clientX - canvas.getBoundingClientRect().left) / canvas.getBoundingClientRect().width;
     audioEl.currentTime = ratio * audioEl.duration;
-    _revDrawWave(canvas, decoded, fire, ratio);
+    drawCurrent(ratio);
     if (timeEl) timeEl.textContent = _revFmtTime(audioEl.currentTime);
     if (audioEl.paused) startPlay();
   });
@@ -164,7 +174,6 @@ function renderReviewCard(call) {
   const isHook = false; // not tracked for this page
   const transcript = call.transcript || '(no transcript)';
   const editedTranscript = call.edited_transcript || '';
-  const enhanced = call.enhanced_transcript || '';
   const timestamp = call.timestamp_human || call.timestamp || '';
   const address = call.derived_address || '';
   const addrConf = call.address_confidence || 'none';
@@ -193,9 +202,6 @@ function renderReviewCard(call) {
   let transcriptHTML = '';
   if (editedTranscript) {
     transcriptHTML += `<div class="rev-edited-block"><div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90" style="font-family:inherit">${_revEsc(editedTranscript)}</div></div>`;
-  }
-  if (enhanced) {
-    transcriptHTML += `<div><div class="transcript-label text-purple-400">✨ Enhanced</div><div class="transcript-block text-purple-100/90">${_revEsc(enhanced)}</div></div>`;
   }
   const origCollapseBtn = editedTranscript
     ? ` — <button class="orig-toggle" onclick="revToggleOriginal('${_revEsc(cardId)}')">show ▾</button>`
@@ -241,6 +247,10 @@ function renderReviewCard(call) {
     </div>
     <div class="space-y-2 mt-2">${transcriptHTML}</div>
   `;
+  window.ScannerWaveform?.attach(
+    div.querySelector('.wave-player'),
+    window.ScannerWaveform.fromCall(call)
+  );
 
   // Init waveform player after insertion
   requestAnimationFrame(() => {

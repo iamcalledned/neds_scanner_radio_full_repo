@@ -115,7 +115,6 @@ function renderCall(call, index) {
   const addrConfidence = (call.metadata && call.metadata.address_confidence) || 'none';
 
   // Transcripts
-  const enhancedTranscript = (call.metadata && call.metadata.enhanced_transcript) || '';
   const editedTranscript = (call.metadata && call.metadata.edited_transcript) || '';
   const editPending = call.edit_pending || false;
   const saveForEval = call.save_for_eval || false;
@@ -147,14 +146,9 @@ function renderCall(call, index) {
       </div>`;
   }
 
-  // Transcript sections
-  let transcriptHTML = '';
-  if (enhancedTranscript) {
-    transcriptHTML += `<div><div class="transcript-label text-purple-400">✨ Enhanced</div><div class="transcript-block text-purple-100/90">${_escHtml(enhancedTranscript)}</div></div>`;
-  }
-  if (editedTranscript) {
-    transcriptHTML += `<div class="edited-block"><div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90">${_escHtml(editedTranscript)}</div></div>`;
-  }
+  const editedTranscriptHTML = editedTranscript
+    ? `<div class="edited-block"><div class="transcript-label text-green-400">✅ Edited transcript</div><div class="transcript-block text-green-100/90">${_escHtml(editedTranscript)}</div></div>`
+    : '';
 
   const el = document.createElement('div');
   el.className = 'call-card-entry panel p-5 call-entry';
@@ -186,10 +180,9 @@ function renderCall(call, index) {
       </div>
     </div>
     <div class="space-y-3 mt-3">
-      ${transcriptHTML}
       <div>
-        <div id="orig-label-${index}" class="transcript-label text-slate-500">🎧 Original${editedTranscript ? ` — <button class="orig-toggle" onclick="toggleOriginal(${index})">show ▾</button>` : ''}</div>
-        <pre id="pre-${index}" class="transcript-block text-slate-200${editedTranscript ? ' hidden' : ''}">${_escHtml(originalTranscript)}</pre>
+        <div id="orig-label-${index}" class="transcript-label text-slate-500">🎧 Original transcript</div>
+        <pre id="pre-${index}" class="transcript-block text-slate-200">${_escHtml(originalTranscript)}</pre>
         <textarea id="edit-${index}" class="w-full intent-input hidden mt-2" rows="4">${_escHtml(editedTranscript || originalTranscript)}</textarea>
         <div class="call-actions">
           <button data-action="edit" data-index="${index}" class="call-action-btn">Edit</button>
@@ -213,6 +206,7 @@ function renderCall(call, index) {
         </div>
         <div id="msg-${index}" class="text-green-400 text-sm hidden mt-2">✔️ Thank you for your submission!</div>
       </div>
+      ${editedTranscriptHTML}
 
       <div id="intent-form-${index}" class="hidden intent-panel mt-3">
         <h4 class="text-sm font-semibold text-purple-300 mb-3 uppercase tracking-wide">Classify Call Intent</h4>
@@ -247,6 +241,10 @@ function renderCall(call, index) {
       </div>
     </div>
   `;
+  window.ScannerWaveform?.attach(
+    el.querySelector('.wave-player'),
+    window.ScannerWaveform.fromCall(call)
+  );
   return el;
 }
 
@@ -606,10 +604,8 @@ function enableEdit(id) {
 function cancelEdit(id) {
   const pre = document.getElementById(`pre-${id}`);
   const edit = document.getElementById(`edit-${id}`);
-  const hasEdited = document.getElementById(`edited-btn-${id}`)?.classList.contains('btn-edited-active');
-  // Only show original if there's no edit or user previously expanded it
   if (edit) edit.classList.add('hidden');
-  if (pre && !hasEdited) pre.classList.remove('hidden');
+  if (pre) pre.classList.remove('hidden');
   document.getElementById(`save-${id}`)?.classList.add("hidden");
   document.getElementById(`cancel-${id}`)?.classList.add("hidden");
   document.getElementById(`approve-${id}`)?.classList.remove('btn-dimmed');
@@ -716,27 +712,25 @@ async function submitEdit(filename, feed, id) {
       body: JSON.stringify({ filename, feed, transcript: edited })
     });
     if (resp.ok) {
-      // Update or create the ✅ Edited block above the Original section
-      const origContainer = document.getElementById(`pre-${id}`)?.closest('div')?.parentElement;
-      if (origContainer) {
-        let editedBlock = origContainer.querySelector('.edited-block');
+      // Update or create the edited transcript after the AI/Ned sections.
+      const transcriptSections = document.getElementById(`pre-${id}`)?.closest('.space-y-3');
+      if (transcriptSections) {
+        let editedBlock = transcriptSections.querySelector('.edited-block');
         if (!editedBlock) {
           editedBlock = document.createElement('div');
           editedBlock.className = 'edited-block';
-          origContainer.insertBefore(editedBlock, origContainer.querySelector('div:has(#pre-' + id + ')') || origContainer.firstChild);
+          const intentForm = document.getElementById(`intent-form-${id}`);
+          transcriptSections.insertBefore(editedBlock, intentForm || null);
         }
-        editedBlock.innerHTML = `<div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90">${_escHtml(edited)}</div>`;
+        editedBlock.innerHTML = `<div class="transcript-label text-green-400">✅ Edited transcript</div><div class="transcript-block text-green-100/90">${_escHtml(edited)}</div>`;
       }
       // Activate Edited button
       const editedBtn = document.getElementById(`edited-btn-${id}`);
       if (editedBtn) editedBtn.classList.add('btn-edited-active');
       // Restore Looks Good (no longer dimmed)
       document.getElementById(`approve-${id}`)?.classList.remove('btn-dimmed');
-      // Update orig label to show collapse toggle
-      const origLabel = document.getElementById(`orig-label-${id}`);
-      if (origLabel) origLabel.innerHTML = `🎧 Original — <button class="orig-toggle" onclick="toggleOriginal(${id})">show ▾</button>`;
-      // Hide original pre (collapsed by default after edit)
-      document.getElementById(`pre-${id}`)?.classList.add('hidden');
+      // The original remains visible as the first source section.
+      document.getElementById(`pre-${id}`)?.classList.remove('hidden');
       // Seed textarea for future re-edits
       editArea.value = edited;
       showMsg('✔️ Edit saved!');
@@ -1036,13 +1030,23 @@ function initWaveformPlayer(playerEl) {
   if (!audioEl) audioEl = new Audio(audioUrl);
 
   let decoded = null, animId = null, loading = false;
-  requestAnimationFrame(() => _drawPlaceholder(canvas, isFire));
+  const storedPeaks = window.ScannerWaveform?.fromElement(playerEl);
+  requestAnimationFrame(() => {
+    if (!window.ScannerWaveform?.draw(canvas, storedPeaks, isFire, 0)) {
+      _drawPlaceholder(canvas, isFire);
+    }
+  });
+
+  function drawCurrent(progress) {
+    if (window.ScannerWaveform?.draw(canvas, storedPeaks, isFire, progress)) return;
+    if (decoded) _drawWave(canvas, decoded, isFire, progress);
+  }
 
   function stopAnim() { if (animId) { cancelAnimationFrame(animId); animId = null; } }
   function tick() {
     if (!audioEl || audioEl.paused) { stopAnim(); return; }
     const prog = audioEl.currentTime / (audioEl.duration || 1);
-    _drawWave(canvas, decoded, isFire, prog);
+    drawCurrent(prog);
     if (timeEl) timeEl.textContent = _fmtTime(audioEl.currentTime);
     animId = requestAnimationFrame(tick);
   }
@@ -1050,13 +1054,13 @@ function initWaveformPlayer(playerEl) {
     if (!audioEl.paused) audioEl.pause();
     stopAnim();
     if (playIcon) playIcon.textContent = '▶';
-    if (decoded) _drawWave(canvas, decoded, isFire, audioEl.currentTime / (audioEl.duration || 1));
+    drawCurrent(audioEl.currentTime / (audioEl.duration || 1));
   }
 
   audioEl.addEventListener('ended', () => {
     stopAnim();
     if (playIcon) playIcon.textContent = '▶';
-    if (decoded) _drawWave(canvas, decoded, isFire, 1);
+    drawCurrent(1);
     if (timeEl && audioEl.duration) timeEl.textContent = _fmtTime(audioEl.duration);
     _viewActiveStop = null;
   });
@@ -1070,7 +1074,7 @@ function initWaveformPlayer(playerEl) {
     if (!audioEl.paused) { stopThis(); return; }
     if (_viewActiveStop && _viewActiveStop !== stopThis) _viewActiveStop();
     _viewActiveStop = stopThis;
-    if (!decoded) {
+    if (!decoded && !storedPeaks) {
       if (loading) return;
       loading = true;
       if (playIcon) playIcon.textContent = '⟳';
@@ -1093,11 +1097,11 @@ function initWaveformPlayer(playerEl) {
 
   if (playBtn) playBtn.addEventListener('click', startPlay);
   scrub?.addEventListener('click', (e) => {
-    if (!decoded || !audioEl.duration) { startPlay(); return; }
+    if ((!decoded && !storedPeaks) || !audioEl.duration) { startPlay(); return; }
     const rect = canvas.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
     audioEl.currentTime = ratio * audioEl.duration;
-    _drawWave(canvas, decoded, isFire, ratio);
+    drawCurrent(ratio);
     if (timeEl) timeEl.textContent = _fmtTime(audioEl.currentTime);
     if (audioEl.paused) startPlay();
   });

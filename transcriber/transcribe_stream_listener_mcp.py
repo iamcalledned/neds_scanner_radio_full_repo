@@ -14,6 +14,7 @@ Run:
 """
 
 import os
+import sys
 import time
 import logging
 import logging.handlers
@@ -26,6 +27,9 @@ from datetime import datetime, UTC
 
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from mcp.client.session import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
@@ -285,15 +289,19 @@ async def handle_retranscription_request(
         original_text = (row["transcript"] or row["raw_transcript"] or "").strip()
         original_quality = score_transcript(original_text, duration, rms)
         candidate_quality = score_transcript(candidate_text, duration, rms)
-        original_score = float(
-            row["transcription_score"]
+        stored_score = (
+            float(row["transcription_score"])
             if row["transcription_score"] is not None
-            else original_quality["score"]
+            else float(original_quality["score"])
         )
+        original_score = min(stored_score, float(original_quality["score"]))
         candidate_score = float(candidate_quality["score"])
         accepted = bool(
             candidate_text != original_text
-            and bool(row["needs_retry"])
+            and (
+                bool(row["needs_retry"])
+                or bool(original_quality["needs_retry"])
+            )
             and candidate_score >= 0.6
             and candidate_score >= original_score + 0.1
         )
@@ -344,10 +352,17 @@ async def handle_retranscription_request(
                 conn.execute(
                     """
                     UPDATE calls
-                    SET needs_review = 1, extra = ?
+                    SET transcription_score = ?, needs_retry = ?,
+                        needs_review = 1, quality_reasons = ?, extra = ?
                     WHERE id = ?
                     """,
-                    (json.dumps(extra), call_id),
+                    (
+                        original_score,
+                        int(original_quality["needs_retry"]),
+                        json.dumps(original_quality["reasons"]),
+                        json.dumps(extra),
+                        call_id,
+                    ),
                 )
         result = {
             "call_id": call_id,

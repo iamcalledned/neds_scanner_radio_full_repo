@@ -350,7 +350,8 @@
         <!-- Waveform player -->
         <div class="wave-player mt-3"
              data-src="{{ call.path }}"
-             data-feed="{{ call.feed }}">
+             data-feed="{{ call.feed }}"
+             {% if call.waveform %}data-waveform-peaks="{{ call.waveform.peaks }}"{% endif %}>
           <div class="wave-player-row">
             <button class="wave-play-btn w-9 h-9 rounded-full flex items-center justify-center transition flex-shrink-0
                 {% if 'fd' in call.feed %}bg-red-900/40 border border-red-700/50 text-red-300 hover:bg-red-800/50
@@ -366,23 +367,9 @@
 
         <!-- Transcript sections -->
         <div class="space-y-3 mt-3">
-          {% if call.metadata and call.metadata.enhanced_transcript %}
-          <div>
-            <div class="transcript-label text-purple-400">✨ Enhanced</div>
-            <div class="transcript-block text-purple-100/90">{{ call.metadata.enhanced_transcript }}</div>
-          </div>
-          {% endif %}
-
-          {% if call.edited_transcript %}
-          <div class="edited-block">
-            <div class="transcript-label text-green-400">✅ Edited</div>
-            <div class="transcript-block text-green-100/90">{{ call.edited_transcript }}</div>
-          </div>
-          {% endif %}
-
-              <div>
+            <div>
               <div class="flex justify-between items-center mb-1 px-1">
-                <div id="orig-label-{{ loop.index }}" class="transcript-label text-slate-500 font-bold tracking-widest text-[10px] uppercase m-0">🎧 ORIGINAL{% if call.edited_transcript %} — <button class="orig-toggle" onclick="toggleOriginal({{ loop.index }})">show ▾</button>{% endif %}</div>
+                <div id="orig-label-{{ loop.index }}" class="transcript-label text-slate-500 font-bold tracking-widest text-[10px] uppercase m-0">🎧 ORIGINAL TRANSCRIPT</div>
                 <div class="flex items-center gap-2">
                   <span class="text-[9px] font-mono tracking-wider text-slate-500/80 uppercase truncate max-w-[150px]" title="{{ call.metadata.transcription_model if call.metadata and call.metadata.transcription_model else 'DEFAULT' }}">{{ call.metadata.transcription_model if call.metadata and call.metadata.transcription_model else 'DEFAULT' }}</span>
                   {% if call.metadata and call.metadata.extra and call.metadata.extra.secondary_transcripts %}
@@ -395,7 +382,7 @@
                   {% endif %}
                 </div>
               </div>
-              <pre id="pre-{{ loop.index }}" class="transcript-block text-slate-200 whitespace-pre-wrap font-sans{% if call.edited_transcript %} hidden{% endif %}">{{ call.transcript }}</pre>
+              <pre id="pre-{{ loop.index }}" class="transcript-block text-slate-200 whitespace-pre-wrap font-sans">{{ call.transcript }}</pre>
               <textarea id="edit-{{ loop.index }}" class="w-full intent-input hidden mt-2" rows="4">{{ call.edited_transcript if call.edited_transcript else call.transcript }}</textarea>
               
               <div class="call-actions mt-2">
@@ -420,6 +407,13 @@
               </div>
               <div id="msg-{{ loop.index }}" class="text-green-400 text-sm hidden mt-2">✔️ Thank you for your submission!</div>
             </div>
+
+            {% if call.edited_transcript %}
+            <div class="edited-block">
+              <div class="transcript-label text-green-400">✅ Edited transcript</div>
+              <div class="transcript-block text-green-100/90">{{ call.edited_transcript }}</div>
+            </div>
+            {% endif %}
 
             {% if call.metadata and call.metadata.extra and call.metadata.extra.secondary_transcripts %}
             <div class="mt-4 border-t border-slate-700/50 pt-4 flex flex-col gap-3">

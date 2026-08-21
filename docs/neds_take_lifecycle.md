@@ -129,10 +129,16 @@ attempt count, and timestamps. They never overwrite the source
 `calls.classification` JSON. A high-confidence call type can be used as an
 intelligence-layer fallback when the source classification is empty.
 
-The web presents the source as **Original transcript** and the prepared version
-as **AI enhanced call / Enhanced transcript**. The latter may clean
-punctuation, spacing, and obvious scanner formatting, but it is validated for
-length and vocabulary overlap and cannot replace the source transcript.
+The full feed calls page presents the material in evidence order:
+**Original transcript**, **AI enhanced call**, then **Ned's Take**. The AI
+panel contains the validated enhanced transcript when one is materially
+different from the source, plus its factual summary. The separately labeled
+Ned's Take section contains the per-call commentary. When the conservative
+transcript validator declines to rewrite the source, the AI panel still shows
+the summary; it does not pretend an unchanged transcript is a new version. Any
+enhanced transcript is validated for length and vocabulary overlap and cannot
+replace the source transcript. The compact **Latest Scanner Calls** homepage
+cards remain source-only.
 
 The batch can store a per-transmission joke when the recording has enough
 substance, but the model is explicitly allowed to leave it blank. Many
@@ -146,6 +152,10 @@ the primary comedy unit. The processing flow is:
 4. generate incident commentary after closure or an idle debounce;
 5. rebuild town and daily rollups from those stored incident records.
 
+The per-call batch runs once a minute and defaults to six calls. The rolling
+incident and daily edition is a separate five-minute job. Both run outside the
+Eventlet request loop so local-LLM latency cannot stall the scanner web server.
+
 AI should not be the sole source for response time, incident linkage, address
 identity, citations, warnings, arrests, medical facts, or closure. Those fields
 need explicit transcript evidence and deterministic validation.
@@ -158,12 +168,26 @@ problems: repetition, incoherence, a known hallucination pattern, language
 mismatch, truncation, an impossible phrase, or a metadata conflict. Short radio
 acknowledgments alone are never a retry reason.
 
+Before the LLM is consulted, a shared deterministic validator checks for a
+dominant token run or repeated multi-word phrase covering most of a longer
+transcript. This catches Whisper loops such as dozens of consecutive
+`Received` tokens while preserving a legitimate single `Received` and normal
+traffic that happens to contain acknowledgments. A detected loop receives no
+enhanced transcript or joke, is scored for retry/review, and displays a clear
+diagnostic until a better transcript is available.
+
 Requests require at least 0.8 validation confidence, are stored durably in
 `scanner_retranscription_requests`, are unique per source fingerprint, and are
 capped at two per call. The web worker dispatches them to
 `scanner:stream:retranscribe`, two at a time by default so live transcription
 is not starved. The transcriber generates a comparison with no artifact or
 database overwrite. It preserves both versions and automatically promotes the
-comparison only when the existing deterministic quality scorer had already
-marked the original `needs_retry` and the new score improves by at least 0.1
-while reaching 0.6. Otherwise the comparison is retained for review.
+comparison only when the stored or freshly recomputed deterministic quality
+score marks the original `needs_retry` and the new score improves by at least
+0.1 while reaching 0.6. Otherwise the comparison is retained for review.
+
+The daily commentary generator separately retries one empty, malformed, or
+truncated JSON response with a larger token budget, a terser prompt, and a
+longer bounded timeout. If the second response is still unusable, the
+deterministic daily edition remains available and the expected degradation is
+logged as a concise warning rather than a traceback.

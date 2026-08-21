@@ -186,6 +186,82 @@ class ChatValidationTest(unittest.TestCase):
         self.assertEqual(mocked.call_count, 1)
         self.assertGreater(mocked.call_args.kwargs["temperature"], 0)
 
+    def test_daily_commentary_retries_truncated_json_once(self) -> None:
+        result = {
+            "day": "2026-07-29",
+            "source_watermark": {"max_call_id": 9},
+            "take": {
+                "scope": {"town": None, "department": None},
+                "totals": {"transmissions": 1, "estimated_incidents": 1},
+                "ned_take": "Fallback network copy",
+                "highlights": [],
+                "departments": [],
+                "towns": [],
+            },
+            "fact_pack": {
+                "scope": {"town": None, "department": None},
+                "breakdowns": {
+                    "call_types": {},
+                    "enforcement": {},
+                },
+                "towns": [],
+            },
+        }
+        valid_payload = {
+            "sections": {
+                "network": {
+                    "commentary": "The radios completed their paperwork."
+                }
+            },
+            "incidents": {},
+        }
+        for invalid_content in (
+            '{"sections":{"network":{"commentary":"cut',
+            None,
+        ):
+            with self.subTest(invalid_content=invalid_content):
+                responses = [
+                    {
+                        "choices": [
+                            {
+                                "finish_reason": "length",
+                                "message": {"content": invalid_content},
+                            }
+                        ]
+                    },
+                    {
+                        "choices": [
+                            {
+                                "finish_reason": "stop",
+                                "message": {
+                                    "content": json.dumps(valid_payload)
+                                },
+                            }
+                        ]
+                    },
+                ]
+                with patch(
+                    "chatbot.app.call_vllm_chat",
+                    side_effect=responses,
+                ) as mocked:
+                    enriched = chatbot_app.generate_neds_take_commentary(
+                        result
+                    )
+
+                self.assertEqual(
+                    enriched["ned_take"],
+                    "The radios completed their paperwork.",
+                )
+                self.assertEqual(mocked.call_count, 2)
+                self.assertGreater(
+                    mocked.call_args_list[1].kwargs["max_tokens"],
+                    mocked.call_args_list[0].kwargs["max_tokens"],
+                )
+                self.assertGreater(
+                    mocked.call_args_list[1].kwargs["timeout_seconds"],
+                    mocked.call_args_list[0].kwargs["timeout_seconds"],
+                )
+
     def test_incident_commentary_uses_actual_transmissions(self) -> None:
         detail = {
             "ok": True,
@@ -301,6 +377,77 @@ class ChatValidationTest(unittest.TestCase):
         )
         self.assertTrue(
             enriched[0]["transcript_validation"]["request_retranscription"]
+        )
+
+    def test_call_enrichment_splits_a_malformed_model_batch(self) -> None:
+        candidates = [
+            {"call_id": 91, "transcript": "First call."},
+            {"call_id": 92, "transcript": "Second call."},
+        ]
+
+        def generate(batch):
+            if len(batch) > 1:
+                raise json.JSONDecodeError("truncated", "", 0)
+            return [{"call_id": batch[0]["call_id"]}]
+
+        with patch(
+            "chatbot.app._generate_call_enrichment_batch_once",
+            side_effect=generate,
+        ) as mocked:
+            enriched = chatbot_app.generate_call_enrichment_batch(candidates)
+
+        self.assertEqual(
+            [item["call_id"] for item in enriched],
+            [91, 92],
+        )
+        self.assertEqual(mocked.call_count, 3)
+
+    def test_repetition_loop_bypasses_model_and_requests_retry(self) -> None:
+        transcript = " ".join(["Received."] * 55)
+        candidate = {
+            "call_id": 409843,
+            "transcript": transcript,
+        }
+
+        with patch(
+            "chatbot.app._generate_call_enrichment_batch_once",
+        ) as mocked:
+            enriched = chatbot_app.generate_call_enrichment_batch([candidate])
+
+        mocked.assert_not_called()
+        self.assertEqual(len(enriched), 1)
+        self.assertEqual(enriched[0]["enhanced_transcript"], "")
+        self.assertEqual(enriched[0]["commentary"], "")
+        self.assertEqual(
+            enriched[0]["transcript_validation"]["status"],
+            "unusable",
+        )
+        self.assertTrue(
+            enriched[0]["transcript_validation"][
+                "request_retranscription"
+            ]
+        )
+        self.assertIn(
+            "repetition",
+            enriched[0]["transcript_validation"]["reasons"],
+        )
+
+    def test_repetition_validator_preserves_real_received_calls(self) -> None:
+        self.assertIsNone(
+            chatbot_app._repetition_loop_enrichment(
+                {"call_id": 1, "transcript": "Received."}
+            )
+        )
+        self.assertIsNone(
+            chatbot_app._repetition_loop_enrichment(
+                {
+                    "call_id": 2,
+                    "transcript": (
+                        "Received. Received. Engine four responding to Main "
+                        "Street for the alarm."
+                    ),
+                }
+            )
         )
 
 

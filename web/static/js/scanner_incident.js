@@ -75,50 +75,6 @@
         transcript.className = 'mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-300';
         transcript.textContent = call.transcript || 'No transcript available.';
 
-        const enrichment = call.ai_enrichment;
-        const enrichmentBox = document.createElement('div');
-        if (enrichment && (enrichment.enhanced_transcript || enrichment.factual_summary || enrichment.commentary)) {
-            enrichmentBox.className = 'mt-3 rounded-xl border border-amber-500/20 bg-amber-950/15 p-3';
-            const enrichmentLabel = document.createElement('p');
-            enrichmentLabel.className = 'text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-300/75';
-            enrichmentLabel.textContent = 'AI enhanced call';
-            enrichmentBox.appendChild(enrichmentLabel);
-            if (enrichment.enhanced_transcript) {
-                const enhancedLabel = document.createElement('p');
-                enhancedLabel.className = 'mt-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500';
-                enhancedLabel.textContent = 'Enhanced transcript';
-                const enhancedTranscript = document.createElement('p');
-                enhancedTranscript.className = 'mt-1 whitespace-pre-wrap text-xs leading-5 text-white';
-                enhancedTranscript.textContent = enrichment.enhanced_transcript;
-                enrichmentBox.append(enhancedLabel, enhancedTranscript);
-            }
-            if (enrichment.factual_summary) {
-                const summaryLabel = document.createElement('p');
-                summaryLabel.className = 'mt-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500';
-                summaryLabel.textContent = 'AI factual summary';
-                const enrichmentSummary = document.createElement('p');
-                enrichmentSummary.className = 'mt-1 text-xs leading-5 text-slate-300';
-                enrichmentSummary.textContent = enrichment.factual_summary;
-                enrichmentBox.append(summaryLabel, enrichmentSummary);
-            }
-            if (enrichment.commentary) {
-                const commentaryLabel = document.createElement('p');
-                commentaryLabel.className = 'mt-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500';
-                commentaryLabel.textContent = 'Ned’s take';
-                const enrichmentCommentary = document.createElement('p');
-                enrichmentCommentary.className = 'mt-1 border-l border-amber-400/60 pl-2 text-xs leading-5 text-amber-100';
-                enrichmentCommentary.textContent = enrichment.commentary;
-                enrichmentBox.append(commentaryLabel, enrichmentCommentary);
-            }
-            const validation = enrichment.transcript_validation || {};
-            if (validation.status && validation.status !== 'plausible') {
-                const validationNote = document.createElement('p');
-                validationNote.className = 'mt-2 text-[11px] leading-5 text-red-200/80';
-                validationNote.textContent = `${validation.explanation || `Transcript marked ${validation.status}.`}${validation.request_retranscription ? ' A comparison transcription was requested.' : ''}`;
-                enrichmentBox.appendChild(validationNote);
-            }
-        }
-
         const audioWrap = document.createElement('div');
         audioWrap.className = 'mt-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3';
         const audio = document.createElement('audio');
@@ -138,7 +94,6 @@
         footer.appendChild(evidence);
 
         item.append(dot, heading, originalLabel, transcript);
-        if (enrichmentBox.childElementCount) item.appendChild(enrichmentBox);
         item.append(audioWrap, footer);
         item.style.setProperty('--transmission-index', index);
         return item;
@@ -151,8 +106,6 @@
             `${formatTimestamp(data.started_at, true)} through ${formatTimestamp(data.ended_at)}`;
         document.getElementById('incident-department').textContent = data.department || data.feed || 'Scanner';
         document.getElementById('incident-summary').textContent = data.summary || '';
-        document.getElementById('incident-commentary').textContent =
-            data.commentary || data.summary || 'No commentary is available.';
         document.getElementById('incident-source-count').textContent =
             `${(data.calls || []).length} transmission${(data.calls || []).length === 1 ? '' : 's'}`;
 

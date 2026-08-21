@@ -113,12 +113,22 @@ function initWaveformPlayer(el) {
 
   let audioEl = new Audio(url);
   let decoded=null, animId=null, loading=false;
-  requestAnimationFrame(()=>_drawPlaceholder(canvas,fire));
+  const storedPeaks = window.ScannerWaveform?.fromElement(el);
+  requestAnimationFrame(() => {
+    if (!window.ScannerWaveform?.draw(canvas, storedPeaks, fire, 0)) {
+      _drawPlaceholder(canvas, fire);
+    }
+  });
+
+  function drawCurrent(progress) {
+    if (window.ScannerWaveform?.draw(canvas, storedPeaks, fire, progress)) return;
+    if (decoded) _drawWave(canvas, decoded, fire, progress);
+  }
 
   function stopAnim(){if(animId){cancelAnimationFrame(animId);animId=null;}}
   function tick(){
     if(!audioEl||audioEl.paused){stopAnim();return;}
-    _drawWave(canvas,decoded,fire,audioEl.currentTime/(audioEl.duration||1));
+    drawCurrent(audioEl.currentTime/(audioEl.duration||1));
     if(timeEl) timeEl.textContent=_fmtTime(audioEl.currentTime);
     animId=requestAnimationFrame(tick);
   }
@@ -126,11 +136,11 @@ function initWaveformPlayer(el) {
     if(!audioEl.paused) audioEl.pause();
     stopAnim();
     if(playIcon) playIcon.textContent='▶';
-    if(decoded) _drawWave(canvas,decoded,fire,audioEl.currentTime/(audioEl.duration||1));
+    drawCurrent(audioEl.currentTime/(audioEl.duration||1));
   }
   audioEl.addEventListener('ended',()=>{
     stopAnim(); if(playIcon) playIcon.textContent='▶';
-    if(decoded) _drawWave(canvas,decoded,fire,1);
+    drawCurrent(1);
     if(timeEl&&audioEl.duration) timeEl.textContent=_fmtTime(audioEl.duration);
     _archActiveStop=null;
   });
@@ -141,7 +151,7 @@ function initWaveformPlayer(el) {
     if(!audioEl.paused){stopThis();return;}
     if(_archActiveStop&&_archActiveStop!==stopThis) _archActiveStop();
     _archActiveStop=stopThis;
-    if(!decoded){
+    if(!decoded&&!storedPeaks){
       if(loading) return; loading=true;
       if(playIcon) playIcon.textContent='⟳';
       try{decoded=await _fetchDecode(url);_drawWave(canvas,decoded,fire,0);if(timeEl&&audioEl.duration) timeEl.textContent=_fmtTime(audioEl.duration);}
@@ -152,10 +162,10 @@ function initWaveformPlayer(el) {
   }
   if(playBtn) playBtn.addEventListener('click',startPlay);
   scrub?.addEventListener('click',(e)=>{
-    if(!decoded||!audioEl.duration){startPlay();return;}
+    if((!decoded&&!storedPeaks)||!audioEl.duration){startPlay();return;}
     const ratio=(e.clientX-canvas.getBoundingClientRect().left)/canvas.getBoundingClientRect().width;
     audioEl.currentTime=ratio*audioEl.duration;
-    _drawWave(canvas,decoded,fire,ratio);
+    drawCurrent(ratio);
     if(timeEl) timeEl.textContent=_fmtTime(audioEl.currentTime);
     if(audioEl.paused) startPlay();
   });
@@ -180,7 +190,6 @@ function _renderCallCard(call, feed) {
   const playCount = (call.metadata && call.metadata.play_count) || 0;
   const address = (call.metadata && call.metadata.derived_address) || '';
   const addrConf = (call.metadata && call.metadata.address_confidence) || 'none';
-  const enhanced = call.enhanced_transcript || '';
   const transcript = call.transcript || '(no transcript)';
   const timestamp = call.timestamp_human || '';
 
@@ -212,9 +221,6 @@ function _renderCallCard(call, feed) {
   let transcriptHTML = '';
   if (editedTranscript) {
     transcriptHTML += `<div class="arch-edited-block"><div class="transcript-label text-green-400">✅ Edited</div><div class="transcript-block text-green-100/90" style="font-family:inherit">${_esc(editedTranscript)}</div></div>`;
-  }
-  if (enhanced) {
-    transcriptHTML += `<div><div class="transcript-label text-purple-400">✨ Enhanced</div><div class="transcript-block text-purple-100/90">${_esc(enhanced)}</div></div>`;
   }
   const origCollapseBtn = editedTranscript
     ? ` — <button class="orig-toggle" onclick="archToggleOriginal('${_esc(cardId)}')">show ▾</button>`
@@ -263,6 +269,10 @@ function _renderCallCard(call, feed) {
     </div>
     <div class="space-y-2 mt-2">${transcriptHTML}</div>
   `;
+  window.ScannerWaveform?.attach(
+    div.querySelector('.wave-player'),
+    window.ScannerWaveform.fromCall(call)
+  );
   return div;
 }
 

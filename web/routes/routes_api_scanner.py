@@ -40,8 +40,8 @@ def _row_to_metadata(row):
             metadata[field] = {}
 
     extra = metadata.get("extra") or {}
-    if isinstance(extra, dict) and extra.get("enhanced_transcript"):
-        metadata["enhanced_transcript"] = extra["enhanced_transcript"]
+    if isinstance(extra, dict):
+        extra.pop("enhanced_transcript", None)
     if metadata.get("derived_address") and not metadata.get("derived_full_address"):
         metadata["derived_full_address"] = metadata["derived_address"]
     return metadata
@@ -130,5 +130,4 @@ def get_audio(filename):
     if not f:
         return abort(404)
     return send_from_directory(f.parent, f.name)
-
 

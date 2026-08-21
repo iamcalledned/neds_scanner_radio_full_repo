@@ -1,7 +1,7 @@
 {% extends "scanner_base.html" %}
 
 {% block page_title %}Scanner Incident · Ned's Scanner Network{% endblock %}
-{% block meta_description %}Grouped scanner incident with its complete radio timeline, audio, transcripts, and Ned's Take.{% endblock %}
+{% block meta_description %}Grouped scanner incident with its complete radio timeline, audio, and source transcripts.{% endblock %}
 {% block page_key %}incident{% endblock %}
 
 {% block head_scripts %}
@@ -14,7 +14,7 @@
     <a id="incident-back-link" href="/scanner/" class="text-xs font-semibold text-sky-300 hover:text-white">← Back to scanner</a>
 
     <div id="incident-loading" class="panel mt-4 px-5 py-14 text-center text-sm text-slate-400" role="status">
-      Loading the grouped radio traffic and its prepared take…
+      Loading the grouped radio traffic…
     </div>
 
     <article id="incident-content" class="hidden space-y-5">
@@ -29,7 +29,6 @@
         </div>
 
         <p id="incident-summary" class="mt-5 text-sm leading-6 text-slate-300"></p>
-        <blockquote id="incident-commentary" class="mt-4 border-l-2 border-amber-400/60 pl-4 text-base leading-7 text-amber-100"></blockquote>
         <div id="incident-metrics" class="mt-5 flex flex-wrap gap-2"></div>
       </header>
 

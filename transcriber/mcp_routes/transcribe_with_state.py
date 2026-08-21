@@ -10,6 +10,8 @@ from typing import Any, Callable, Optional
 
 import torch
 
+from shared.waveform import DEFAULT_WAVEFORM_POINTS, extract_waveform
+
 
 def transcribe_with_state(
     ctx: Any,
@@ -92,6 +94,25 @@ def transcribe_with_state(
 
         log.info(f"[PRE-PROCESS AUDIO] Preprocessing {src.name} profile={effective_profile}")
         preprocess_audio_fn(src, tmp, profile=effective_profile)
+        waveform = None
+        waveform_warning = None
+        try:
+            waveform = extract_waveform(
+                tmp,
+                points=int(
+                    os.environ.get(
+                        "SCANNER_WAVEFORM_POINTS",
+                        str(DEFAULT_WAVEFORM_POINTS),
+                    )
+                ),
+            )
+            log.info(
+                "[PRE-PROCESS AUDIO] Waveform prepared: points=%s",
+                waveform["points"],
+            )
+        except Exception as exc:
+            waveform_warning = f"waveform_failed: {exc}"
+            log.warning("[PRE-PROCESS AUDIO] Waveform extraction failed: %s", exc)
         log.info("[PRE-PROCESS AUDIO] Preprocessing done, starting Whisper inference…")
         text = transcribe_wavefile_fn(
             state,
@@ -155,6 +176,10 @@ def transcribe_with_state(
             "transcription_model_key": resolved_model_key,
             "hook_request": hook_requested,
         }
+        if waveform:
+            meta["waveform"] = waveform
+        if waveform_warning:
+            meta.setdefault("warnings", []).append(waveform_warning)
 
         try:
             from nlp_zero_shot import enrich_meta_in_memory

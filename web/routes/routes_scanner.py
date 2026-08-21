@@ -24,7 +24,6 @@ from shared.scanner_db import (
 from user_logger import log_activity
 from scanner_intelligence import (
     find_incident_key_for_call,
-    get_call_enrichment,
     get_incident_detail,
     parse_day,
 )
@@ -155,8 +154,9 @@ def _row_to_metadata(row):
 
     extra = metadata.get("extra") or {}
     if isinstance(extra, dict):
-        if extra.get("enhanced_transcript") and not metadata.get("enhanced_transcript"):
-            metadata["enhanced_transcript"] = extra["enhanced_transcript"]
+        # Intelligence output remains stored for later evaluation, but normal
+        # scanner pages expose only source and human-edited transcript data.
+        extra.pop("enhanced_transcript", None)
         if extra.get("derived_full_address") and not metadata.get("derived_full_address"):
             metadata["derived_full_address"] = extra["derived_full_address"]
 
@@ -166,21 +166,32 @@ def _row_to_metadata(row):
     return metadata
 
 
-def _row_to_call_payload(row, feed_override=None, timestamp_format="%b %d, %I:%M %p"):
+def _row_to_call_payload(
+    row,
+    feed_override=None,
+    timestamp_format="%b %d, %I:%M %p",
+):
     metadata = _row_to_metadata(row)
     edited_transcript = row["edited_transcript"] or ""
     transcript = row["transcript"] or "(no transcript)"
     edit_pending = False  # no longer used; kept for schema compatibility
+    extra = metadata.get("extra") or {}
+    waveform = extra.get("waveform") if isinstance(extra, dict) else None
+    if not isinstance(waveform, dict) or not waveform.get("peaks"):
+        waveform = None
+    elif isinstance(extra, dict):
+        # Keep the compact envelope once at the call payload's top level.
+        extra.pop("waveform", None)
 
     ts = _safe_fromisoformat(row["timestamp"]) or _timestamp_from_filename(row["filename"])
     timestamp_human = ts.strftime(timestamp_format) if ts else row["filename"]
 
     return {
+        "call_id": int(row["id"]) if "id" in row.keys() else None,
         "file": row["filename"],
         "path": f"/scanner/audio/{row['filename']}",
         "transcript": transcript,
         "edited_transcript": edited_transcript,
-        "enhanced_transcript": metadata.get("enhanced_transcript", ""),
         "edit_pending": edit_pending,
         "save_for_eval": bool(row["save_for_eval"]) if "save_for_eval" in row.keys() else False,
         "freeze_for_testing": bool(row["freeze_for_testing"]) if "freeze_for_testing" in row.keys() else False,
@@ -188,6 +199,7 @@ def _row_to_call_payload(row, feed_override=None, timestamp_format="%b %d, %I:%M
         "timestamp_human": timestamp_human,
         "feed": feed_override or row["category"] or "",
         "duration": row["duration"] or 0,
+        "waveform": waveform,
         "metadata": metadata,
     }
 
@@ -252,7 +264,7 @@ def _compute_latest():
         for key in sorted(VALID_FEEDS):
             try:
                 row = conn.execute("""
-                    SELECT filename, duration, transcript, edited_transcript, extra
+                    SELECT filename, duration, transcript, edited_transcript
                     FROM calls
                     WHERE category = ?
                     ORDER BY timestamp DESC
@@ -263,18 +275,7 @@ def _compute_latest():
                     latest[key] = None
                     continue
 
-                extra = {}
-                if row["extra"]:
-                    try:
-                        extra = json.loads(row["extra"])
-                    except json.JSONDecodeError:
-                        extra = {}
-
-                transcript = (
-                    extra.get("enhanced_transcript")
-                    or row["edited_transcript"]
-                    or row["transcript"]
-                )
+                transcript = row["edited_transcript"] or row["transcript"]
                 latest[key] = {
                     "file": row["filename"],
                     "transcript": transcript.strip()[:300] if transcript else None,
@@ -429,7 +430,12 @@ def _compute_archive_calls(feed, offset, limit):
 
     for row in rows:
         try:
-            calls.append(_row_to_call_payload(row, feed_override=feed))
+            calls.append(
+                _row_to_call_payload(
+                    row,
+                    feed_override=feed,
+                )
+            )
         except Exception as e:
             logger.warning("API failed to load metadata for %s: %s", row["filename"], e)
 
@@ -459,7 +465,12 @@ def load_calls(directory, feed="pd", filter_today=False, limit=None):
     calls = []
     for row in rows:
         try:
-            calls.append(_row_to_call_payload(row, feed_override=feed))
+            calls.append(
+                _row_to_call_payload(
+                    row,
+                    feed_override=feed,
+                )
+            )
         except Exception as e:
             logger.warning("Failed to load metadata for %s: %s", row["filename"], e)
 
@@ -779,7 +790,14 @@ def scanner_archive():
                 LIMIT ? OFFSET ?
             """, [*params, calls_per_page, start]).fetchall()
 
-        calls = [_row_to_call_payload(row, feed_override=feed or row["category"], timestamp_format="%Y-%m-%d %H-%M-%S") for row in rows]
+        calls = [
+            _row_to_call_payload(
+                row,
+                feed_override=feed or row["category"],
+                timestamp_format="%Y-%m-%d %H-%M-%S",
+            )
+            for row in rows
+        ]
 
         return jsonify({"calls": calls, "total": len(calls)})
 
@@ -838,7 +856,6 @@ def scanner_call_permalink(call_id):
         timestamp_format="%b %d, %Y at %I:%M %p",
     )
     incident_key = find_incident_key_for_call(call_id)
-    call_enrichment = get_call_enrichment(call_id)
     return render_template(
         "scanner_call.html",
         call=call,
@@ -846,7 +863,6 @@ def scanner_call_permalink(call_id):
         call_day=call_day,
         feed=feed,
         incident_key=incident_key,
-        call_enrichment=call_enrichment,
         active_page="archive",
         show_listener_count=True,
     )
@@ -854,7 +870,7 @@ def scanner_call_permalink(call_id):
 
 @scanner_bp.route("/scanner/incident/<incident_key>")
 def scanner_incident_page(incident_key):
-    """Render the grouped incident shell; facts and commentary load no-store."""
+    """Render the grouped incident shell; factual evidence loads no-store."""
     if not get_incident_detail(incident_key):
         abort(404)
     log_activity("page_view", {"page": "incident", "incident_key": incident_key})
@@ -1055,13 +1071,17 @@ def reviewed_calls_api():
 
     calls = []
     for row in rows:
-        extra = {}
-        if row.get("extra"):
+        raw_extra = row.get("extra")
+        if isinstance(raw_extra, dict):
+            extra = raw_extra
+        else:
             try:
-                extra = json.loads(row["extra"])
-            except Exception:
+                extra = json.loads(raw_extra or "{}")
+            except (TypeError, json.JSONDecodeError):
                 extra = {}
-
+        waveform = extra.get("waveform") if isinstance(extra, dict) else None
+        if not isinstance(waveform, dict) or not waveform.get("peaks"):
+            waveform = None
         feed = row.get("category") or ""
         ts_raw = row.get("timestamp") or ""
         ts = _safe_fromisoformat(ts_raw)
@@ -1081,7 +1101,7 @@ def reviewed_calls_api():
             "derived_address": row.get("derived_address") or "",
             "address_confidence": row.get("address_confidence") or "none",
             "transcription_model": row.get("transcription_model") or "",
-            "enhanced_transcript": extra.get("enhanced_transcript", ""),
+            "waveform": waveform,
         })
 
     return jsonify({

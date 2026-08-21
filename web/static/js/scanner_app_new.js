@@ -488,7 +488,6 @@ function initScannerHomepage() {
     loadTownGrid();
     initCallBoard();
     loadHomepageSummary();
-    initNedsTakeDrawer();
 
     setInterval(loadHomepageSummary, 30000);
 }
@@ -941,7 +940,14 @@ async function refreshCallBoard(force = false) {
         }
 
         grid.innerHTML = '';
-        entries.forEach(entry => grid.insertAdjacentHTML('beforeend', buildCallCardHTML(entry)));
+        entries.forEach((entry) => {
+            grid.insertAdjacentHTML('beforeend', buildCallCardHTML(entry));
+            const players = grid.querySelectorAll('.home-wave-player');
+            window.ScannerWaveform?.attach(
+                players[players.length - 1],
+                window.ScannerWaveform.fromCall(entry)
+            );
+        });
         if (activeTownFilter && activeTownFilter !== 'all') applyTownFilter(activeTownFilter);
         initAllHomeWaveformPlayers(grid);
     };
@@ -1132,7 +1138,10 @@ function initHomeWaveformPlayer(playerEl) {
     const timeEl = playerEl.querySelector('.home-wave-time');
     if (!btn || !canvas) return;
 
-    _homeDrawPlaceholder(canvas, isFire);
+    const storedPeaks = window.ScannerWaveform?.fromElement(playerEl);
+    if (!window.ScannerWaveform?.draw(canvas, storedPeaks, isFire, 0)) {
+        _homeDrawPlaceholder(canvas, isFire);
+    }
 
     // Hidden audio element for playback
     let audioEl = playerEl._homeAudio;
@@ -1146,18 +1155,23 @@ function initHomeWaveformPlayer(playerEl) {
     let rafId = null;
     let isPlaying = false;
 
+    function drawCurrent(progress) {
+        if (window.ScannerWaveform?.draw(canvas, storedPeaks, isFire, progress)) return;
+        if (buffer) _homeDrawWave(canvas, buffer, progress);
+    }
+
     function stopPlayback() {
         if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
         audioEl.pause();
         isPlaying = false;
         icon.textContent = '▶';
-        if (buffer) _homeDrawWave(canvas, buffer, audioEl.currentTime / (audioEl.duration || 1));
+        drawCurrent(audioEl.currentTime / (audioEl.duration || 1));
     }
 
     function tick() {
         if (!isPlaying) return;
         const progress = audioEl.duration ? audioEl.currentTime / audioEl.duration : 0;
-        if (buffer) _homeDrawWave(canvas, buffer, progress);
+        drawCurrent(progress);
         if (timeEl) timeEl.textContent = _homeFmtTime(audioEl.currentTime);
         rafId = requestAnimationFrame(tick);
     }
@@ -1165,7 +1179,7 @@ function initHomeWaveformPlayer(playerEl) {
     audioEl.addEventListener('ended', () => {
         isPlaying = false;
         icon.textContent = '▶';
-        if (buffer) _homeDrawWave(canvas, buffer, 0);
+        drawCurrent(0);
         if (timeEl) timeEl.textContent = _homeFmtTime(0);
     });
 
@@ -1179,7 +1193,7 @@ function initHomeWaveformPlayer(playerEl) {
         _homeActiveStop = stopPlayback;
 
         try {
-            if (!buffer) {
+            if (!buffer && !storedPeaks) {
                 icon.textContent = '…';
                 buffer = await _homeFetchDecode(src);
                 _homeDrawWave(canvas, buffer, 0);
@@ -1205,7 +1219,7 @@ function initHomeWaveformPlayer(playerEl) {
             const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
             if (audioEl.duration) {
                 audioEl.currentTime = ratio * audioEl.duration;
-                if (buffer) _homeDrawWave(canvas, buffer, ratio);
+                drawCurrent(ratio);
                 if (timeEl) timeEl.textContent = _homeFmtTime(audioEl.currentTime);
             }
         });

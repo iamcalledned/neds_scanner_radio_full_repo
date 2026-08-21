@@ -334,4 +334,9 @@ def api_incident_take(incident_key):
             {"ok": False, "error": "Scanner incident not found."},
             404,
         )
+    # The incident page is a factual evidence view. Commentary is intentionally
+    # confined to the dedicated Ned's Take daily report.
+    detail.pop("commentary", None)
+    for call in detail.get("calls", []):
+        call.pop("ai_enrichment", None)
     return _no_store_json(detail)

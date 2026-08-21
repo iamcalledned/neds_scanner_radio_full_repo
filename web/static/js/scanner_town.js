@@ -269,7 +269,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!wrapper) return;
         var canvas = wrapper.querySelector('.wave-canvas');
         if (!canvas) return;
-        requestAnimationFrame(function() { drawPlaceholderWave(canvas, isFire); });
+        var storedPeaks = window.ScannerWaveform?.attach(
+          wrapper,
+          window.ScannerWaveform.fromCall(call)
+        );
+        requestAnimationFrame(function() {
+          if (!window.ScannerWaveform?.draw(canvas, storedPeaks, isFire, 0)) {
+            drawPlaceholderWave(canvas, isFire);
+          }
+        });
         initWaveformPlayer(wrapper, canvas, call.path, isFire);
       });
 
@@ -353,6 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
           '</article></a>';
 
         grid.insertAdjacentHTML('beforeend', cardHtml);
+        var players = grid.querySelectorAll('.town-card-player');
+        window.ScannerWaveform?.attach(
+          players[players.length - 1],
+          window.ScannerWaveform.fromCall(call)
+        );
       });
 
       initAllTownCardPlayers(grid);
@@ -524,6 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.querySelectorAll('.town-card-player').forEach(function(player) {
       var src = player.dataset.src;
       if (!src) return;
+      var cardIsFire = (player.dataset.feed || '').toLowerCase().includes('fd');
       var btn = player.querySelector('.town-card-btn');
       var icon = player.querySelector('.town-card-icon');
       var canvas = player.querySelector('.town-card-canvas');
@@ -532,6 +546,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!btn || !canvas) return;
 
       var audioEl = null, decoded = null, animId = null, loading = false;
+      var storedPeaks = window.ScannerWaveform?.fromElement(player);
+      requestAnimationFrame(function() {
+        if (!window.ScannerWaveform?.draw(canvas, storedPeaks, cardIsFire, 0)) {
+          drawPlaceholderWave(canvas, cardIsFire);
+        }
+      });
 
       function stop() {
         if (audioEl && !audioEl.paused) audioEl.pause();

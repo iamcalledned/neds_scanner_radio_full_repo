@@ -1,18 +1,4 @@
-from pathlib import Path
-
-
-
-from typing import Any, Dict, Optional, Tuple, List
-
-import os
-
-import numpy as np
-
-
-from faster_whisper import WhisperModel
-from transformers.utils import logging as hf_logging
-
-from mcp.server.fastmcp import FastMCP, Context
+from shared.transcript_quality import repetition_hallucination_metrics
 
 
 
@@ -66,6 +52,7 @@ def score_transcript(text: str, duration: float, rms: float) -> dict:
     force_review_reasons = {
         "generic_fallback_phrase",
         "near_static_but_has_transcript",
+        "repetition_loop",
         "suspiciously_short_for_duration",
     }
 
@@ -89,6 +76,11 @@ def score_transcript(text: str, duration: float, rms: float) -> dict:
     if _has_repeated_run(tokens, 3):
         score -= 0.3
         reasons.append("repeated_tokens")
+
+    repetition = repetition_hallucination_metrics(text)
+    if repetition["is_repetition_loop"]:
+        score -= 0.7
+        reasons.append("repetition_loop")
 
     # Too many single-character tokens (excluding "a" and "i")
     single_char = [t for t in tokens if len(t) == 1 and t.lower() not in ("a", "i")]

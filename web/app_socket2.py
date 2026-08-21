@@ -236,7 +236,18 @@ except Exception as e:
     logger.critical(f"[!] FAILED to connect to Redis at {REDIS_URL}: {e}")
     redis_client = None # Set to None so other functions can check
 
-scheduler = BackgroundScheduler(daemon=True, timezone=LOCAL_TIMEZONE)
+SCHEDULER_MISFIRE_GRACE_SECONDS = int(
+    os.environ.get("SCANNER_SCHEDULER_MISFIRE_GRACE_SECONDS", "60")
+)
+scheduler = BackgroundScheduler(
+    daemon=True,
+    timezone=LOCAL_TIMEZONE,
+    job_defaults={
+        "misfire_grace_time": SCHEDULER_MISFIRE_GRACE_SECONDS,
+        "coalesce": True,
+        "max_instances": 1,
+    },
+)
 
 
 # --- 6. Helper Functions ---
@@ -438,13 +449,13 @@ def calculate_all_stats():
         logger.error("stats.calculate.redis_write_failed error=%s", e)
 
 
-def refresh_neds_take():
-    """Build and publish the LLM edition away from the browser request path."""
+def refresh_call_enrichments():
+    """Prepare per-call AI views and dispatch bounded comparison retries."""
     try:
         enrichment = process_call_enrichment_batch(
             generator=generate_call_enrichment_batch,
             day="today",
-            limit=int(os.environ.get("NEDS_TAKE_CALL_ENRICHMENT_BATCH_SIZE", "24")),
+            limit=int(os.environ.get("NEDS_TAKE_CALL_ENRICHMENT_BATCH_SIZE", "6")),
         )
         logger.info(
             "neds_take.call_enrichment selected=%s completed=%s failed=%s",
@@ -474,6 +485,10 @@ def refresh_neds_take():
             )
     except Exception:
         logger.exception("neds_take.call_enrichment_failed")
+
+
+def refresh_neds_take():
+    """Build and publish the LLM edition away from the browser request path."""
     try:
         result = get_or_generate_daily_take(
             day="today",
@@ -807,11 +822,7 @@ def initialize_application():
         bool(redis_client),
     )
 
-    try:
-        warm_api_cache()
-        logger.info("application.cache_warm.complete")
-    except Exception as e:
-        logger.warning("application.cache_warm.failed error=%s", e)
+    logger.info("application.cache_warm.deferred")
 
 # Initialize application components
 initialize_application()
@@ -825,17 +836,32 @@ if __name__ == "__main__":
     # or when run by a reloader.
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         logger.info("scheduler.starting")
+        # BackgroundScheduler already invokes jobs in native executor threads.
+        # Do not wrap these calls with eventlet.tpool.execute(): tpool must be
+        # entered from an Eventlet green thread, and entering it from an
+        # APScheduler thread can corrupt the hub with a cross-thread greenlet
+        # switch and leave the listener accepting sockets without serving them.
         scheduler.add_job(
-            calculate_all_stats, 
+            calculate_all_stats,
             'interval', 
             seconds=10, # Note: 10s is very fast for a full disk scan!
-            id='scanner_stats_job'
+            id='scanner_stats_job',
         )
         scheduler.add_job(
             warm_api_cache,
             'interval',
             seconds=20,
-            id='scanner_api_cache_job'
+            id='scanner_api_cache_job',
+        )
+        scheduler.add_job(
+            refresh_call_enrichments,
+            'interval',
+            minutes=1,
+            id='scanner_call_enrichment_job',
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=SCHEDULER_MISFIRE_GRACE_SECONDS,
+            next_run_time=datetime.now(LOCAL_TIMEZONE) + timedelta(seconds=10),
         )
         scheduler.add_job(
             refresh_neds_take,
@@ -844,6 +870,8 @@ if __name__ == "__main__":
             id='neds_take_rolling_job',
             max_instances=1,
             coalesce=True,
+            misfire_grace_time=SCHEDULER_MISFIRE_GRACE_SECONDS,
+            next_run_time=datetime.now(LOCAL_TIMEZONE) + timedelta(seconds=45),
         )
         scheduler.add_job(
             finalize_previous_neds_take,

@@ -113,9 +113,9 @@ sequenceDiagram
     L->>D: Read the stream after the saved cursor
     D-->>L: Return the tag raw WAV path and capture time
     L->>M: Request transcription with artifact and database writes
-    M->>M: Validate, preprocess, infer, score, enrich
+    M->>M: Validate, preprocess, extract waveform, infer, score, enrich
     par Clean artifacts
-        M->>F: Write clean WAV, transcript TXT, metadata JSON
+        M->>F: Write clean WAV, transcript TXT, metadata JSON with waveform peaks
     and Authoritative metadata
         M->>S: Insert or replace the call row
     end
@@ -123,7 +123,7 @@ sequenceDiagram
     L->>F: Mark the raw path as processed
     L->>D: Save the primary stream cursor
 
-    loop Scheduled background work, every 5 minutes
+    loop Per-call intelligence work, every minute
         I->>S: Read new or source-changed calls
         I->>I: Batch LLM enhancement and transcript validation
         I->>N: Upsert the call enrichment
@@ -134,6 +134,9 @@ sequenceDiagram
             L->>S: Apply the scored candidate decision
             L->>N: Complete retranscription request
         end
+    end
+
+    loop Daily intelligence work, every 5 minutes
         I->>S: Load factual calls for the day
         I->>N: Replace grouped incidents for the day
         I->>I: Generate network, town, and department commentary
@@ -142,8 +145,9 @@ sequenceDiagram
 
     B->>W: Poll fresh call APIs or open a call report
     W->>S: Read source transcript and metadata
-    W->>N: Read matching enrichment incident and daily edition
-    W-->>B: Return source call and labeled AI enhanced material
+    W->>N: Read a daily edition only for the Ned's Take report
+    W-->>B: Return source call metadata and compact waveform peaks
+    B->>B: Draw the real audio envelope without downloading the WAV
     B->>W: Play clean audio
     W-->>B: WAV
     W->>S: Increment play count and log activity
@@ -264,12 +268,13 @@ For a normal call, `transcriber/mcp_routes/transcribe_with_state.py`:
 2. rejects missing, too-short, or static/noise-only files;
 3. infers the feed from the filename/path;
 4. preprocesses into a temporary clean WAV using the selected audio profile;
-5. runs faster-whisper under the shared GPU gate;
-6. performs the built-in decoding retry/squelch checks;
-7. scores transcript quality;
-8. builds baseline metadata and rule-based NLP enrichment;
-9. writes clean artifacts; and
-10. inserts the authoritative `calls` row.
+5. extracts a compact, noise-floor-aware waveform envelope from that WAV;
+6. runs faster-whisper under the shared GPU gate;
+7. performs the built-in decoding retry/squelch checks;
+8. scores transcript quality;
+9. builds baseline metadata and rule-based NLP enrichment;
+10. writes clean artifacts; and
+11. inserts the authoritative `calls` row.
 
 ### Files created for one successful call
 
@@ -329,7 +334,7 @@ necessarily one complete incident.
 | Quality | `transcription_score`, `needs_retry`, `needs_review`, `quality_reasons`, `profile_used`, `retry_profiles_tried` | MCP scoring; accepted retry replaces relevant fields; rejected retry sets `needs_review=1` |
 | Model provenance | `transcription_engine`, `transcription_model` | MCP first pass |
 | Classification | `classification`, `intent_labeled`, `intent_labeled_at` | Rule NLP first pass; human intent submission/update |
-| Model comparisons and UI extras | `extra` | First pass, optional secondary models, transcript votes, and AI retranscription candidates |
+| Model comparisons and UI extras | `extra` | First pass waveform envelope, optional secondary models, transcript votes, and AI retranscription candidates |
 | Engagement/review | `reviewed`, `play_count`, `hook_request`, `save_for_eval`, `freeze_for_testing` | Web actions and first-pass hook detection |
 | Location | `derived_address`, `derived_street`, `derived_addr_num`, `derived_town`, `derived_lat`, `derived_lng`, `address_confidence` | NLP/geocoding enrichment |
 | Training | `embedding` | Reserved/offline tooling |
@@ -491,17 +496,20 @@ writes.
 ```mermaid
 flowchart TD
     A["Completed calls row"] --> FP["Build source fingerprint"]
-    FP --> CHECK{"Matching complete<br/>enrichment exists?"}
+    FP --> LOOP{"Severe deterministic<br/>repetition loop?"}
+    LOOP -->|yes| REJECT["Mark unusable, suppress derived prose,<br/>request bounded comparison"]
+    LOOP -->|no| CHECK{"Matching complete<br/>enrichment exists?"}
     CHECK -->|yes| REUSE["Reuse current enrichment"]
     CHECK -->|no| LLM["Batch local-LLM request"]
     LLM --> VALIDATE["Validate shape, lengths,<br/>evidence, and vocabulary overlap"]
     VALIDATE --> SAVE["Upsert scanner_call_enrichments"]
+    REJECT --> SAVE
     SAVE --> DECIDE{"Questionable/unusable,<br/>retry=true, confidence >= 0.8?"}
     DECIDE -->|no| DISPLAY["Display original plus labeled<br/>AI-enhanced material"]
     DECIDE -->|yes| REQUEST["Insert durable retry request"]
     REQUEST --> DISPATCH["XADD scanner:stream:retranscribe"]
     DISPATCH --> COMPARE["Aggressive comparison transcription<br/>no artifact/DB insert"]
-    COMPARE --> SCORE{"Different, source needs_retry,<br/>candidate >= 0.6 and<br/>improves by >= 0.1?"}
+    COMPARE --> SCORE{"Different, stored or recomputed source<br/>needs retry, candidate >= 0.6,<br/>and improves by >= 0.1?"}
     SCORE -->|yes| PROMOTE["Promote calls.transcript;<br/>update score and quality flags"]
     SCORE -->|no| REVIEW["Keep source transcript;<br/>set needs_review=1"]
     PROMOTE --> HISTORY["Append candidate and decision<br/>to calls.extra.ai_retranscriptions"]
@@ -510,10 +518,16 @@ flowchart TD
     COMPLETE --> FP
 ```
 
-The enhanced transcript is presentation assistance, not a hidden replacement:
+The enrichment is presentation assistance, not a hidden replacement:
 
 - the original/source transcript remains available;
-- call and incident pages label the derived version **AI enhanced call**;
+- the full feed calls page orders the source and derived sections as
+  **Original transcript**, **AI enhanced call**, then **Ned's Take**;
+- compact homepage, archive, and review cards remain source-focused;
+- when a conservative transcript validator declines to rewrite the source, the
+  AI panel still presents its factual summary instead of disappearing;
+- severe token/phrase loops never become enhanced text or Ned's Take; they
+  display a deterministic diagnostic while the bounded comparison runs;
 - the enhanced value lives in the intelligence database;
 - a comparison retranscription is separately scored before it can replace
   `calls.transcript`; and
@@ -589,6 +603,12 @@ archive. The main browser periodically polls:
 Common call API results are warmed in process and in Redis under
 `scanner_api_cache:*`, with TTLs of roughly 10–30 seconds depending on the
 payload. The cache warmer runs every 20 seconds.
+
+Each call payload exposes the 512-point waveform envelope once at its top
+level. The browser draws those stored peaks immediately and recolors them as
+playback advances. Older calls without stored peaks retain the Web Audio
+decode-on-play fallback. `scripts/backfill_waveforms.py` can populate archived
+clean WAVs without holding SQLite's writer lock while audio is analyzed.
 
 ### Live transmitting state
 
@@ -714,9 +734,15 @@ process environment and code defaults unless another launch layer supplies it.
 | Push worker | blocking | `push_queue`; push DB | External Web Push; deletes dead subscriptions |
 | Scanner stats | 10 seconds | filesystem, call DB, active listeners | `scanner:api:stats`; `stats_update` |
 | API cache warmer | 20 seconds | call DB | memory + `scanner_api_cache:*` |
-| Ned's Take rolling job | 5 minutes | call DB, intelligence DB, local LLM | enrichments, retry requests, incidents, rolling daily take |
+| Per-call intelligence job | 1 minute, six calls by default | call DB, intelligence DB, local LLM | enrichments and bounded retry requests |
+| Ned's Take rolling job | 5 minutes | call DB, intelligence DB, local LLM | incidents and rolling network/town/department daily take |
 | Final daily edition | 12:10 AM | prior-day calls/intelligence | immutable prior-day final take |
 | Browser call board | about 30 seconds | Flask APIs | DOM only |
+
+The web process sends blocking scheduler bodies through Eventlet's native
+thread pool. AI inference and database preparation therefore do not occupy the
+cooperative request loop that serves HTTP, heartbeats, and Socket.IO clients.
+Jobs coalesce missed runs and allow a configurable scheduling grace period.
 
 ## 12. Failure and recovery behavior
 
@@ -731,7 +757,7 @@ process environment and code defaults unless another launch layer supplies it.
 | Per-call LLM batch fails | Work is released back to pending and can retry; repeated failed rows stop after bounded attempts |
 | Enrichment becomes stale | Fingerprint mismatch hides it and makes the call eligible for regeneration |
 | Retranscription candidate is not clearly better | Original remains; candidate is retained in `calls.extra`; call is flagged for review |
-| Daily LLM commentary fails | Deterministic factual take remains available |
+| Daily LLM commentary JSON is empty/truncated | Retry once with a larger output budget and terser prompt; deterministic factual take remains if that retry also fails |
 | Rolling daily source watermark changes | Cached rolling edition is considered stale/rebuilt by the scheduled path |
 | Final edition already exists | It is returned unchanged as historical record |
 | Browser cache holds a Ned response | Prevented by no-store/no-cache response and request headers |

@@ -35,6 +35,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import requests
 from flask import Flask, jsonify, request
 from scanner_intelligence import get_or_generate_daily_take
+from shared.transcript_quality import repetition_hallucination_metrics
 
 logger = logging.getLogger("scanner_chatbot")
 
@@ -1418,7 +1419,7 @@ def _valid_generated_commentary(
 
 
 def generate_neds_take_commentary(result: Dict[str, Any]) -> Dict[str, Any]:
-    """Use one variable-temperature LLM call to rewrite grounded commentary."""
+    """Generate grounded commentary, retrying one truncated JSON response."""
     facts = _build_neds_take_commentary_facts(result)
     system_prompt = """
 You write only the sarcastic riff for "Ned's Take." Verified summaries and call
@@ -1444,32 +1445,89 @@ warnings; do not use a fixed stock line.
 Required shape:
 {"sections":{"<section key>":{"commentary":"..."}},"incidents":{"<incident key>":{"commentary":"..."}}}
 """.strip()
-    response = call_vllm_chat(
-        [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": json.dumps(facts, separators=(",", ":")),
-            },
-        ],
-        temperature=float(os.environ.get("NEDS_TAKE_LLM_TEMPERATURE", "0.9")),
-        max_tokens=int(os.environ.get("NEDS_TAKE_LLM_MAX_TOKENS", "3000")),
-        timeout_seconds=int(os.environ.get("NEDS_TAKE_LLM_TIMEOUT_SECONDS", "30")),
-        reasoning_effort="low",
-        response_format={"type": "json_object"},
+    configured_temperature = float(
+        os.environ.get("NEDS_TAKE_LLM_TEMPERATURE", "0.9")
     )
-    content = (
-        response.get("choices", [{}])[0]
-        .get("message", {})
-        .get("content", "")
+    configured_max_tokens = int(
+        os.environ.get("NEDS_TAKE_LLM_MAX_TOKENS", "3000")
     )
-    generated = _parse_json_object(content)
-    generated_sections = generated.get("sections")
-    if not isinstance(generated_sections, dict):
-        raise ValueError("LLM commentary response did not contain sections")
-    generated_incidents = generated.get("incidents")
-    if not isinstance(generated_incidents, dict):
-        generated_incidents = {}
+    configured_timeout = int(
+        os.environ.get("NEDS_TAKE_LLM_TIMEOUT_SECONDS", "30")
+    )
+    attempts = (
+        (
+            configured_temperature,
+            configured_max_tokens,
+            configured_timeout,
+            system_prompt,
+        ),
+        (
+            min(configured_temperature, 0.55),
+            min(max(configured_max_tokens * 2, 6000), 8000),
+            max(configured_timeout * 3, 90),
+            system_prompt
+            + "\n\nBe especially terse. The previous JSON response was "
+            "incomplete; close every object and return the required shape.",
+        ),
+    )
+    generated_sections: Dict[str, Any] = {}
+    generated_incidents: Dict[str, Any] = {}
+    for attempt_number, (
+        temperature,
+        max_tokens,
+        timeout_seconds,
+        prompt,
+    ) in enumerate(
+        attempts,
+        start=1,
+    ):
+        choice: Dict[str, Any] = {}
+        content = ""
+        try:
+            response = call_vllm_chat(
+                [
+                    {"role": "system", "content": prompt},
+                    {
+                        "role": "user",
+                        "content": json.dumps(
+                            facts,
+                            separators=(",", ":"),
+                        ),
+                    },
+                ],
+                temperature=temperature,
+                max_tokens=max_tokens,
+                timeout_seconds=timeout_seconds,
+                reasoning_effort="low",
+                response_format={"type": "json_object"},
+            )
+            choice = response.get("choices", [{}])[0]
+            content = choice.get("message", {}).get("content") or ""
+            generated = _parse_json_object(content)
+            candidate_sections = generated.get("sections")
+            if not isinstance(candidate_sections, dict):
+                raise ValueError(
+                    "LLM commentary response did not contain sections"
+                )
+            candidate_incidents = generated.get("incidents")
+            generated_sections = candidate_sections
+            generated_incidents = (
+                candidate_incidents
+                if isinstance(candidate_incidents, dict)
+                else {}
+            )
+            break
+        except (requests.RequestException, json.JSONDecodeError, ValueError) as exc:
+            if attempt_number >= len(attempts):
+                raise
+            logger.warning(
+                "neds_take.commentary_response_retry "
+                "attempt=%s finish_reason=%s chars=%s error=%s",
+                attempt_number,
+                choice.get("finish_reason") or "request-error",
+                len(content),
+                str(exc)[:240],
+            )
 
     enriched = copy.deepcopy(result.get("take", {}))
     def apply_section(section: Dict[str, Any]) -> None:
@@ -1584,6 +1642,13 @@ def _validated_enhanced_transcript(original: str, value: Any) -> str:
     normalized_original = re.sub(r"\s+", " ", original or "").strip()
     if not enhanced or not normalized_original:
         return ""
+    if (
+        repetition_hallucination_metrics(normalized_original)[
+            "is_repetition_loop"
+        ]
+        or repetition_hallucination_metrics(enhanced)["is_repetition_loop"]
+    ):
+        return ""
     if enhanced.casefold() == normalized_original.casefold():
         return ""
     original_tokens = re.findall(r"[a-z0-9]+", normalized_original.casefold())
@@ -1602,10 +1667,10 @@ def _validated_enhanced_transcript(original: str, value: Any) -> str:
     return enhanced
 
 
-def generate_call_enrichment_batch(
+def _generate_call_enrichment_batch_once(
     candidates: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
-    """Generate validated suggestions for a batch of completed transmissions."""
+    """Make one model request for a bounded group of transmissions."""
     if not candidates:
         return []
     request_calls = [
@@ -1876,6 +1941,95 @@ Required shape:
                 "transcript_validation": transcript_validation,
                 "model": VLLM_MODEL,
             }
+        )
+    return results
+
+
+def _repetition_loop_enrichment(
+    candidate: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """Return a deterministic rejection for a severe transcription loop."""
+    transcript = candidate.get("transcript") or ""
+    repetition = repetition_hallucination_metrics(transcript)
+    if not repetition["is_repetition_loop"]:
+        return None
+    repeated_word = repetition.get("dominant_token") or "word"
+    return {
+        "call_id": int(candidate["call_id"]),
+        "enhanced_transcript": "",
+        "factual_summary": (
+            f'Transcript flagged as a likely repetition loop involving '
+            f'"{repeated_word}"; a comparison transcription was requested.'
+        ),
+        "commentary": "",
+        "classification": {
+            "call_type": "",
+            "agency": "",
+            "urgency": "unknown",
+            "lifecycle_hint": "unknown",
+            "outcome_type": "unknown",
+            "continuity_terms": [],
+        },
+        "confidence": 0.0,
+        "evidence": [],
+        "transcript_validation": {
+            "status": "unusable",
+            "request_retranscription": True,
+            "confidence": 0.99,
+            "reasons": ["repetition", "hallucination_pattern"],
+            "explanation": (
+                "Deterministic validation found a dominant repeated token or "
+                "phrase covering most of the transcript."
+            ),
+        },
+        "model": "deterministic-repetition-validator",
+    }
+
+
+def generate_call_enrichment_batch(
+    candidates: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Generate enrichment in small batches, splitting malformed responses."""
+    if not candidates:
+        return []
+    deterministic_results: List[Dict[str, Any]] = []
+    model_candidates: List[Dict[str, Any]] = []
+    for candidate in candidates:
+        repetition_result = _repetition_loop_enrichment(candidate)
+        if repetition_result:
+            deterministic_results.append(repetition_result)
+        else:
+            model_candidates.append(candidate)
+    configured_size = int(
+        os.environ.get("NEDS_TAKE_CALL_ENRICHMENT_MODEL_BATCH_SIZE", "6")
+    )
+    chunk_size = max(1, min(configured_size, 12))
+
+    def generate_with_recovery(
+        batch: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        try:
+            return _generate_call_enrichment_batch_once(batch)
+        except (json.JSONDecodeError, ValueError) as exc:
+            if len(batch) <= 1:
+                raise
+            midpoint = len(batch) // 2
+            logger.warning(
+                "call_enrichment.response_split batch_size=%s error=%s",
+                len(batch),
+                str(exc)[:240],
+            )
+            return [
+                *generate_with_recovery(batch[:midpoint]),
+                *generate_with_recovery(batch[midpoint:]),
+            ]
+
+    results: List[Dict[str, Any]] = list(deterministic_results)
+    for start in range(0, len(model_candidates), chunk_size):
+        results.extend(
+            generate_with_recovery(
+                model_candidates[start : start + chunk_size]
+            )
         )
     return results
 

@@ -1683,11 +1683,12 @@ def get_or_generate_daily_take(
             result["take"] = generated_take
             result["commentary_generator"] = "local-llm"
             result["commentary_generated_at"] = current.isoformat(timespec="seconds")
-        except Exception:
-            logger.exception(
-                "commentary.generate_failed day=%s edition=%s",
+        except Exception as exc:
+            logger.warning(
+                "commentary.generate_failed day=%s edition=%s error=%s",
                 resolved_day,
                 resolved_edition,
+                str(exc)[:500],
             )
             result["commentary_generator"] = "deterministic-fallback"
             return result

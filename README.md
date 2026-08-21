@@ -110,8 +110,9 @@ recovery—see **[Scanner System Architecture and Call Flow](docs/scanner_system
 - 📊 **Quality scoring** — each transcript gets a confidence score; low-quality calls are flagged for human review
 - 🏷️ **NLP enrichment** — regex-based extraction of addresses, responding units, agency names, tone, and urgency level
 - 🧾 **Prepared call enrichment** — batched AI suggestions, evidence-backed
-  transcript validation, explicitly labeled enhanced transcripts, and bounded
-  comparison-transcription requests stored separately from source metadata
+  transcript validation, explicitly labeled AI summaries/enhanced transcripts,
+  and bounded comparison-transcription requests stored separately from source
+  metadata; the original transcript always remains visible
 - 🔒 **GPU mutex** — Redis-backed cross-process CUDA lock prevents VRAM thrash when multiple GPU consumers are running
 
 ### Web UI
@@ -380,7 +381,8 @@ REVIEW_DIR=/path/to/scanner_archive/review
 REDIS_URL=redis://127.0.0.1:6379/0
 LOG_LEVEL=INFO
 CHAT_RATE_LIMIT_PER_MINUTE=30
-NEDS_TAKE_CALL_ENRICHMENT_BATCH_SIZE=24
+NEDS_TAKE_CALL_ENRICHMENT_BATCH_SIZE=6
+NEDS_TAKE_CALL_ENRICHMENT_MODEL_BATCH_SIZE=6
 NEDS_TAKE_CALL_ENRICHMENT_TIMEOUT_SECONDS=60
 NEDS_TAKE_RETRANSCRIPTION_DISPATCH_LIMIT=2
 NEDS_TAKE_RETRANSCRIPTION_PROFILE=aggressive

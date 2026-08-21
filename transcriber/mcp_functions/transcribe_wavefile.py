@@ -4,6 +4,8 @@ import re
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+from shared.transcript_quality import repetition_hallucination_metrics
+
 
 def _normalized_words(text: str) -> list[str]:
     return re.findall(r"\b[\w']+\b", text.lower())
@@ -30,6 +32,8 @@ def _adaptive_retry_reasons(
         reasons.append("compression")
     if word_rate > words_per_second_limit:
         reasons.append("word_rate")
+    if repetition_hallucination_metrics(text)["is_repetition_loop"]:
+        reasons.append("repetition_loop")
     return reasons
 
 
