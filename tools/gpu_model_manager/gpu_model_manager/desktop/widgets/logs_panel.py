@@ -5,10 +5,8 @@ Logs tab: tail log file with level filter and text search.
 """
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QTextCharFormat, QColor, QTextCursor
+from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import (
-    QCheckBox,
     QComboBox,
     QHBoxLayout,
     QLabel,

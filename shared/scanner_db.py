@@ -24,7 +24,7 @@ import logging.handlers
 import shutil
 import redis as _redis_lib
 from pathlib import Path
-from datetime import datetime, date
+from datetime import datetime
 from contextlib import closing
 
 from dotenv import load_dotenv

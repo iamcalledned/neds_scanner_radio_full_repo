@@ -74,7 +74,6 @@ def get_scanner_health() -> ScannerHealthStatus:
     recorder = _svc_by_name.get("scanner-recorder.service")
     listener = _svc_by_name.get("scanner-transcriber.service")
     mcp = _svc_by_name.get("scanner-mcp.service")
-    websocket = _svc_by_name.get("scanner-websocket.service")
 
     recorder_active = recorder and recorder.is_active
     listener_active = listener and listener.is_active

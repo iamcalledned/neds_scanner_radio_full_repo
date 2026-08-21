@@ -30,7 +30,6 @@ from PySide6.QtWidgets import (
 
 from modular_dashboard.core.scanner_actions import validate_scanner_stack
 from modular_dashboard.core.scanner_health import get_scanner_health
-from modular_dashboard.core.schemas import OverallStatus, ServiceState
 from modular_dashboard.desktop import style as S
 from modular_dashboard.desktop.workers import BackgroundWorker, StackActionWorker
 from modular_dashboard.desktop.widgets.common import ActionButton, BigStatusBanner

@@ -6,7 +6,7 @@ signals with the result. UI slots connect to those signals.
 """
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Callable
 
 from PySide6.QtCore import QThread, Signal
 

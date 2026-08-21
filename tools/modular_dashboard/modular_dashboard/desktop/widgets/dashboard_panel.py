@@ -14,14 +14,12 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QDialog,
     QDialogButtonBox,
-    QFrame,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QPushButton,
     QScrollArea,
-    QSizePolicy,
     QTabWidget,
     QTextEdit,
     QTreeWidget,
@@ -38,13 +36,11 @@ from modular_dashboard.core.scanner_actions import (
     stop_scanner_service,
 )
 from modular_dashboard.core.scanner_health import get_scanner_health
-from modular_dashboard.core.schemas import OverallStatus, ServiceState
 from modular_dashboard.desktop import style as S
 from modular_dashboard.desktop.workers import BackgroundWorker, ServiceActionWorker, StackActionWorker
 from modular_dashboard.desktop.widgets.common import (
     ActionButton,
     BigStatusBanner,
-    SectionHeader,
     StatusCard,
 )
 

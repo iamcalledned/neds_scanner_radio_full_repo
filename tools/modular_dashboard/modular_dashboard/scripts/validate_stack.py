@@ -13,7 +13,6 @@ import sys
 
 from modular_dashboard.core.logging_config import setup_logging
 from modular_dashboard.core.scanner_actions import validate_scanner_stack
-from modular_dashboard.core.scanner_health import get_scanner_health
 from modular_dashboard.core.utils import utc_now_str
 
 

@@ -611,14 +611,6 @@ function cancelEdit(id) {
   document.getElementById(`approve-${id}`)?.classList.remove('btn-dimmed');
 }
 
-function toggleOriginal(id) {
-  const pre = document.getElementById(`pre-${id}`);
-  const btn = document.querySelector(`#orig-label-${id} .orig-toggle`);
-  if (!pre) return;
-  const hidden = pre.classList.toggle('hidden');
-  if (btn) btn.textContent = hidden ? 'show ▾' : 'hide ▴';
-}
-
 async function toggleSaveForEval(filename, feed, id) {
   const btn = document.getElementById(`save-eval-${id}`);
   const msgEl = document.getElementById(`msg-${id}`);

@@ -1,23 +1,10 @@
-from pathlib import Path
 import json
 
 import urllib.request
 import urllib.error
 
-from typing import Any, Dict, Optional, Tuple, List
-from contextlib import asynccontextmanager
+from typing import Any, Dict, Optional
 import os
-
-import numpy as np
-
-
-from faster_whisper import WhisperModel
-from transformers.utils import logging as hf_logging
-
-from mcp.server.fastmcp import FastMCP, Context
-
-from gpu_gate import GPUGate
-from mcp_tools.audio_processing import preprocess_audio
 
 LOCATION_INFER_BASE_URL = os.environ.get("LOCATION_INFER_BASE_URL", "http://127.0.0.1:8011").rstrip("/")
 LOCATION_INFER_TIMEOUT_S = int(os.environ.get("LOCATION_INFER_TIMEOUT_S", "30"))

@@ -3,8 +3,6 @@ import logging
 import redis
 import json
 import datetime
-import pytz
-from dateutil import parser
 from flask import request
 from flask_socketio import SocketIO, emit
 
@@ -25,27 +23,6 @@ ALL_DEPARTMENT_IDS = []
 LOCAL_TIMEZONE = None
 logger = logging.getLogger('scanner_web')
 
-
-def _format_iso_time(iso_string):
-    """
-    Parses an ISO timestamp string and returns a friendly
-    12-hour time (e.g., "2:30 PM") in the local timezone.
-    Returns an empty string if the input is invalid or None.
-    """
-    if not iso_string:
-        return ""
-    try:
-        # Parse the ISO string (from UTC/Z)
-        utc_time = parser.isoparse(iso_string)
-        
-        # Convert to our local timezone
-        local_time = utc_time.astimezone(LOCAL_TIMEZONE)
-        
-        # Format as "2:30 PM"
-        return local_time.strftime('%-l:%M %p').strip()
-    except Exception as e:
-        logger.warning("time_parse_failed value=%s error=%s", iso_string, e)
-        return ""
 
 # -------------------------
 # WebSocket Event Handlers
@@ -195,8 +172,6 @@ def transmitting_worker():
     
     last_status = {}
     status_check_count = 0
-    last_active_time = None
-    
     while True:
         current_status = {}
         active_found = False
@@ -205,8 +180,6 @@ def transmitting_worker():
         try:
             # Fetch all transmitting status keys
             keys = r.keys('scanner:*:transmitting')
-            active_departments = []
-            
             if keys:
                 worker_logger.debug("transmitting_worker.status_check count=%s keys=%s", status_check_count, len(keys))
                 
@@ -225,7 +198,6 @@ def transmitting_worker():
                             current_status[dept_id] = value or 'N'
                             if value == 'Y':
                                 active_found = True
-                                active_departments.append(dept_id)
                     except IndexError:
                         worker_logger.warning("transmitting_worker.malformed_key key=%s", key)
             
@@ -242,14 +214,7 @@ def transmitting_worker():
             }
             
             if changed_statuses:
-                changes_str = " | ".join(f"{dept}: {status}" for dept, status in changed_statuses.items())
-                #worker_logger.info(f"Department status changes detected | {changes_str}")
                 socketio.emit('transmitting_update', changed_statuses)
-            
-            # Update activity tracking
-            if active_found:
-                last_active_time = datetime.datetime.now()
-                #worker_logger.info(f"Active transmission detected | Departments: {', '.join(active_departments)}")
             
             last_status = current_status.copy()
             

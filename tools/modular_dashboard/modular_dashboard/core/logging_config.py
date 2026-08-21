@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
-import os
 from pathlib import Path
 
 from modular_dashboard.core.config import LOG_DIR, LOG_FILE, LOG_LEVEL

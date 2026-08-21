@@ -476,43 +476,10 @@ def load_calls(directory, feed="pd", filter_today=False, limit=None):
 
     return calls
 
-def load_archive(directory):
-    archive = {}
-    for wav in sorted(Path(directory).glob("*.wav"), reverse=True):
-        base = wav.stem
-        txt = wav.with_suffix(".txt")
-        try:
-            date_str = base.split("_")[1]
-            call_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-            day_key = call_date.strftime("%Y-%m-%d")
-        except Exception:
-            day_key = "unknown"
-
-        timestamp = base.replace("rec_", "").replace("_", " ")
-        try:
-            parts = base.split("_")
-            timestamp_str = f"{parts[1]}_{parts[2]}"
-            dt = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
-            timestamp_human = dt.strftime("%b %d, %I:%M %p")
-        except Exception:
-            timestamp_human = timestamp
-
-        data = {
-            "file": wav.name,
-            "path": f"/scanner/audio/{wav.name}",
-            "transcript": txt.read_text() if txt.exists() else "(no transcript)",
-            "timestamp": timestamp,
-            "timestamp_human": timestamp_human
-        }
-        archive.setdefault(day_key, []).append(data)
-    return dict(sorted(archive.items(), reverse=True))
-
-
 @scanner_bp.route("/scanner/segments")
 def scanner_segments():
     calls = []
     for wav in sorted(SEGMENT_DIR.glob("*.wav"), reverse=True):
-        base = wav.stem
         json_path = wav.with_suffix(".json")
         transcript = "(no transcript)"
         speaker = ""

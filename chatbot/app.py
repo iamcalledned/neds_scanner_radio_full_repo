@@ -24,7 +24,6 @@ def extract_and_execute_tool_call_from_response(response: str) -> dict:
 # Example usage:
 # ai_response = "...<tools>\n{\n  \"name\": \"find_fire_announcements\", ...}\n</tools>..."
 # result = extract_and_execute_tool_call_from_response(ai_response)
-import json
 import logging
 import os
 import sqlite3

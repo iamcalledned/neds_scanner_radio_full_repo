@@ -6,7 +6,6 @@ Does not raise on bad config — returns clean errors/warnings.
 """
 from __future__ import annotations
 
-import re
 from urllib.parse import urlparse
 
 from .config import RUNTIMES_CONFIG_FILE

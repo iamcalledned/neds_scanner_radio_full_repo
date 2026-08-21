@@ -19,9 +19,9 @@ from PySide6.QtWidgets import (
 )
 
 from ...core.policy_engine import can_start_runtime
-from ...core.runtime_registry import get_runtime_registry, get_runtime_status
+from ...core.runtime_registry import get_runtime_registry
 from ..workers import DataWorker
-from .common import MutedLabel, SectionLabel
+from .common import MutedLabel
 
 
 def _fetch_registry():

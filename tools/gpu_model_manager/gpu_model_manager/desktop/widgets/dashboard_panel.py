@@ -20,11 +20,9 @@ from ..workers import DataWorker
 from .common import (
     CardFrame,
     MutedLabel,
-    SectionLabel,
     StatusLabel,
     ValueLabel,
     VramBar,
-    h_separator,
 )
 
 

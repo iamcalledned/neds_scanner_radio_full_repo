@@ -5,13 +5,11 @@ Shared widget helpers and base classes used across all panels.
 """
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
     QProgressBar,
-    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )

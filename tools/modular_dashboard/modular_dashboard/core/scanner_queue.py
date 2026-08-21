@@ -12,7 +12,7 @@ Backlog interpretation is controlled by SCANNER_QUEUE_BACKLOG_MODE:
 from __future__ import annotations
 
 import time
-from typing import Any, Optional
+from typing import Optional
 
 from modular_dashboard.core.config import (
     REDIS_URL,
@@ -26,7 +26,7 @@ from modular_dashboard.core.config import (
 )
 from modular_dashboard.core.logging_config import get_logger
 from modular_dashboard.core.schemas import OverallStatus, RedisStatus, ScannerQueueStatus
-from modular_dashboard.core.utils import utc_now_str, format_age_seconds
+from modular_dashboard.core.utils import format_age_seconds
 
 log = get_logger("scanner_queue")
 
@@ -493,8 +493,7 @@ def get_recent_transcribed(limit: int = 30) -> list[dict]:
         max_id = (last_id_bytes.decode() if isinstance(last_id_bytes, bytes) else str(last_id_bytes)) if last_id_bytes else "+"
         entries = client.xrevrange(SCANNER_REDIS_STREAM_KEY, max=max_id, count=limit)
         result = []
-        for entry_id, fields in entries:
-            id_str = entry_id.decode() if isinstance(entry_id, bytes) else str(entry_id)
+        for _entry_id, fields in entries:
             decoded = _decode_fields(fields)
             ts = decoded.get("time", "")
             result.append({

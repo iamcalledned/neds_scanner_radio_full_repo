@@ -21,7 +21,6 @@ import os
 import sys
 import math
 import time
-import json
 import logging
 import logging.handlers
 import argparse
@@ -33,7 +32,7 @@ import requests
 # ── Make shared/ importable ──
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from shared.scanner_db import (
-    get_conn, create_tables, address_stats, log as db_log, DB_PATH
+    get_conn, create_tables, address_stats, DB_PATH
 )
 
 from dotenv import load_dotenv

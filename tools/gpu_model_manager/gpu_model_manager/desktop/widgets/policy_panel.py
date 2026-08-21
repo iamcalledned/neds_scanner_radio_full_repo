@@ -5,7 +5,6 @@ Policy tab: VRAM state, formula display, can-start tester.
 """
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -14,7 +13,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPlainTextEdit,
-    QProgressBar,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -23,7 +21,7 @@ from PySide6.QtWidgets import (
 from ...core.policy_engine import can_start_runtime, get_policy_status
 from ...core.runtime_registry import list_runtime_keys
 from ..workers import DataWorker
-from .common import CardFrame, MutedLabel, SectionLabel, VramBar
+from .common import VramBar
 
 
 def _fetch():

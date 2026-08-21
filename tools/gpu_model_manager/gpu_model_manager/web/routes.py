@@ -7,10 +7,8 @@ API routes return JSON. Page routes return Jinja2 templates.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from ..core.actions import (
@@ -18,7 +16,6 @@ from ..core.actions import (
     restart_runtime,
     start_runtime,
     stop_runtime,
-    validate_runtime_stack,
 )
 from ..core.config import LOG_FILE
 from ..core.endpoint_monitor import check_all_runtime_endpoints
@@ -34,7 +31,6 @@ from ..core.process_inspector import classify_gpu_process
 from ..core.reconciler import get_runtime_reconciliation
 from ..core.registry_validator import validate_runtime_registry
 from ..core.runtime_registry import (
-    get_runtime_definition,
     get_runtime_registry,
     get_runtime_status,
 )

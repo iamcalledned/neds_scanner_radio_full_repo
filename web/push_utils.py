@@ -1,10 +1,8 @@
 import os
 import json
 import logging
-from base64 import urlsafe_b64encode, urlsafe_b64decode
-from pywebpush import webpush, WebPushException
+from pywebpush import webpush
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
 import base64
 
 VAPID_PUBLIC_FILE = os.path.join(os.path.dirname(__file__), 'vapid_public.key')
@@ -68,6 +66,3 @@ def send_push(subscription_info, payload, vapid_private_key, vapid_claims):
                 err2 = str(ex2)
             logger.warning("webpush.failed endpoint=%s error=%s", endpoint[:120], err2)
             return False, err_text + ' || ' + err2
-    except Exception as e:
-        logger.exception("send_push unexpected error for %s", endpoint[:120])
-        return False, str(e)

@@ -5,10 +5,8 @@ GPU tab: VRAM, utilization, temperature, power, process table.
 """
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QHBoxLayout,
-    QLabel,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -19,7 +17,7 @@ from PySide6.QtWidgets import (
 from ...core.gpu_inventory import get_gpu_processes, get_gpu_status
 from ...core.process_inspector import classify_gpu_process
 from ..workers import DataWorker
-from .common import CardFrame, MutedLabel, SectionLabel, ValueLabel, VramBar
+from .common import CardFrame, MutedLabel, ValueLabel, VramBar
 
 
 def _fetch():

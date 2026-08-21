@@ -20,14 +20,13 @@ import time
 import glob
 import math
 import logging
+import logging.handlers
 from logging.config import dictConfig
 from uuid import uuid4
 import atexit
 from datetime import datetime, date, timedelta
 from pathlib import Path
 from urllib.parse import urljoin
-from logging.handlers import RotatingFileHandler
-from dateutil import parser
 
 # --- 2. Third-Party Imports ---
 import redis
@@ -46,10 +45,9 @@ from routes.routes_push import push_bp
 from routes.routes_chat import chat_bp
 from scanner_config import TOWNS
 import push_db
-import push_utils
 from push_db import list_loggedin_users as get_loggedin_users_count
 # Added get_todays_stats, which is needed by the background task
-from shared.scanner_db import read_metadata_from_sqlite, get_todays_stats
+from shared.scanner_db import get_todays_stats
 from scanner_intelligence import (
     dispatch_pending_retranscriptions,
     get_or_generate_daily_take,
@@ -318,16 +316,6 @@ def parse_filename_timestamp(filename):
     except Exception as e:
         logger.error(f"Error parsing timestamp from {filename}: {e}")
     return None
-
-def format_timestamp_human(dt_obj):
-    """Formats datetime object nicely (e.g., 'Oct 24, 10:18 PM')"""
-    if dt_obj:
-        return dt_obj.strftime("%b %d, %I:%M %p")
-    return "Invalid Time"
-
-def read_metadata(wav_filepath):
-    # Pass in the global redis_client
-    return read_metadata_from_sqlite(wav_filepath, redis_client)
 
 def get_total_disk_usage(path):
     """Calculates total disk usage for a directory."""

@@ -7,10 +7,9 @@ Page routes: /, /scanner, /services, /redis, /logs
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from modular_dashboard.core.logging_config import get_logger

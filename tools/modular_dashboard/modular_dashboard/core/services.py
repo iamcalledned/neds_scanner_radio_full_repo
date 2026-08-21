@@ -7,7 +7,6 @@ aggregation lives in scanner_services.py.
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 from modular_dashboard.core.command_runner import run_systemctl_user
 from modular_dashboard.core.logging_config import get_logger
@@ -17,7 +16,6 @@ from modular_dashboard.core.schemas import (
     ServiceStatus,
 )
 from modular_dashboard.core.config import SCANNER_SERVICE_KEYWORDS
-from modular_dashboard.core.utils import utc_now_str
 
 log = get_logger("services")
 

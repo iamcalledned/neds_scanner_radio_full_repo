@@ -1,6 +1,5 @@
 import os
 import json
-import argparse
 
 def main():
     large_dir = "/home/ned/data/scanner_calls/logs/output/large_model_faster"

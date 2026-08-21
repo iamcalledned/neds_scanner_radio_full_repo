@@ -1,8 +1,7 @@
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify
 import os
 import json
 import logging
-from . import routes_scanner as scanner_routes
 import push_db
 import push_utils
 import redis
@@ -148,4 +147,3 @@ def send_push_now():
         except Exception as e:
             results.append({'endpoint': s.get('endpoint'), 'ok': False, 'error': str(e)})
     return jsonify({'sent': sum(1 for r in results if r.get('ok')), 'results': results})
-

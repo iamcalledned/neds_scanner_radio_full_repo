@@ -10,7 +10,6 @@ Key improvements:
 """
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFrame,
@@ -32,11 +31,10 @@ from modular_dashboard.core.scanner_queue import (
     get_scanner_queue_status,
     get_scanner_related_keys,
 )
-from modular_dashboard.core.schemas import OverallStatus
 from modular_dashboard.core.utils import format_age_seconds
 from modular_dashboard.desktop import style as S
 from modular_dashboard.desktop.workers import BackgroundWorker
-from modular_dashboard.desktop.widgets.common import InfoRow, SectionHeader
+from modular_dashboard.desktop.widgets.common import InfoRow
 
 
 def _load_all():

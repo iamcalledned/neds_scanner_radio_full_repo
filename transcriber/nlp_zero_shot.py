@@ -554,7 +554,7 @@ def extract_address(text: str, town: str = None) -> dict:
 def _resolve_coordinates(result: dict, number: int, street: str, town: str):
     """Look up exact or approximate coordinates for an address."""
     try:
-        from shared.scanner_db import get_address_coords, get_conn
+        from shared.scanner_db import get_address_coords
         coords = get_address_coords(number, street, town)
         if coords:
             result["latitude"] = coords["latitude"]

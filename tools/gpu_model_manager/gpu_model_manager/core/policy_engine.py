@@ -18,8 +18,8 @@ from __future__ import annotations
 from .config import GPU_SAFETY_MARGIN_MB, SCANNER_WHISPER_RESERVED_MB
 from .gpu_inventory import get_gpu_status
 from .logging_config import get_logger
-from .runtime_registry import get_runtime_definition, get_protected_runtimes
-from .schemas import CanStartDecision, CanStartRequest, PolicyStatus
+from .runtime_registry import get_runtime_definition
+from .schemas import CanStartDecision, PolicyStatus
 
 log = get_logger("policy_engine")
 

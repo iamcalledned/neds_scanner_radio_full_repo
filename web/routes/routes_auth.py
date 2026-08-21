@@ -1,6 +1,6 @@
 # routes/routes_auth.py
-from flask import Blueprint, request, redirect, jsonify, make_response
-import os, json, time, requests
+from flask import Blueprint, request, jsonify
+import os, requests
 import logging
 
 auth_bp = Blueprint("auth", __name__)
